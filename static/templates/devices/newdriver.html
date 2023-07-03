@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Устройства</title>
+    <link rel="stylesheet" href="../styles/main.css" />
+</head>
+<body>
+
+    <header>
+        <h1>Аргус</h1>
+        <h2><span>/</span> Название организации</h2>
+    </header>
+
+    <section class="account-info">
+      <div id="account-main">
+          <img id="person" src="../img/person.svg">
+          <span>Тестовое Имя</span>
+          <img id="down" src="../img/down.svg">
+          <img id="up" src="../img/up.svg">
+      </div>
+      <a href="/login"><div id="account-additional" class="additional">Выйти</div></a>
+  </section>
+
+    
+
+
+    <section class="navigation">
+        <a href="/">
+            <div><img src="../img/chart.svg">Главная</div>
+        </a>
+        <a href="/devices">
+            <div class="selected"><img src="../img/cloud.svg">Устройства</div>
+        </a>
+        <a href="/reports">
+            <div><img src="../img/bubble.svg">Отчёты</div>
+        </a>
+        <a href="/live">
+            <div><img src="../img/waves.svg">Трансляция</div>
+        </a>
+        <a href="/">
+            <div><img src="../img/play.svg">Записи</div>
+        </a>
+        <a class="settings" href="/">
+            <div><img src="../img/gear.svg">Настройки</div>
+        </a>
+    </section>
+
+    <section class="main">
+        <div class="name">
+            <span>Устройства</span>
+        </div>
+        <nav>
+            <a href="/devices">Список устройств</a>
+            <a href="/devices/drivers">Водители</a>
+            <a href="/devices/newdevice">Добавить устройство</a>
+            <a class="selected" href="/devices/newdriver">Добавить водителя</a>
+
+            <a class="update" href="/devices/update">Обновление ПО</a>
+        </nav>
+        <section class="bg">
+            <section class="content">
+
+              <section class="for-new">
+
+                <section class="stages">
+                    <input name="newStage" type="radio" value="main" id="stage-main" checked><label for="stage-main">Основная информация</label>
+                    <div class="vertical-line"></div>
+                    <input name="newStage" type="radio" value="details" id="stage-details"><label for="stage-details">Детали</label>
+                </section>
+              </section>
+              <section id="add-new-container" class="add-new">
+
+                <form>
+
+                <div id="main" class="new-parameters drivers active">
+
+                    <h1>Основная информация</h1>
+                    <h2>Сперва самое необходимое</h2>
+
+                    <div class="horizontal-line"></div>
+
+                    <label for="parameters-plate">Фотография<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                    <div id="upload-photo" class="upload-input">
+                        <img src="../img/upload.svg">
+                        <span class="upload-text">Загрузить фотографию водителя</span>
+                        <span class="upload-description">PNG, JPG (макс 20 мб)</span>
+                    </div>
+                    <input id="input-upload-photo" type="file" name="upload-file" style="display: none;">
+
+                    <div class="parameters-inputs">
+                        <label for="driver-name">Имя<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <input name="driverName" type="text" id="driver-name" placeholder="Имя водителя" required>
+
+                        <label for="driver-surname">Фамилия<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <input name="driverSurname" type="text" id="driver-surname" placeholder="Фамилия водителя" required>
+
+                        <label for="driver-card">Карта водителя<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <input name="driverCard" type="text" id="driver-card" placeholder="Номер карты водителя" required>
+
+                    </div>
+
+                    <div class="horizontal-line"></div>
+
+                    <button id="continue-main" type="button">Продолжить</button>
+
+                </div>
+
+                <div id="details" class="new-parameters drivers">
+
+                    <h1>Детальная информация</h1>
+                    <h2>Для удобства в идентификации</h2>
+
+                    <div class="horizontal-line"></div>
+
+                    <div class="parameters-inputs">
+
+                        <label for="driver-gender">Пол<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <select name="driverGender" id="driver-gender">
+                            <option value="male">Мужской</option>
+                            <option value="female">Женский</option>
+                        </select>
+
+                        <label for="driver-license">Водительское удостоверение<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <input name="driverLicense" type="text" id="driver-license" placeholder="Номер водительского удостоверения" required>
+
+                        <label for="driver-passport">Удостоверение личности<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <input name="driverPassport" type="text" id="driverPassport" placeholder="Номер удостоверения личности" required>
+
+                        <label for="driver-phone">Мобильный телефон<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <input name="driverPhone" type="text" id="driver-phone" placeholder="Номер мобильного телефона" required>
+
+                        <label for="driver-description">Примечание<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <input name="driverDescription" type="text" id="driver-description" placeholder="Примечание" required>
+
+                    </div>
+
+                    <div class="horizontal-line"></div>
+
+                    <button>Сохранить</button>
+
+                </div>
+
+                </form>
+
+              </section>
+
+
+
+            </section>
+        </section>
+    </section>
+
+    <script src="../scripts/jquery.min.js"></script>
+
+    <script>
+        const fileSelect = document.getElementById("upload-photo");
+        const fileElem = document.getElementById("input-upload-photo");
+
+        fileSelect.addEventListener(
+                "click",
+                (e) => {
+                        if (fileElem) {
+                                fileElem.click();
+                        }
+                },
+                false
+        );
+    </script>
+
+    <script>
+        // Скрытие/Показ дополнительных меню аккаунта
+        const accountMain = document.getElementById('account-main');
+        const accountAdditional = document.getElementById('account-additional');
+        const accountUp = document.getElementById('up');
+        const accountDown = document.getElementById('down');
+        accountAdditional.style.display = 'none';
+        accountUp.style.display = 'none';
+        
+        accountMain.addEventListener('click', () => {
+          if (accountAdditional.style.display === 'none') {
+            accountAdditional.style.display = 'flex';
+            accountUp.style.display = 'unset';
+            accountDown.style.display = 'none';
+          } else {
+            accountAdditional.style.display = 'none';
+            accountUp.style.display = 'none';
+            accountDown.style.display = 'unset';
+          }
+        });
+      </script>
+
+      <script>
+
+        $("#continue-main").click(function () {
+            document.getElementById("stage-details").checked = true;
+        });
+        
+      </script>
+
+      <script>
+        const container = document.getElementById('new-parameters');
+        const content1 = document.getElementById('main');
+        const content2 = document.getElementById('details');
+        const btn1 = document.getElementById('continue-main');
+        const radioButtons = document.querySelectorAll('input[type="radio"][name="newStage"]');
+        const duration = 100;
+
+        let activeContent = content1;
+
+        function switchContent(newContent) {
+        fadeOut(activeContent, () => {
+            fadeIn(newContent);
+            activeContent = newContent;
+        });
+        }
+
+        function fadeIn(element) {
+        element.style.opacity = 0;
+        element.style.display = 'block';
+        let start = performance.now();
+
+        function animate(time) {
+            let timeFraction = (time - start) / duration;
+            if (timeFraction > 1) {
+            element.style.opacity = 1;
+            } else {
+            element.style.opacity = timeFraction;
+            requestAnimationFrame(animate);
+            }
+        }
+
+        requestAnimationFrame(animate);
+        }
+
+        function fadeOut(element, callback) {
+        element.style.opacity = 1;
+        let start = performance.now();
+
+        function animate(time) {
+            let timeFraction = (time - start) / duration;
+            if (timeFraction > 1) {
+            element.style.opacity = 0;
+            element.style.display = 'none';
+            if (callback) {
+                callback();
+            }
+            } else {
+            element.style.opacity = 1 - timeFraction;
+            requestAnimationFrame(animate);
+            }
+        }
+
+        requestAnimationFrame(animate);
+        }
+
+        btn1.addEventListener('click', () => {
+        if (activeContent === content1) {
+            switchContent(content2);
+        } else {
+            switchContent(content1);
+        }
+        });
+
+
+        for (let radioButton of radioButtons) {
+        radioButton.addEventListener('change', () => {
+            if (radioButton.value === 'main') {
+            switchContent(content1);
+            } else if (radioButton.value === 'details') {
+            switchContent(content2);
+            }
+        });
+        }
+
+      </script>
+
+<script>
+    function truncateText(select) {
+  var maxLength = 30;
+  var option = select.options[select.selectedIndex];
+  if (option.text.length > maxLength) {
+    option.text = option.text.substring(0, maxLength) + '...';
+  }
+}
+
+    </script>
+
+    
+
+    
+</body>
+</html>

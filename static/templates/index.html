@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, introductory scale=1">
+    <title>Панель управления</title>
+    <link rel="stylesheet" href="../styles/main.css" />
+</head>
+<body>
+
+    <div class="page-transition"></div>
+
+    <header>
+        <h1>Аргус</h1>
+        <h2><span>/</span> Название организации</h2>
+    </header>
+
+    <section class="account-info">
+        <div id="account-main">
+            <img id="person" src="../img/person.svg">
+            <span>Тестовое Имя</span>
+            <img id="down" src="../img/down.svg">
+            <img id="up" src="../img/up.svg">
+        </div>
+        <a href="/login"><div id="account-additional" class="additional">Выйти</div></a>
+    </section>
+
+    
+
+
+    <section class="navigation">
+        <a href="/">
+            <div class="selected"><img src="../img/chart.svg">Главная</div>
+        </a>
+        <a href="/devices">
+            <div><img src="../img/cloud.svg">Устройства</div>
+        </a>
+        <a href="/reports">
+            <div><img src="../img/bubble.svg">Отчёты</div>
+        </a>
+        <a href="/live">
+            <div><img src="../img/waves.svg">Трансляция</div>
+        </a>
+        <a href="/">
+            <div><img src="../img/play.svg">Записи</div>
+        </a>
+        <a class="settings" href="/">
+            <div><img src="../img/gear.svg">Настройки</div>
+        </a>
+    </section>
+
+    <section class="main">
+        <div class="name">
+            <img src="../img/cars.svg"><span>Сводка по 351 ТС</span>
+        </div>
+        <section class="bg">
+            <section class="content">
+
+                    <div class="graph left">
+                        <h1>Предупреждения</h1>
+                        <span>10 д</span>
+                        <div class="chart">
+                            <canvas id="chart-warnings"></canvas>
+                        </div>
+                    </div>
+                    <div class="graph right">
+                        <h1>Позиционирование</h1>
+                        <span>10 д</span>
+                        <div class="chart">
+                            <canvas id="chart-positions"></canvas>
+                        </div>
+                    </div>
+
+            </section>
+        </section>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../scripts/graphs.js"></script>
+    <script>
+        // Скрытие/Показ дополнительных меню аккаунта
+        const accountMain = document.getElementById('account-main');
+        const accountAdditional = document.getElementById('account-additional');
+        const accountUp = document.getElementById('up');
+        const accountDown = document.getElementById('down');
+        accountAdditional.style.display = 'none';
+        accountUp.style.display = 'none';
+        
+        accountMain.addEventListener('click', () => {
+          if (accountAdditional.style.display === 'none') {
+            accountAdditional.style.display = 'flex';
+            accountUp.style.display = 'unset';
+            accountDown.style.display = 'none';
+          } else {
+            accountAdditional.style.display = 'none';
+            accountUp.style.display = 'none';
+            accountDown.style.display = 'unset';
+          }
+        });
+      </script>
+
+      
+    
+</body>
+</html>

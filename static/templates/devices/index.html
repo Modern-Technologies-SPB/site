@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Устройства</title>
+    <link rel="stylesheet" href="../styles/main.css" />
+</head>
+<body>
+
+    <header>
+        <h1>Аргус</h1>
+        <h2><span>/</span> Название организации</h2>
+    </header>
+
+    <section class="account-info">
+      <div id="account-main">
+          <img id="person" src="../img/person.svg">
+          <span>Тестовое Имя</span>
+          <img id="down" src="../img/down.svg">
+          <img id="up" src="../img/up.svg">
+      </div>
+      <a href="/login"><div id="account-additional" class="additional">Выйти</div></a>
+  </section>
+
+    
+
+
+    <section class="navigation">
+        <a href="/">
+            <div><img src="../img/chart.svg">Главная</div>
+        </a>
+        <a href="/devices">
+            <div class="selected"><img src="../img/cloud.svg">Устройства</div>
+        </a>
+        <a href="/reports">
+            <div><img src="../img/bubble.svg">Отчёты</div>
+        </a>
+        <a href="/live">
+            <div><img src="../img/waves.svg">Трансляция</div>
+        </a>
+        <a href="/">
+            <div><img src="../img/play.svg">Записи</div>
+        </a>
+        <a class="settings" href="/">
+            <div><img src="../img/gear.svg">Настройки</div>
+        </a>
+    </section>
+
+    <section class="main">
+        <div class="name">
+            <span>Устройства</span>
+        </div>
+        <nav>
+            <a class="selected" href="/devices">Список устройств</a>
+            <a href="/devices/drivers">Водители</a>
+            <a href="/devices/newdevice">Добавить устройство</a>
+            <a href="/devices/newdriver">Добавить водителя</a>
+
+            <a class="update" href="/devices/update">Обновление ПО</a>
+        </nav>
+        <section class="bg">
+            <section class="content">
+
+                <section class="for-table">
+
+                    <section class="organisation">
+                        <h1>Организация</h1>
+
+                        <ul class="area">
+                            <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-1" class="checkbox-input" hidden checked><label for="name-1" class="checkbox-label">Группа 1</label>
+                              <ul class="area-devices" id="devices-1">
+                                <li class="device"><img><input type="checkbox" id="1-device-1" class="checkbox-input device-filter" value="1-device-1" hidden checked><label for="1-device-1" class="checkbox-label"><div class="checkmark"></div>Трамваи</label></li>
+                                <li class="device"><img><input type="checkbox" id="1-device-2" class="checkbox-input device-filter" value="1-device-2" hidden checked><label for="1-device-2" class="checkbox-label"><div class="checkmark"></div>Маршрутки</label></li>
+                              </ul>
+                            </li>
+                            <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-2" class="checkbox-input" hidden checked><label for="name-2" class="checkbox-label">Группа 2</label>
+                              <ul class="area-devices" id="devices-2">
+                                <li class="device"><img><input type="checkbox" id="2-device-1" class="checkbox-input device-filter" value="2-device-1" hidden checked><label for="2-device-1" class="checkbox-label"><div class="checkmark"></div>Трамваи</label></li>
+                                <li class="device"><img><input type="checkbox" id="2-device-2" class="checkbox-input device-filter" value="2-device-2" hidden checked><label for="2-device-2" class="checkbox-label"><div class="checkmark"></div>Электробусы</label></li>
+                                <li class="device"><img><input type="checkbox" id="2-device-3" class="checkbox-input device-filter" value="2-device-3" hidden checked><label for="2-device-3" class="checkbox-label"><div class="checkmark"></div>Троллейбусы</label></li>
+                                <li class="device"><img><input type="checkbox" id="2-device-4" class="checkbox-input device-filter" value="2-device-4" hidden checked><label for="2-device-4" class="checkbox-label"><div class="checkmark"></div>Старые ТС</label></li>
+                              </ul>
+                            </li>
+                            <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-3" class="checkbox-input" hidden checked><label for="name-3" class="checkbox-label">Другое</label>
+                              <ul class="area-devices" id="devices-3">
+                                <li class="device"><img><input type="checkbox" id="3-device-1" class="checkbox-input device-filter" value="3-device-1" hidden checked><label for="3-device-1" class="checkbox-label"><div class="checkmark"></div>Маршрутки</label></li>
+                              </ul>
+                            </li>
+                          </ul>
+                          
+                    </section>
+
+                
+
+                    <section id="table-area" class="table">
+                        <h1>Список устройств</h1>
+                        <input id="table-search" class="search" type="text" placeholder="Поиск">
+
+                          
+                          <table id="deviceTable">
+                            <thead>
+                              <tr>
+                                <th><input id="device-all" type="checkbox"><label for="device-all"><div class="checkmark"></div></label></th>
+                                <th>Группа</th>
+                                <th>Номерной знак</th>
+                                <th>Серийный номер</th>
+                                <th>Номер SIM-карты</th>
+                                <th>Кол-во каналов</th>
+                                <th>IP-адрес</th>
+                                <th>Порт</th>
+                                <th><button id="delete-device-all" value="delete-device-all" class="trash"></button></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <!-- Сюда будут добавляться строки таблицы -->
+                            </tbody>
+                          </table>
+                          
+                          
+                          
+                          
+                    </section>
+
+                    <div id="count">
+                        <!-- Сюда добавится итоговое количество результатов -->
+                    </div>
+                    <div id="pagination">
+                        <!-- Сюда будут добавляться ссылки для переключения между страницами -->
+                      </div>
+                      
+                      
+
+                </section>
+
+            </section>
+        </section>
+    </section>
+
+    <script src="../scripts/table.js"></script>
+    <script src="../scripts/jquery.min.js"></script>
+    <script>
+        // Скрытие/Показ дополнительных меню аккаунта
+        const accountMain = document.getElementById('account-main');
+        const accountAdditional = document.getElementById('account-additional');
+        const accountUp = document.getElementById('up');
+        const accountDown = document.getElementById('down');
+        accountAdditional.style.display = 'none';
+        accountUp.style.display = 'none';
+        
+        accountMain.addEventListener('click', () => {
+          if (accountAdditional.style.display === 'none') {
+            accountAdditional.style.display = 'flex';
+            accountUp.style.display = 'unset';
+            accountDown.style.display = 'none';
+          } else {
+            accountAdditional.style.display = 'none';
+            accountUp.style.display = 'none';
+            accountDown.style.display = 'unset';
+          }
+        });
+      </script>
+
+      <script>
+        const checkboxes = document.querySelectorAll('.organisation .checkbox-input');
+
+checkboxes.forEach((checkbox) => {
+    applyFilterAndSearch();
+  checkbox.addEventListener('change', function() {
+    document.querySelector('#device-all').checked = false;
+    applyFilterAndSearch();
+    const devices = this.parentNode.querySelector('.area-devices');
+    if (this.checked) {
+      devices.style.display = 'block';
+
+      // Активируем дочерние чекбоксы
+      const childCheckboxes = devices.querySelectorAll('.device-filter');
+      childCheckboxes.forEach((childCheckbox) => {
+        childCheckbox.checked = true;
+        applyFilterAndSearch();
+      });
+    } else {
+      devices.style.display = 'none';
+      applyFilterAndSearch();
+
+      // Деактивируем дочерние чекбоксы
+      const childCheckboxes = devices.querySelectorAll('.device-filter');
+      childCheckboxes.forEach((childCheckbox) => {
+        childCheckbox.checked = false;
+        applyFilterAndSearch();
+      });
+    }
+
+    // Деактивируем дочерние чекбоксы, если родительский чекбокс не выбран
+    if (!this.checked) {
+      const childCheckboxes = devices.querySelectorAll('.device-filter');
+      childCheckboxes.forEach((childCheckbox) => {
+        childCheckbox.checked = false;
+        applyFilterAndSearch();
+      });
+      devices.style.display = 'none';
+    }
+  });
+});
+
+      </script>
+
+      <script>
+
+var table = document.querySelector('#deviceTable');
+var tableCheckboxAll = table.querySelector('#device-all');
+var tableCheckboxes = table.querySelectorAll('tbody input[type="checkbox"]');
+
+tableCheckboxAll.addEventListener('click', function(event) {
+    table = document.querySelector('#deviceTable');
+    tableCheckboxes = table.querySelectorAll('tbody input[type="checkbox"]');
+    if (tableCheckboxAll.checked) {
+    tableCheckboxes.forEach((tableCheckbox) => {
+        tableCheckbox.checked = true;
+      });
+    } else {
+        tableCheckboxes.forEach((tableCheckbox) => {
+        tableCheckbox.checked = false;
+      });
+    }
+});
+
+$('#deviceTable').click( function(event) {
+    table = document.querySelector('#deviceTable');
+    tableCheckboxes = table.querySelectorAll('tbody input[type="checkbox"]');
+
+
+for (var i = 0; i < tableCheckboxes.length; i++) {
+    tableCheckboxes[i].addEventListener('click', function(event) {
+    for (var j = 0; j < tableCheckboxes.length; j++) {
+      if (!tableCheckboxes[j].checked || tableCheckboxes[j].disabled) {
+        tableCheckboxAll.checked = false;
+        return;
+      }
+    }
+    tableCheckboxAll.checked = true;
+  });
+}
+});
+
+      </script>
+      
+    
+</body>
+</html>

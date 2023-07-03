@@ -1,0 +1,7 @@
+/node_modules
+static/scripts/.DS_Store
+static/styles/.DS_Store
+static/templates/.DS_Store
+static/img/.DS_Store
+static/.DS_Store
+.DS_Store

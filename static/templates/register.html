@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Установка</title>
+    <link rel="stylesheet" href="../styles/main.css" />
+</head>
+<body>
+
+    <section class="form left">
+        <form enctype="multipart/form-data" method="post" action="/postsignin">
+            <h1>Добро пожаловать в Аргус</h1>
+            <h2>Приступим к созданию организации</h2>
+
+            <label for="name">Название<span>*</span></label>
+            <input title="Название вашей организации" placeholder="Название вашей организации" name="name" type="text" required>
+
+            <label for="login">Логин администратора<span>*</span></label>
+            <input title="Логин для панели управления" placeholder="Логин для панели управления" name="login" type="text" required>
+
+            <label for="password">Пароль администратора<span>*</span></label>
+            <input title="Пароль для панели управления" placeholder="Пароль для панели управления" name="password" type="password" required>
+
+            <label for="repassword">Подтверждение<span>*</span></label>
+            <input title="Повторите пароль" placeholder="Повторите пароль" name="repassword" type="password" required>
+
+            <button onclick="window.location.href='/'" type="button">Установить</button>
+        </form>
+    </section>
+
+    
+    <video class="animation right" autoplay muted loop>
+        <source src="../img/traffic.mp4" type="video/mp4">
+    </video>
+    <span class="copyright right"><a href="https://dribbble.com/shots/15608015-Traffic">Видеоматериал создан Igor Kozak на Dribbble</a></span>
+
+    
+    
+    
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авторизация</title>
+    <link rel="stylesheet" href="../styles/main.css" />
+</head>
+<body>
+
+    <section class="form right">
+        <form enctype="multipart/form-data" method="post" action="/postsignin">
+            <h1 style="margin-bottom: 40px;">Добро пожаловать в Аргус</h1>
+
+            <label for="login">Логин<span>*</span></label>
+            <input title="Введите логин" placeholder="Введите логин" name="login" type="text" required>
+
+            <label for="password">Пароль<span>*</span></label>
+            <input title="Введите пароль" placeholder="Введите пароль" name="password" type="password" required>
+
+            <button onclick="window.location.href='/'" type="button">Войти</button>
+        </form>
+    </section>
+
+    <video class="animation left" autoplay muted loop>
+        <source src="../img/traffic.mp4" type="video/mp4">
+    </video>
+    <span class="copyright left"><a href="https://dribbble.com/shots/15608015-Traffic">Видеоматериал создан Igor Kozak на Dribbble</a></span>
+    
+</body>
+</html>
