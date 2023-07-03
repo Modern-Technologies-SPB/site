@@ -5,3 +5,4 @@ static/templates/.DS_Store
 static/img/.DS_Store
 static/.DS_Store
 .DS_Store
+.package-lock.json
