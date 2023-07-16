@@ -23,12 +23,20 @@ app.get("/devices/drivers", drivers);
 app.get("/devices/newdevice", newdevice);
 app.get("/devices/newdriver", newdriver);
 
+// const pool = new Pool({
+//   user: process.env.DB_USER,
+//   host: process.env.DB_HOST,
+//   database: process.env.DB_NAME,
+//   password: process.env.DB_PASSWORD,
+//   port: process.env.DB_PORT,
+// });
+
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+  user: "postgres",
+  host: "postgres",
+  database: "postgres",
+  password: "password",
+  port: "5432",
 });
 
 async function index(req, res) {
