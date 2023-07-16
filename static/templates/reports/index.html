@@ -11,13 +11,13 @@
 
     <header>
         <h1>Аргус</h1>
-        <h2><span>/</span> Название организации</h2>
+        <h2><span>/</span> {{Organisation}}</h2>
     </header>
 
     <section class="account-info">
       <div id="account-main">
           <img id="person" src="../img/person.svg">
-          <span>Тестовое Имя</span>
+          <span>{{User}}</span>
           <img id="down" src="../img/down.svg">
           <img id="up" src="../img/up.svg">
       </div>
@@ -134,6 +134,20 @@
             </section>
         </section>
     </section>
+
+    <!-- <script>
+      const devices = [
+  {{#each Alarms}}
+  {
+    id: "{{this.id}}",
+    cmdno: "{{this.cmdno}}",
+    time: "{{this.time}}",
+    serial: "{{this.serial}}",
+    type: "{{this.type}}",
+  },
+  {{/each}}
+];
+    </script> -->
 
     <script src="../scripts/table-reports.js"></script>
     <script src="../scripts/jquery.min.js"></script>

@@ -71,11 +71,11 @@
                         <ul class="area">
                             <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-1" class="checkbox-input" hidden checked><label for="name-1" class="checkbox-label">Группа 1</label>
                               <ul class="area-devices" id="devices-1">
-                                <li class="device"><img><input type="checkbox" id="1-device-1" class="checkbox-input device-filter" value="1-device-1" hidden checked><label for="1-device-1" class="checkbox-label"><div class="checkmark"></div>Трамваи</label></li>
-                                <li class="device"><img><input type="checkbox" id="1-device-2" class="checkbox-input device-filter" value="1-device-2" hidden checked><label for="1-device-2" class="checkbox-label"><div class="checkmark"></div>Маршрутки</label></li>
+                                <li class="device"><img><input type="checkbox" id="1-device-1" class="checkbox-input device-filter" value="1-device-1" hidden checked><label for="1-device-1" class="checkbox-label"><div class="checkmark"></div>Автобусы</label></li>
+                                <!-- <li class="device"><img><input type="checkbox" id="1-device-2" class="checkbox-input device-filter" value="1-device-2" hidden checked><label for="1-device-2" class="checkbox-label"><div class="checkmark"></div>Маршрутки</label></li> -->
                               </ul>
                             </li>
-                            <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-2" class="checkbox-input" hidden checked><label for="name-2" class="checkbox-label">Группа 2</label>
+                            <!-- <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-2" class="checkbox-input" hidden checked><label for="name-2" class="checkbox-label">Группа 2</label>
                               <ul class="area-devices" id="devices-2">
                                 <li class="device"><img><input type="checkbox" id="2-device-1" class="checkbox-input device-filter" value="2-device-1" hidden checked><label for="2-device-1" class="checkbox-label"><div class="checkmark"></div>Трамваи</label></li>
                                 <li class="device"><img><input type="checkbox" id="2-device-2" class="checkbox-input device-filter" value="2-device-2" hidden checked><label for="2-device-2" class="checkbox-label"><div class="checkmark"></div>Электробусы</label></li>
@@ -87,7 +87,7 @@
                               <ul class="area-devices" id="devices-3">
                                 <li class="device"><img><input type="checkbox" id="3-device-1" class="checkbox-input device-filter" value="3-device-1" hidden checked><label for="3-device-1" class="checkbox-label"><div class="checkmark"></div>Маршрутки</label></li>
                               </ul>
-                            </li>
+                            </li> -->
                           </ul>
                           
                     </section>
@@ -106,8 +106,8 @@
                                 <th>Группа</th>
                                 <th>Номерной знак</th>
                                 <th>Серийный номер</th>
+                                <th>Статус</th>
                                 <th>Номер SIM-карты</th>
-                                <th>Кол-во каналов</th>
                                 <th>IP-адрес</th>
                                 <th>Порт</th>
                                 <th><button id="delete-device-all" value="delete-device-all" class="trash"></button></th>
@@ -138,8 +138,459 @@
         </section>
     </section>
 
+    <section id="form-bg" class="edit-container">
+
+      <section id="form">
+    <section class="for-new">
+
+      <section class="stages">
+          <input name="newStage" type="radio" value="details" id="stage-details" checked><label for="stage-details">Детали</label>
+          <div class="vertical-line"></div>
+          <input name="newStage" type="radio" value="sim" id="stage-sim"><label for="stage-sim">SIM - Карта</label>
+          <div class="vertical-line"></div>
+          <input name="newStage" type="radio" value="ts" id="stage-ts"><label for="stage-ts">Транспортное средство</label>
+          <div class="vertical-line"></div>
+          <input name="newStage" type="radio" value="equipment" id="stage-equipment"><label for="stage-equipment">Оборудование</label>
+      </section>
+    </section>
+    <section id="add-new-container" class="add-new">
+
+
+      <img src="../img/xmark.svg" id="close-form-btn">
+      <form id="edit-form" enctype="multipart/form-data" method="post" action="/updatedevice">
+
+      <div id="details" class="new-parameters active">
+
+          <h1>Детали устройства</h1>
+          <h2>Сперва самое необходимое</h2>
+
+          <div class="horizontal-line"></div>
+
+          <div class="parameters-inputs">
+          <div class="parameters-input">
+              <label for="parameters-plate">Номерной знак<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="plateNumber" type="text" id="parameters-plate" placeholder="Номер номерного знака" required>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-plateColor">Цвет номерного знака<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <select name="plateColor" id="parameters-plateColor">
+                  <option value="white">Белый</option>
+                  <option value="blue">Синий</option>
+                  <option value="yellow">Жёлтый</option>
+              </select>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-serial">Серийный номер<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="serialNumber" type="text" id="parameters-serial" placeholder="Серийный номер устройства" required readonly>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-channels">Количество каналов<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="channelsAmount" type="text" id="parameters-channels" placeholder="Кол-во каналов устройства" required>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-protocol">Протокол<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <select name="connectionProtocol" id="parameters-protocol">
+                  <option value="N9M">N9M</option>
+              </select>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-ip">IP-адрес<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="IPAddress" type="text" id="parameters-ip" placeholder="IP-адрес сервера" required>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-group">Группа<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="deviceGroup" type="text" id="parameters-group" placeholder="Название группы" required readonly>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-port">Порт<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="serverPort" type="text" id="parameters-port" placeholder="Порт сервера" required>
+          </div>
+
+          </div>
+
+          <div class="horizontal-line"></div>
+
+          <button id="continue-details" type="button">Продолжить</button>
+
+      </div>
+
+      <div id="sim" class="new-parameters">
+
+          <h1>Настройки SIM-карты</h1>
+          <h2>Для связи с устройством</h2>
+
+          <div class="horizontal-line"></div>
+
+          <div class="parameters-inputs">
+          <div class="parameters-input">
+              <label for="parameters-sim">Номер SIM-карты<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="sumNumber" type="text" id="parameters-sim" placeholder="Номер SIM-карты" required>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-sim-imei">IMEI<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="simIMEI" type="text" id="parameters-sim-imei" placeholder="IMEI SIM-карты" required>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-sim-imsi">IMSI<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="simIMSI" type="text" id="parameters-sim-imsi" placeholder="IMSI SIM-карты" required>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-sim-module">Тип сетевого модуля<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <select name="simModule" id="parameters-sim-module">
+                  <option value="GPRS">GPRS</option>
+                  <option value="CDMA">CDMA</option>
+                  <option value="EVDO">EVDO</option>
+                  <option value="WCDMA">WCDMA</option>
+                  <option value="EDGE">EDGE</option>
+                  <option value="TDSCDMA">TDSCDMA</option>
+                  <option value="LTE-TDD">LTE-TDD</option>
+                  <option value="LTE-FDD">LTE-FDD</option>
+              </select>
+          </div>
+
+          </div>
+
+          <div class="horizontal-line"></div>
+
+          <button id="continue-sim" type="button">Продолжить</button>
+
+      </div>
+
+      <div id="ts" class="new-parameters">
+
+          <h1>Детали транспортного средства</h1>
+          <h2>Технические характеристики и не только</h2>
+
+          <div class="horizontal-line"></div>
+
+          <div class="parameters-inputs">
+          <div class="parameters-input">
+              <label for="parameters-trasnsport-type">Тип автомобиля<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <select name="transportType" id="parameters-trasnsport-type" onchange="truncateText(this)">
+                  <option value="1">Пассажирский подвижной состав</option>
+                  <option value="2">Большой автобус</option>
+                  <option value="3">Средний автобус</option>
+                  <option value="4">Микроавтобус</option>
+                  <option value="5">Лимузин</option>
+                  <option value="6">Большой спальный автобус</option>
+                  <option value="7">Спальный автобус среднего размера</option>
+                  <option value="8">Обычный грузовик</option>
+                  <option value="9">Большой обычный грузовик</option>
+                  <option value="10">Среднегабаритный обычный грузовик</option>
+                  <option value="11">Маленький обычный грузовик</option>
+                  <option value="12">Специальная транспортировочная машина</option>
+                  <option value="13">Контейнерная тележка</option>
+                  <option value="14">Большой транспортировочный автомобиль</option>
+                  <option value="15">Изометрический вагон</option>
+                  <option value="16">Спецтехника для перевозки грузовых автомобилей</option>
+                  <option value="17">Танкер</option>
+                  <option value="18">Тягач</option>
+                  <option value="19">Прицеп</option>
+                  <option value="20">Транспортер</option>
+                  <option value="21">Другая спецтехника</option>
+                  <option value="22">Автомобиль для перевозки опасных грузов</option>
+                  <option value="23">Сельскохозяйственная машина</option>
+              </select>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-trasnsport-factory">Номер завода<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="transportFactory" type="text" id="parameters-trasnsport-factory" placeholder="Номер завода ТС" required>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-transport-strength">Несущая способность<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="transportStrength" type="text" id="parameters-transport-strength" placeholder="Несущая способность (тонны)" required>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-transport-engine">Номер двигателя<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="transportEngine" type="text" id="parameters-transport-engine" placeholder="Номер двигателя ТС" required>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-transport-stanina">Номер станины<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="transportStanina" type="text" id="parameters-transport-stanina" placeholder="Номер станины ТС" required>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-trasnsport-fuel">Тип топливного масла<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <select name="transportFuel" id="parameters-trasnsport-fuel">
+                  <option value="gasoline">Бензин</option>
+                  <option value="diesel">Дизельное топливо</option>
+                  <option value="naturalGas">Природный газ</option>
+                  <option value="liquefiedGas">Сжиженный газ</option>
+                  <option value="electric">Электрическое</option>
+                  <option value="other">Прочие</option>
+              </select>
+          </div>
+          <div class="parameters-input">
+              <div class="parameters-transport-certificate">
+                  <label for="parameters-transport-certificate">Свид-ство о дорожной перевозке<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                  <input name="transportCertificate" type="text" id="parameters-transport-certificate" placeholder="Номер свидетельства" required>
+              </div>
+          </div>
+          <div class="parameters-input">
+              <div class="pparameters-trasnsport-category">
+                  <label for="parameters-trasnsport-category">Техническая категория<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                  <select name="transportCategory" id="parameters-trasnsport-category">
+                      <option value="1">Категория 1</option>
+                      <option value="2">Категория 2</option>
+                      <option value="3">Категория 3</option>
+                      <option value="other">Не достает стандарта</option>
+                  </select>
+              </div>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-transport-expire">Срок действия<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="transportExpire" type="date" id="parameters-transport-expire" required>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-transport-consumption">Расход топлива на 100 км<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="transportConsumption" type="text" id="parameters-transport-consumption" placeholder="Расход топлива в литрах" required>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-transport-province">Провинция<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="transportProvince" type="text" id="parameters-transport-province" placeholder="Провинция" required>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-transport-city">Город<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="transportCity" type="text" id="parameters-transport-city" placeholder="Город" required>
+          </div>
+
+          </div>
+
+          <div class="horizontal-line"></div>
+
+          <button id="continue-ts" type="button">Продолжить</button>
+
+      </div>
+
+      <div id="equipment" class="new-parameters">
+
+          <h1>Информация о оборудовании</h1>
+          <h2>Технические моменты</h2>
+
+          <div class="horizontal-line"></div>
+
+          <div class="parameters-inputs">
+          <div class="parameters-input">
+              <label for="parameters-equipment-name">Имя устройства<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="equipmentName" type="text" id="parameters-equipment-name" placeholder="Имя пользовательского устройства" required>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-equipment-password">Пароль устройства<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="equipmentPassword" type="text" id="parameters-equipment-password" placeholder="Пароль устройства" required>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-equipment-number">Номер партии<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="equipmentNumber" type="text" id="parameters-equipment-number" placeholder="Заводской номер партии" required>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-equipment-released">Дата выпуска<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="equipmentReleased" type="date" id="parameters-equipment-released" required>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-device-installer">Установщик<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="equipmentInstaller" type="text" id="parameters-device-installer" placeholder="ФИО установщика" required>
+          </div>
+          <div class="parameters-input">
+              <label for="parameters-equipment-installed">Дата монтажа<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="equipmentInstalled" type="date" id="parameters-equipment-installed" required>
+          </div>
+
+              <label for="parameters-device-description">Внешнее описание<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="equipmentDescription" type="text" id="parameters-device-description" placeholder="Внешнее описание " required>
+
+          </div>
+
+          <div class="horizontal-line"></div>
+
+          <button type="button" id="send-form">Сохранить</button>
+
+      </div>
+
+      </form>
+
+    </section>
+  </section>
+  </section>
+
+    <script>
+      const devices = [
+  {{#each Registrars}}
+  {
+    id: "{{this.id}}",
+    serial: "{{this.serial}}",
+    status: "{{this.status}}",
+    name: "{{this.name}}",
+    group: "{{this.group}}",
+    plate: "{{this.plate}}",
+    sim: "{{this.sim}}",
+    ip: "{{this.ip}}",
+    port: "{{this.port}}",
+  },
+  {{/each}}
+];
+    </script>
+
     <script src="../scripts/table.js"></script>
     <script src="../scripts/jquery.min.js"></script>
+    <script src="https://rawgit.com/RobinHerbots/Inputmask/5.x/dist/jquery.inputmask.js"></script>
+    <script>
+      $(document).ready(function(){
+
+          $('#parameters-sim').inputmask({"mask": "+7 (999) 999-9999"});
+
+      });
+  </script>
+
+    <script>
+      const form = document.getElementById('edit-form');
+      const sendButton = document.getElementById('send-form');
+
+      sendButton.addEventListener('click', function(event) {
+        event.preventDefault(); // Предотвращаем отправку формы по умолчанию
+
+        const xhr = new XMLHttpRequest();
+        
+        xhr.open('POST', form.action, true);
+        
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        
+        xhr.onload = function() {
+          if (xhr.status === 200) {
+            console.log('Данные устройства обновлены!');
+            location.reload()
+          } else {
+            console.error('Ошибка отправки формы:', xhr.status);
+          }
+        };
+        
+        // Получаем данные формы для отправки
+        const formData = new FormData(form);
+        
+        // Создаем объект с данными формы
+        const data = {};
+        for (const [key, value] of formData) {
+          data[key] = value;
+        }
+        
+        // Преобразуем данные в JSON
+        const jsonData = JSON.stringify(data);
+        
+        // Отправляем данные формы
+        xhr.send(jsonData);
+      });
+    </script>
+
+    <script>
+      // Преобразование даты в формат YYYY-MM-DD
+      function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+
+      
+
+      // Открывает popup форму
+      function openForm(id) {
+
+        var formContainer = $("#form-bg");
+      var form = $("#form");
+
+      $.ajax({
+        url: "/devicedata", 
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ id: id }),
+        success: function(response) {
+          // Установка значений полей формы
+          $("#parameters-plate").val(response.plate);
+          $("#parameters-plateColor").val(response.plate_color);
+          $("#parameters-serial").val(response.serial);
+          $("#parameters-channels").val(response.channels);
+          $("#parameters-protocol").val(response.protocol);
+          $("#parameters-ip").val(response.ip);
+          $("#parameters-group").val(response.group);
+          $("#parameters-port").val(response.port);
+          $("#parameters-sim").val(response.sim);
+          $("#parameters-sim-imei").val(response.imei);
+          $("#parameters-sim-imsi").val(response.imsi);
+          $("#parameters-sim-module").val(response.module);
+          $("#parameters-trasnsport-type").val(response.auto);
+          $("#parameters-trasnsport-factory").val(response.factory);
+          $("#parameters-transport-strength").val(response.capacity);
+          $("#parameters-transport-engine").val(response.engine);
+          $("#parameters-transport-stanina").val(response.stanina);
+          $("#parameters-trasnsport-fuel").val(response.fuel);
+          $("#parameters-transport-certificate").val(response.certificate);
+          $("#parameters-transport-category").val(response.category);
+          $("#parameters-transport-expire").val(formatDate(new Date(response.certificate_exp)));
+          $("#parameters-transport-consumption").val(response.consumption);
+          $("#parameters-transport-province").val(response.region);
+          $("#parameters-transport-city").val(response.city);
+          $("#parameters-equipment-name").val(response.name);
+          $("#parameters-equipment-password").val(response.password);
+          $("#parameters-equipment-number").val(response.batch);
+          $("#parameters-equipment-released").val(formatDate(new Date(response.release)));
+          $("#parameters-device-installer").val(response.installer);
+          $("#parameters-equipment-installed").val(formatDate(new Date(response.installation)));
+          $("#parameters-device-description").val(response.description);
+
+          activeContent = content1
+          switchContent(content1);
+
+          content2.style.opacity = 0;
+          content2.style.display = "none";
+          content3.style.opacity = 0;
+          content3.style.display = "none";
+          content4.style.opacity = 0;
+          content4.style.display = "none";
+
+          document.getElementById("stage-details").checked = true;
+
+          // Открытие формы
+          formContainer.addClass("active");
+          form.addClass("form-animation");
+          $("body").css("overflow", "hidden");
+        },
+        error: function() {
+          // Обработка ошибки при запросе к серверу
+          alert("Произошла ошибка при запросе к серверу.");
+        }
+      });
+      }
+
+      $(document).ready(function() {
+      var formContainer = $("#form-bg");
+      var form = $("#form");
+
+      
+
+      // Закрывает popup форму
+      $("#close-form-btn").click(function() {
+        closeForm();
+      });
+
+      // Закрывает popup форму при клике вне её области
+      $(document).click(function(event) {
+        if (
+    !formContainer.is(event.target) &&
+    formContainer.has(event.target).length === 0 &&
+    formContainer.hasClass("active") &&
+    !openButton.is(event.target)
+  ) {
+          closeForm();
+        }
+      });
+
+      // Функция для закрытия формы
+      function closeForm() {
+        formContainer.removeClass("active");
+        form.removeClass("form-animation");
+        $("body").css("overflow", "auto");
+      }
+    });
+    </script>
+
     <script>
         // Скрытие/Показ дополнительных меню аккаунта
         const accountMain = document.getElementById('account-main');
@@ -161,6 +612,8 @@
           }
         });
       </script>
+
+      <script src="../scripts/device-form.js"></script> 
 
       <script>
         const checkboxes = document.querySelectorAll('.organisation .checkbox-input');

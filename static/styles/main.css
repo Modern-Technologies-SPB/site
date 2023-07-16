@@ -911,6 +911,10 @@ tr:nth-child(even) {
   display: inline-block;
 }
 
+.parameters-input input:read-only {
+  background-color: #0000000a;
+}
+
 .new-parameters label,
 .update-info label,
 .input-name {
@@ -1500,6 +1504,61 @@ video {
   /* float: right; */
 }
 
+.edit-container {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  z-index: 1000;
+  background-color: #00000039;
+  display: none;
+  opacity: 0;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.4s ease-in-out;
+}
+
+.edit-container.active {
+  display: flex;
+  opacity: 1;
+  transition: opacity 0.4s ease-in-out;
+}
+
+.form-animation {
+  animation: form-appear 0.4s ease-in-out;
+}
+
+@keyframes form-appear {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.edit-container .for-new,
+.edit-container .add-new {
+  height: 800px !important;
+  margin: 0 !important;
+  position: relative;
+}
+
+.edit-container .add-new {
+  width: 850px;
+}
+
+#close-form-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+}
+
 @media (max-width: 1950px) {
   /* при разрешении монитора до 1950 пикселей */
 
@@ -1535,7 +1594,7 @@ video {
 }
 
 @media (max-width: 1700px) {
-  /* при разрешении монитора до 1500 пикселей */
+  /* при разрешении монитора до 1700 пикселей */
 
   th,
   td {
@@ -1544,8 +1603,8 @@ video {
   }
 
   table {
-    display: block;
-    width: 100%;
+    /* display: block; */
+    /* width: 100%; */
     overflow-x: auto;
     white-space: nowrap;
   }
@@ -1566,5 +1625,12 @@ video {
   .content .right {
     margin-top: 25px;
     margin-bottom: 60px;
+  }
+}
+
+@media (max-width: 1400px) {
+  /* при разрешении монитора до 1400 пикселей */
+  body {
+    width: 1400px !important;
   }
 }
