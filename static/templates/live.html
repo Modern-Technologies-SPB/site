@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Трансляция</title>
     <link rel="stylesheet" href="../styles/main.css" />
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+
 </head>
 <body>
 
@@ -49,6 +52,16 @@
     </section>
 
     <section class="main">
+      {{#if ifDBError}}
+      <section class="dberror">
+        <div class="erorr-container">
+          <img src="../img/warning.svg"> <br>
+          <h1>Ошибка </h1> <br>
+          <span>Не удалось получить данные из БД</span>
+          <button type="button" onclick="location.reload();">Повторить попытку</button>
+        </div>
+      </section>
+      {{/if}}
         <div class="name">
             <span>Прямые трансляции</span>
         </div>
@@ -66,11 +79,21 @@
                         <ul class="area">
                           <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-1" class="checkbox-input" hidden checked><label for="name-1" class="checkbox-label">Группа 1</label>
                             <ul class="area-devices" id="devices-1">
-                              <li class="device"><img><input type="checkbox" id="0001" class="checkbox-input device-filter" value="0001" hidden checked><label for="0001" class="checkbox-label"><div class="checkmark"></div>0001</label></li>
-                              <li class="device"><img><input type="checkbox" id="0002" class="checkbox-input device-filter" value="0002" hidden checked><label for="0002" class="checkbox-label"><div class="checkmark"></div>0002</label></li>
+                              {{#each Registrars}}
+                                <li class="device">
+                                  <img>
+                                  <input type="checkbox" name="devices" id="{{this}}" class="checkbox-input device-filter" value="{{this}}" hidden checked>
+                                  <label for="{{this}}" class="checkbox-label">
+                                    <div class="checkmark"></div>
+                                    {{this}}
+                                  </label>
+                                </li>
+                              {{/each}}
+                              <!-- <li class="device"><img><input type="checkbox" id="0001" class="checkbox-input device-filter" value="0001" hidden checked><label for="0001" class="checkbox-label"><div class="checkmark"></div>0001</label></li>
+                              <li class="device"><img><input type="checkbox" id="0002" class="checkbox-input device-filter" value="0002" hidden checked><label for="0002" class="checkbox-label"><div class="checkmark"></div>0002</label></li> -->
                             </ul>
                           </li>
-                          <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-2" class="checkbox-input" hidden checked><label for="name-2" class="checkbox-label">Группа 2</label>
+                          <!-- <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-2" class="checkbox-input" hidden checked><label for="name-2" class="checkbox-label">Группа 2</label>
                             <ul class="area-devices" id="devices-2">
                               <li class="device"><img><input type="checkbox" id="0003" class="checkbox-input device-filter" value="0003" hidden checked><label for="0003" class="checkbox-label"><div class="checkmark"></div>0003</label></li>
                               <li class="device"><img><input type="checkbox" id="0004" class="checkbox-input device-filter" value="0004" hidden checked><label for="0004" class="checkbox-label"><div class="checkmark"></div>0004</label></li>
@@ -82,7 +105,7 @@
                             <ul class="area-devices" id="devices-3">
                               <li class="device"><img><input type="checkbox" id="0007" class="checkbox-input device-filter" value="0007" hidden checked><label for="0007" class="checkbox-label"><div class="checkmark"></div>0007</label></li>
                             </ul>
-                          </li>
+                          </li> -->
                         </ul>
 
                           
@@ -98,7 +121,7 @@
                         </svg>
                         <input class="search" type="text" placeholder="Поиск">
 
-                        <ul>
+                        <ul id="list">
                           <li>
                             <input type="radio" name="signal" id="signal-1" hidden checked>
                             <label for="signal-1">
@@ -175,7 +198,7 @@
                               </svg>+7 909 133 55 67</p>
                             </label>
                           </li>
-                          <!-- <li>
+                          <li>
                             <input type="radio" name="signal" id="signal-5" hidden>
                             <label for="signal-5">
                               <h2>Водитель отвлекся</h2>
@@ -231,7 +254,7 @@
                                 <path fill="#000" fill-opacity=".75" d="M10.38 14c1.25 0 2.07-.336 2.792-1.15.057-.056.114-.12.164-.178.428-.478.628-.95.628-1.4 0-.513-.3-.992-.935-1.434l-2.077-1.442c-.643-.443-1.393-.493-1.992.1l-.55.55c-.164.164-.307.17-.464.07-.386-.242-1.164-.92-1.692-1.448-.557-.55-1.092-1.164-1.378-1.614-.093-.164-.086-.3.079-.464l.542-.55c.6-.6.55-1.356.107-1.992L4.162.971C3.72.336 3.242.043 2.727.036c-.45-.007-.92.2-1.4.628-.063.057-.12.107-.178.157C.336 1.549 0 2.371 0 3.605c0 2.042 1.256 4.527 3.562 6.832C5.854 12.73 8.346 14 10.38 14Zm.008-1.1c-1.82.036-4.155-1.363-6.005-3.205-1.863-1.856-3.326-4.27-3.29-6.09.014-.785.292-1.463.849-1.949.05-.043.086-.078.136-.114.214-.186.442-.285.65-.285.206 0 .392.078.527.292L4.64 3.627c.15.221.165.47-.057.692l-.628.628c-.492.493-.457 1.093-.1 1.571.407.55 1.114 1.35 1.664 1.892.542.55 1.406 1.32 1.963 1.735.478.357 1.078.393 1.57-.1l.629-.628c.221-.222.464-.207.692-.065l2.078 1.385a.6.6 0 0 1 .292.536c0 .207-.1.435-.285.65l-.114.135c-.486.557-1.164.828-1.956.843Z"/>
                               </svg>+7 999 123 45 67</p>
                             </label>
-                          </li> -->
+                          </li>
                         </ul>
 
                       </div>
@@ -250,8 +273,183 @@
         </section>
     </section>
 
-    <script src="../scripts/table-reports.js"></script>
+    <script>
+      window.addEventListener('DOMContentLoaded', function() {
+        var signalsList = document.querySelector('.signals-list');
+        var list = document.getElementById('list');
+    
+        list.style.height = (signalsList.clientHeight - 50 - 75) + 'px';
+      });
+    </script>
+
+<script>
+  window.addEventListener('DOMContentLoaded', function() {
+    var mapContainer = document.querySelector('.map');
+    var mapArea = document.getElementById('map');
+
+    mapArea.style.height = (mapContainer.clientHeight) + 'px';
+    mapArea.style.width = (mapContainer.clientWidth) + 'px';
+  });
+</script>
+
+    <!-- <script src="../scripts/table-reports.js"></script> -->
     <script src="../scripts/jquery.min.js"></script>
+
+
+    <script>
+
+      var checkboxes = document.querySelectorAll('.checkbox-input');
+      const form = document.getElementById('devices-1');
+
+      form.addEventListener('change', () => {
+        const selectedDevices = Array.from(checkboxes)
+          .filter(checkbox => checkbox.checked && checkbox.value !== 'on')
+          .map(checkbox => checkbox.value);
+
+          console.log(selectedDevices);
+
+        fetch('/devices-geo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ devices: selectedDevices }),
+        })
+          .then(response => response.json())
+          .then(data => {
+            console.log(data.devicesData);
+            updateMapMarkers(data.devicesData);
+          })
+          .catch(error => {
+            console.error('Ошибка при отправке запроса:', error);
+          });
+      });
+
+    </script>
+
+
+    <script>
+      mapboxgl.accessToken = 'pk.eyJ1IjoicHBlY2hlbmtvbyIsImEiOiJjbGs3Y3dkc3AwNmN1M2dudzRtd3gwNjl4In0.oEFhSBTsaiyBx1uOqHdrZQ';
+const map = new mapboxgl.Map({
+  container: 'map',
+  style: 'mapbox://styles/mapbox/streets-v12',
+  center: [30.282995, 59.855198], // Задайте начальные координаты карты
+  zoom: 10, // Задайте начальный уровень масштабирования карты
+});
+
+// Хранение текущих маркеров на карте
+const markers = [];
+{{#if ifDBError}}
+{{else}}
+
+
+const selectedDevices = Array.from(checkboxes)
+          .filter(checkbox => checkbox.checked && checkbox.value !== 'on')
+          .map(checkbox => checkbox.value);
+
+          console.log(selectedDevices);
+
+        fetch('/devices-geo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ devices: selectedDevices }),
+        })
+          .then(response => response.json())
+          .then(data => {
+            console.log(data.devicesData);
+            data.devicesData.forEach(device => {
+    const { longitude, latitude, direction, speed } = device;
+    
+    // Создание HTML-элемента для маркера
+    const el = document.createElement('div');
+    el.className = 'marker';
+    // el.style.transform = `rotate(${direction / 100}deg)`;
+    el.innerHTML = `<svg style="transform: rotate(${direction}deg)" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26" fill="none">
+  <path d="M12.9815 25.0195C19.5462 25.0336 24.9931 19.6101 25.0073 13.0454C25.0214 6.49253 19.5861 1.03375 13.0214 1.01961C6.46848 1.00549 1.02147 6.44081 1.00735 12.9937C0.993201 19.5584 6.42852 25.0054 12.9815 25.0195Z" fill="#8086F9"/>
+  <path d="M7.43175 18.2547L12.1398 6.33536C12.471 5.51254 13.5652 5.49137 13.8928 6.31561L18.5493 18.2786C18.8653 19.0675 17.9932 19.748 17.2537 19.0052L13.3092 15.0438C13.1215 14.8434 12.8862 14.8429 12.6975 15.0425L8.73605 18.9868C7.98152 19.7264 7.1124 19.0422 7.43175 18.2547Z" fill="white" fill-opacity="0.85"/>
+</svg><br><span class="speed">${speed} км/ч</span>`;
+
+    // Создание нового маркера на карте
+    const marker = new mapboxgl.Marker(el)
+      .setLngLat([longitude, latitude])
+      .addTo(map);
+
+    // Добавление маркера в массив markers
+    markers.push(marker);
+  });
+          })
+          .catch(error => {
+            console.error('Ошибка при отправке запроса:', error);
+          });
+
+// Функция для обновления маркеров на карте
+function updateMapMarkers(devicesData) {
+  // Очистка существующих маркеров на карте
+  markers.forEach(marker => marker.remove());
+  markers.length = 0;
+
+  // Создание новых маркеров на карте на основе полученных данных
+  devicesData.forEach(device => {
+    const { longitude, latitude, direction, speed } = device;
+    
+    // Создание HTML-элемента для маркера
+    const el = document.createElement('div');
+    el.className = 'marker';
+    // el.style.transform = `rotate(${direction}deg)`;
+    el.innerHTML = `<svg style="transform: rotate(${direction}deg)" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26" fill="none">
+  <path d="M12.9815 25.0195C19.5462 25.0336 24.9931 19.6101 25.0073 13.0454C25.0214 6.49253 19.5861 1.03375 13.0214 1.01961C6.46848 1.00549 1.02147 6.44081 1.00735 12.9937C0.993201 19.5584 6.42852 25.0054 12.9815 25.0195Z" fill="#8086F9"/>
+  <path d="M7.43175 18.2547L12.1398 6.33536C12.471 5.51254 13.5652 5.49137 13.8928 6.31561L18.5493 18.2786C18.8653 19.0675 17.9932 19.748 17.2537 19.0052L13.3092 15.0438C13.1215 14.8434 12.8862 14.8429 12.6975 15.0425L8.73605 18.9868C7.98152 19.7264 7.1124 19.0422 7.43175 18.2547Z" fill="white" fill-opacity="0.85"/>
+</svg><br><span class="speed">${speed} км/ч</span>`;
+
+    // Создание нового маркера на карте
+    const marker = new mapboxgl.Marker(el)
+      .setLngLat([longitude, latitude])
+      .addTo(map);
+
+    // Добавление маркера в массив markers
+    markers.push(marker);
+  });
+}
+
+setInterval(() => {
+  fetch('/devices-geo', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ devices: selectedDevices }),
+        })
+          .then(response => response.json())
+          .then(data => {
+            console.log(data.devicesData);
+            updateMapMarkers(data.devicesData);
+          })
+          .catch(error => {
+            console.error('Ошибка при отправке запроса:', error);
+          });
+}, 20000);
+{{/if}}
+    //   mapboxgl.accessToken = 'pk.eyJ1IjoicHBlY2hlbmtvbyIsImEiOiJjbGs3Y3dkc3AwNmN1M2dudzRtd3gwNjl4In0.oEFhSBTsaiyBx1uOqHdrZQ';
+    // const map = new mapboxgl.Map({
+    // container: 'map',
+    // // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
+    // style: 'mapbox://styles/mapbox/streets-v12',
+    // center: [12.550343, 55.665957],
+    // zoom: 8
+    // });
+     
+    // // Create a default Marker and add it to the map.
+    // const marker1 = new mapboxgl.Marker()
+    // .setLngLat([12.554729, 55.70651])
+    // .addTo(map);
+     
+    // // Create a default Marker, colored black, rotated 45 degrees.
+    // const marker2 = new mapboxgl.Marker({ color: 'black', rotation: 45 })
+    // .setLngLat([12.65147, 55.608166])
+    // .addTo(map);
+    </script>
 
     <!-- <style>
       #map {
@@ -262,12 +460,12 @@
       }
     </style> -->
   
-    <script src="https://cdn.jsdelivr.net/npm/leaflet/dist/leaflet.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/leaflet/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-routing-machine/dist/leaflet-routing-machine.css" /> -->
   
-    <script>
+    <!-- <script>
       function initMap() {
         // Координаты начальной точки
         var startPoint = L.latLng(55.769042, 37.647840);
@@ -296,7 +494,7 @@
         document.querySelector('.leaflet-routing-container').style.display = 'none';
       }
     </script>
-    <script>initMap();</script>
+    <script>initMap();</script> -->
 
     <script>
       const panel = document.getElementById('signals-list');
@@ -332,7 +530,7 @@
       </script>
 
       <script>
-        const checkboxes = document.querySelectorAll('.organisation .checkbox-input');
+        var checkboxes = document.querySelectorAll('.organisation .checkbox-input');
 
 checkboxes.forEach((checkbox) => {
     applyFilterAndSearch();

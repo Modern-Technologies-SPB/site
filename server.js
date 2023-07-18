@@ -22,26 +22,36 @@ app.get("/devices", devices);
 app.get("/devices/drivers", drivers);
 app.get("/devices/newdevice", newdevice);
 app.get("/devices/newdriver", newdriver);
+app.get("/devices/update", update);
 
-// const pool = new Pool({
-//   user: process.env.DB_USER,
-//   host: process.env.DB_HOST,
-//   database: process.env.DB_NAME,
-//   password: process.env.DB_PASSWORD,
-//   port: process.env.DB_PORT,
-// });
+// const DB_User = process.env.DB_USER;
+// const DB_Password = process.env.DB_PASSWORD;
+// const DB_Host = process.env.DB_HOST;
+// const DB_Port = process.env.DB_PORT;
+// const DB_Name = process.env.DB_NAME;
 
-const pool = new Pool({
-  user: "postgres",
-  host: "postgres",
-  database: "postgres",
-  password: "password",
-  port: "5432",
-});
+const DB_User = "postgres";
+const DB_Password = "password";
+const DB_Host = "postgres";
+const DB_Port = "5432";
+const DB_Name = "postgres";
 
 async function index(req, res) {
-  const client = await pool.connect();
+  var templateData = {
+    Organisation: "Название организации",
+    User: "Тестовое Имя",
+    ifDBError: false,
+    Count: "",
+  };
   try {
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+    const client = await pool.connect();
     // Выполняем запрос и получаем результат
     const query = `
       SELECT COUNT(*) AS count 
@@ -49,11 +59,7 @@ async function index(req, res) {
     `;
     const registrars = await client.query(query);
 
-    var templateData = {
-      Organisation: "Название организации",
-      User: "Тестовое Имя",
-      Count: registrars.rows[0].count,
-    };
+    templateData.Count = registrars.rows[0].count;
 
     console.log(templateData);
 
@@ -63,8 +69,14 @@ async function index(req, res) {
 
     const resultT = template(templateData);
     res.send(resultT);
-  } finally {
-    client.release();
+  } catch (error) {
+    console.error(error);
+    templateData.ifDBError = true;
+
+    const source = fs.readFileSync("static/templates/index.html", "utf8");
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
   }
   // res.sendFile(path.join(__dirname, "static/templates/index.html"));
 }
@@ -74,16 +86,118 @@ function login(req, res) {
 function register(req, res) {
   res.sendFile(path.join(__dirname, "static/templates/register.html"));
 }
-function live(req, res) {
-  res.sendFile(path.join(__dirname, "static/templates/live.html"));
-}
-async function reports(req, res) {
-  const client = await pool.connect();
+
+async function live(req, res) {
+  let templateData = {
+    Organisation: "Название организации",
+    User: "Тестовое Имя",
+    ifDBError: false,
+    Registrars: [],
+  };
+
   try {
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+    const client = await pool.connect();
+
+    const query = `
+    SELECT id FROM registrars ORDER BY id ASC
+    `;
+    const registrars = await client.query(query);
+
+    templateData.Registrars = registrars.rows.map((row) => row.id);
+
+    console.log(templateData);
+
+    const source = fs.readFileSync("static/templates/live.html", "utf8");
+    const template = handlebars.compile(source);
+    const resultHTML = template(templateData);
+    res.send(resultHTML);
+
+    client.release();
+  } catch (error) {
+    console.error(error);
+    templateData.ifDBError = true;
+
+    const source = fs.readFileSync("static/templates/live.html", "utf8");
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  }
+}
+
+app.post("/devices-geo", async (req, res) => {
+  const selectedDevices = req.body.devices;
+
+  const pool = new Pool({
+    user: DB_User,
+    host: DB_Host,
+    database: DB_Name,
+    password: DB_Password,
+    port: DB_Port,
+  });
+
+  console.log(selectedDevices);
+
+  const placeholders = selectedDevices
+    .map((_, index) => `$${index + 1}`)
+    .join(",");
+  const subquery = `
+    SELECT MAX(time) AS time, serial
+    FROM geo
+    WHERE serial IN (
+      SELECT serial
+      FROM registrars
+      WHERE id IN (${placeholders})
+    )
+    GROUP BY serial
+  `;
+  const query = `
+    SELECT g.serial, g.longitude, g.latitude, g.direction, g.speed
+    FROM geo g
+    INNER JOIN (${subquery}) s
+    ON g.serial = s.serial AND g.time = s.time
+  `;
+
+  pool.query(query, selectedDevices, (err, result) => {
+    if (err) {
+      console.error("Ошибка выполнения запроса:", err);
+      res.status(500).json({ error: "Ошибка сервера" });
+      return;
+    }
+
+    console.log(result.rows);
+
+    const devicesData = result.rows;
+    res.json({ devicesData });
+  });
+});
+
+async function reports(req, res) {
+  try {
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+    const client = await pool.connect();
     // Выполняем запрос и получаем результат
     const query = `
-      SELECT id, cmdno, time, serial, st 
-      FROM alarms
+    SELECT id, cmdno, time, serial, st
+    FROM (
+    SELECT id, cmdno, time, serial, st
+    FROM alarms
+    ORDER BY time DESC
+    LIMIT 100
+    ) AS subquery
+    ORDER BY time ASC;
     `;
     const alarms = await client.query(query);
 
@@ -139,8 +253,17 @@ async function reports(req, res) {
 
     const resultT = template(templateData);
     res.send(resultT);
-  } finally {
-    client.release();
+  } catch (error) {
+    console.error(error);
+    // templateData.ifDBError = true;
+
+    const source = fs.readFileSync(
+      "static/templates/reports/index.html",
+      "utf8"
+    );
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
   }
   // res.sendFile(path.join(__dirname, "static/templates/reports/index.html"));
 }
@@ -148,8 +271,23 @@ function reports346(req, res) {
   res.sendFile(path.join(__dirname, "static/templates/reports/346.html"));
 }
 async function devices(req, res) {
-  const client = await pool.connect();
+  let templateData = {
+    Organisation: "Название организации",
+    User: "Тестовое Имя",
+    ifDBError: false,
+    Registrars: [],
+  };
+
   try {
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+    const client = await pool.connect();
+
     // Выполняем два запроса и получаем результаты
     const queryConnected = `
       SELECT id, serial, connected, name, "group", plate, sim, ip, port 
@@ -166,34 +304,30 @@ async function devices(req, res) {
     const connectedRegistrars = await client.query(queryConnected);
     const disconnectedRegistrars = await client.query(queryDisconnected);
 
-    const templateData = {
-      Organisation: "Название организации",
-      User: "Тестовое Имя",
-      Registrars: [
-        ...connectedRegistrars.rows.map((registrar) => ({
-          id: registrar.id,
-          serial: registrar.serial,
-          status: registrar.connected,
-          name: registrar.name,
-          group: registrar.group,
-          plate: registrar.plate,
-          sim: registrar.sim,
-          ip: registrar.ip,
-          port: registrar.port,
-        })),
-        ...disconnectedRegistrars.rows.map((registrar) => ({
-          id: registrar.id,
-          serial: registrar.serial,
-          status: registrar.connected,
-          name: registrar.name,
-          group: registrar.group,
-          plate: registrar.plate,
-          sim: registrar.sim,
-          ip: registrar.ip,
-          port: registrar.port,
-        })),
-      ],
-    };
+    templateData.Registrars = [
+      ...connectedRegistrars.rows.map((registrar) => ({
+        id: registrar.id,
+        serial: registrar.serial,
+        status: registrar.connected,
+        name: registrar.name,
+        group: registrar.group,
+        plate: registrar.plate,
+        sim: registrar.sim,
+        ip: registrar.ip,
+        port: registrar.port,
+      })),
+      ...disconnectedRegistrars.rows.map((registrar) => ({
+        id: registrar.id,
+        serial: registrar.serial,
+        status: registrar.connected,
+        name: registrar.name,
+        group: registrar.group,
+        plate: registrar.plate,
+        sim: registrar.sim,
+        ip: registrar.ip,
+        port: registrar.port,
+      })),
+    ];
 
     console.log(templateData);
 
@@ -201,20 +335,37 @@ async function devices(req, res) {
       "static/templates/devices/index.html",
       "utf8"
     );
-
     const template = handlebars.compile(source);
-
     const resultT = template(templateData);
     res.send(resultT);
-  } finally {
+
     client.release();
+  } catch (error) {
+    console.error(error);
+    templateData.ifDBError = true;
+
+    const source = fs.readFileSync(
+      "static/templates/devices/index.html",
+      "utf8"
+    );
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
   }
 }
 
 app.post("/devicedata", async (req, res) => {
   const id = req.body.id;
 
+  const pool = new Pool({
+    user: DB_User,
+    host: DB_Host,
+    database: DB_Name,
+    password: DB_Password,
+    port: DB_Port,
+  });
   const client = await pool.connect();
+
   try {
     // Выполняем запрос и получаем результат
     const query = "SELECT * FROM registrars WHERE id = $1;";
@@ -360,6 +511,9 @@ function newdevice(req, res) {
 }
 function newdriver(req, res) {
   res.sendFile(path.join(__dirname, "static/templates/devices/newdriver.html"));
+}
+function update(req, res) {
+  res.sendFile(path.join(__dirname, "static/templates/devices/update.html"));
 }
 
 const port = 8081;
