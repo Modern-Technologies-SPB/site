@@ -1,105 +1,105 @@
-const devices = [
-  {
-    id: "1",
-    group: "0001",
-    name: "Разговор по телефону",
-    reportID: "354",
-    plate: "AO30877",
-    numberTS: "008803559E",
-    time: "12.03.23 17:33",
-    place: "59.852371, 30.344543",
-  },
-  {
-    id: "2",
-    group: "0001",
-    name: "Водитель зевает",
-    reportID: "353",
-    plate: "AO64377",
-    numberTS: "0088036B78",
-    time: "12.03.23 14:26",
-    place: "60.058236, 30.315283",
-  },
-  {
-    id: "3",
-    group: "0002",
-    name: "Усталость",
-    reportID: "352",
-    plate: "ГД44377",
-    numberTS: "009800852A",
-    time: "12.03.23 10:07",
-    place: "59.878256, 30.31962",
-  },
-  {
-    id: "4",
-    group: "0003",
-    name: "Водитель зевает",
-    reportID: "351",
-    plate: "УА86577",
-    numberTS: "009800858D",
-    time: "12.03.23 09:56",
-    place: "60.045981, 30.4134",
-  },
-  {
-    id: "5",
-    group: "0003",
-    name: "Разговор по телефону",
-    reportID: "350",
-    plate: "БВ74665",
-    numberTS: "00980084FD",
-    time: "11.03.23 20:43",
-    place: "59.83257, 30.389893",
-  },
-  {
-    id: "6",
-    group: "0004",
-    name: "Разговор по телефону",
-    reportID: "349",
-    plate: "ЦУ445101",
-    numberTS: "0088036B7F",
-    time: "11.03.23 19:17",
-    place: "59.959926, 30.42224",
-  },
-  {
-    id: "7",
-    group: "0005",
-    name: "Усталость",
-    reportID: "348",
-    plate: "КТ32376",
-    numberTS: "00880302CD",
-    time: "11.03.23 15:32",
-    place: "60.046346, 30.405688",
-  },
-  {
-    id: "8",
-    group: "0006",
-    name: "Курение за рулём",
-    reportID: "347",
-    plate: "ОА33277",
-    numberTS: "008802A035",
-    time: "11.03.23 15:06",
-    place: "59.956626, 30.234408",
-  },
-  {
-    id: "9",
-    group: "0007",
-    name: "Водитель отвлекся",
-    reportID: "346",
-    plate: "КЛ987102",
-    numberTS: "008802A96A",
-    time: "11.03.23 12:44",
-    place: "59.956626, 30.234408",
-  },
-  {
-    id: "10",
-    group: "0002",
-    name: "Водитель отвлекся",
-    reportID: "345",
-    plate: "АУ22377",
-    numberTS: "00880302C7",
-    time: "11.03.23 11:40",
-    place: "59.956626, 30.234408",
-  },
-];
+// const devices = [
+//   {
+//     id: "1",
+//     group: "0001",
+//     name: "Разговор по телефону",
+//     reportID: "354",
+//     plate: "AO30877",
+//     numberTS: "008803559E",
+//     time: "12.03.23 17:33",
+//     place: "59.852371, 30.344543",
+//   },
+//   {
+//     id: "2",
+//     group: "0001",
+//     name: "Водитель зевает",
+//     reportID: "353",
+//     plate: "AO64377",
+//     numberTS: "0088036B78",
+//     time: "12.03.23 14:26",
+//     place: "60.058236, 30.315283",
+//   },
+//   {
+//     id: "3",
+//     group: "0002",
+//     name: "Усталость",
+//     reportID: "352",
+//     plate: "ГД44377",
+//     numberTS: "009800852A",
+//     time: "12.03.23 10:07",
+//     place: "59.878256, 30.31962",
+//   },
+//   {
+//     id: "4",
+//     group: "0003",
+//     name: "Водитель зевает",
+//     reportID: "351",
+//     plate: "УА86577",
+//     numberTS: "009800858D",
+//     time: "12.03.23 09:56",
+//     place: "60.045981, 30.4134",
+//   },
+//   {
+//     id: "5",
+//     group: "0003",
+//     name: "Разговор по телефону",
+//     reportID: "350",
+//     plate: "БВ74665",
+//     numberTS: "00980084FD",
+//     time: "11.03.23 20:43",
+//     place: "59.83257, 30.389893",
+//   },
+//   {
+//     id: "6",
+//     group: "0004",
+//     name: "Разговор по телефону",
+//     reportID: "349",
+//     plate: "ЦУ445101",
+//     numberTS: "0088036B7F",
+//     time: "11.03.23 19:17",
+//     place: "59.959926, 30.42224",
+//   },
+//   {
+//     id: "7",
+//     group: "0005",
+//     name: "Усталость",
+//     reportID: "348",
+//     plate: "КТ32376",
+//     numberTS: "00880302CD",
+//     time: "11.03.23 15:32",
+//     place: "60.046346, 30.405688",
+//   },
+//   {
+//     id: "8",
+//     group: "0006",
+//     name: "Курение за рулём",
+//     reportID: "347",
+//     plate: "ОА33277",
+//     numberTS: "008802A035",
+//     time: "11.03.23 15:06",
+//     place: "59.956626, 30.234408",
+//   },
+//   {
+//     id: "9",
+//     group: "0007",
+//     name: "Водитель отвлекся",
+//     reportID: "346",
+//     plate: "КЛ987102",
+//     numberTS: "008802A96A",
+//     time: "11.03.23 12:44",
+//     place: "59.956626, 30.234408",
+//   },
+//   {
+//     id: "10",
+//     group: "0002",
+//     name: "Водитель отвлекся",
+//     reportID: "345",
+//     plate: "АУ22377",
+//     numberTS: "00880302C7",
+//     time: "11.03.23 11:40",
+//     place: "59.956626, 30.234408",
+//   },
+// ];
 
 // Получаем высоту таблицы и определяем, сколько строк помещается на странице
 let currentPage = 1;
@@ -143,22 +143,22 @@ const createTable = () => {
 
     // Добавляем ячейки с данными
     const name = document.createElement("td");
-    name.textContent = device.name;
+    name.textContent = device.type;
     row.appendChild(name);
     const reportID = document.createElement("td");
-    reportID.textContent = device.reportID;
+    reportID.textContent = device.id;
     row.appendChild(reportID);
     const plate = document.createElement("td");
     plate.textContent = device.plate;
     row.appendChild(plate);
     const numberTS = document.createElement("td");
-    numberTS.textContent = device.numberTS;
+    numberTS.textContent = device.serial;
     row.appendChild(numberTS);
     const time = document.createElement("td");
     time.textContent = device.time;
     row.appendChild(time);
     const place = document.createElement("td");
-    place.textContent = device.place;
+    place.textContent = device.geo;
     row.appendChild(place);
 
     // Добавляем кнопку удаления после каждого ряда
@@ -243,7 +243,7 @@ const applyFilterAndSearch = () => {
 
   filteredDevices = devices.filter((device) => {
     const searchString =
-      `${device.group} ${device.name} ${device.reportID} ${device.place} ${device.numberTS} ${device.time} ${device.place}`.toLowerCase();
+      `${device.group} ${device.name} ${device.id} ${device.place} ${device.numberTS} ${device.time} ${device.place} ${device.geo} ${device.serial}`.toLowerCase();
     const matchGroup =
       groupFilters.length === 0 || groupFilters.includes(device.group);
     const matchSearch = !searchValue || searchString.includes(searchValue);

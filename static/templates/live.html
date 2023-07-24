@@ -280,6 +280,12 @@
     
         list.style.height = (signalsList.clientHeight - 50 - 75) + 'px';
       });
+      window.addEventListener('resize', function() {
+        var signalsList = document.querySelector('.signals-list');
+        var list = document.getElementById('list');
+    
+        list.style.height = (signalsList.clientHeight - 50 - 75) + 'px';
+      });
     </script>
 
 <script>
@@ -290,6 +296,14 @@
     mapArea.style.height = (mapContainer.clientHeight) + 'px';
     mapArea.style.width = (mapContainer.clientWidth) + 'px';
   });
+
+  window.addEventListener("resize", function (event) {
+        var mapContainer = document.querySelector('.map');
+        var mapArea = document.getElementById('map');
+
+        mapArea.style.height = (mapContainer.clientHeight) + 'px';
+        mapArea.style.width = (mapContainer.clientWidth) + 'px';
+      });
 </script>
 
     <!-- <script src="../scripts/table-reports.js"></script> -->
@@ -361,6 +375,8 @@ const selectedDevices = Array.from(checkboxes)
             console.log(data.devicesData);
             data.devicesData.forEach(device => {
     const { longitude, latitude, direction, speed } = device;
+    var newDirection = direction + 90
+    console.log(newDirection);
     
     // Создание HTML-элемента для маркера
     const el = document.createElement('div');
@@ -393,6 +409,8 @@ function updateMapMarkers(devicesData) {
   // Создание новых маркеров на карте на основе полученных данных
   devicesData.forEach(device => {
     const { longitude, latitude, direction, speed } = device;
+    var newDirection = direction + 90
+    console.log(newDirection);
     
     // Создание HTML-элемента для маркера
     const el = document.createElement('div');
@@ -429,72 +447,9 @@ setInterval(() => {
           .catch(error => {
             console.error('Ошибка при отправке запроса:', error);
           });
-}, 20000);
+}, 12000);
 {{/if}}
-    //   mapboxgl.accessToken = 'pk.eyJ1IjoicHBlY2hlbmtvbyIsImEiOiJjbGs3Y3dkc3AwNmN1M2dudzRtd3gwNjl4In0.oEFhSBTsaiyBx1uOqHdrZQ';
-    // const map = new mapboxgl.Map({
-    // container: 'map',
-    // // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
-    // style: 'mapbox://styles/mapbox/streets-v12',
-    // center: [12.550343, 55.665957],
-    // zoom: 8
-    // });
-     
-    // // Create a default Marker and add it to the map.
-    // const marker1 = new mapboxgl.Marker()
-    // .setLngLat([12.554729, 55.70651])
-    // .addTo(map);
-     
-    // // Create a default Marker, colored black, rotated 45 degrees.
-    // const marker2 = new mapboxgl.Marker({ color: 'black', rotation: 45 })
-    // .setLngLat([12.65147, 55.608166])
-    // .addTo(map);
     </script>
-
-    <!-- <style>
-      #map {
-        height: 100%;
-        width: 100%;
-        display: inline-block;
-        float: right;
-      }
-    </style> -->
-  
-    <!-- <script src="https://cdn.jsdelivr.net/npm/leaflet/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-routing-machine/dist/leaflet-routing-machine.css" /> -->
-  
-    <!-- <script>
-      function initMap() {
-        // Координаты начальной точки
-        var startPoint = L.latLng(55.769042, 37.647840);
-        // Координаты конечной точки
-        var endPoint = L.latLng(55.769723, 37.659341);
-  
-        // Создание объекта карты
-        var map = L.map('map').setView(startPoint, 12);
-  
-        // Добавление слоя OpenStreetMap
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-  
-        // Прокладка маршрута
-        var control = L.Routing.control({
-          waypoints: [
-            startPoint,
-            endPoint
-          ],
-          routeWhileDragging: true,
-          show: false,
-        }).addTo(map);
-  
-        // Удаление кнопки виджета маршрута
-        document.querySelector('.leaflet-routing-container').style.display = 'none';
-      }
-    </script>
-    <script>initMap();</script> -->
 
     <script>
       const panel = document.getElementById('signals-list');
@@ -612,6 +567,7 @@ for (var i = 0; i < tableCheckboxes.length; i++) {
 });
 
       </script>
+
       
     
 </body>

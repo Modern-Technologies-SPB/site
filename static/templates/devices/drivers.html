@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Устройства</title>
+    <title>Водители</title>
     <link rel="stylesheet" href="../styles/main.css" />
 </head>
 <body>
@@ -49,19 +49,30 @@
     </section>
 
     <section class="main">
+      {{#if ifDBError}}
+      <section class="dberror">
+        <div class="erorr-container">
+          <img src="../img/warning.svg"> <br>
+          <h1>Ошибка </h1> <br>
+          <span>Не удалось получить данные из БД</span>
+          <button type="button" onclick="location.reload();">Повторить попытку</button>
+        </div>
+      </section>
+      {{/if}}
         <div class="name">
             <span>Устройства</span>
         </div>
         <nav>
             <a href="/devices">Список устройств</a>
             <a class="selected" href="/devices/drivers">Водители</a>
-            <a href="/devices/newdevice">Добавить устройство</a>
-            <a href="/devices/newdriver">Добавить водителя</a>
+            <!-- <a href="/devices/newdevice">Добавить устройство</a>  -->
+            <!-- <a href="/devices/newdriver">Добавить водителя</a> -->
 
             <a class="update" href="/devices/update">Обновление ПО</a>
         </nav>
         <section class="bg">
             <section class="content">
+              
 
                 <section class="for-table">
 
@@ -69,7 +80,7 @@
                         <h1>Организация</h1>
 
                         <ul class="area">
-                          <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-1" class="checkbox-input" hidden checked><label for="name-1" class="checkbox-label">Группа 1</label>
+                          <!-- <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-1" class="checkbox-input" hidden checked><label for="name-1" class="checkbox-label">Группа 1</label>
                             <ul class="area-devices" id="devices-1">
                               <li class="device"><img><input type="checkbox" id="1-device-1" class="checkbox-input device-filter" value="1-device-1" hidden checked><label for="1-device-1" class="checkbox-label"><div class="checkmark"></div>Трамваи</label></li>
                               <li class="device"><img><input type="checkbox" id="1-device-2" class="checkbox-input device-filter" value="1-device-2" hidden checked><label for="1-device-2" class="checkbox-label"><div class="checkmark"></div>Маршрутки</label></li>
@@ -87,8 +98,10 @@
                             <ul class="area-devices" id="devices-3">
                               <li class="device"><img><input type="checkbox" id="3-device-1" class="checkbox-input device-filter" value="3-device-1" hidden checked><label for="3-device-1" class="checkbox-label"><div class="checkmark"></div>Маршрутки</label></li>
                             </ul>
-                          </li>
+                          </li> -->
                         </ul>
+
+                        <button onclick="openNew()">Добавить водителя</button>
                           
                     </section>
 
@@ -138,8 +151,543 @@
         </section>
     </section>
 
+    <section id="form-bg" class="edit-container">
+
+      <section id="editForm">
+        <section class="for-new">
+
+          <section class="stages">
+              <input name="newStageEdit" type="radio" value="main" id="stage-main-edit" checked><label for="stage-main-edit">Основная информация</label>
+              <div class="vertical-line"></div>
+              <input name="newStageEdit" type="radio" value="details" id="stage-details-edit"><label for="stage-details-edit">Детали</label>
+          </section>
+        </section>
+        <section id="add-new-container" class="add-new">
+          <img src="../img/xmark.svg" id="close-form-btn" onclick="closeForm()">
+
+          <form id="edit-form" enctype="multipart/form-data" method="post" action="/updatedriver">
+            <input type="text" id="driver-id-edit" name="driverID" hidden>
+
+          <div id="main-edit" class="new-parameters drivers active">
+
+              <h1>Основная информация</h1>
+              <h2>Сперва самое необходимое</h2>
+
+              <div class="horizontal-line"></div>
+
+              <label for="parameters-plate">Фотография<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <div id="upload-photo-edit" class="upload-input">
+                  <!-- <img src="../img/upload.svg">
+                  <span class="upload-text">Загрузить фотографию водителя</span>
+                  <span class="upload-description">PNG, JPG (макс 20 мб)</span> -->
+                  <img src="../img/warning.svg">
+                  <span class="upload-text">Временно недоступно редактирование фотографии</span>
+                  <span class="upload-description">Остальная информация изменяется</span>
+              </div>
+              <input id="input-upload-photo-edit" type="file" accept=".png, .jpg, .jpeg" name="upload-file" style="display: none;">
+
+              <div class="parameters-inputs">
+                  <label for="driver-name-edit">Имя<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                  <input name="driverName" type="text" id="driver-name-edit" placeholder="Имя водителя" required>
+
+                  <label for="driver-surname-edit">Фамилия<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                  <input name="driverSurname" type="text" id="driver-surname-edit" placeholder="Фамилия водителя" required>
+
+                  <label for="driver-card-edit">Карта водителя<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                  <input name="driverCard" type="text" id="driver-card-edit" placeholder="Номер карты водителя" required>
+
+              </div>
+
+              <div class="horizontal-line"></div>
+
+              <button id="continue-main-edit" type="button">Продолжить</button>
+
+          </div>
+
+          <div id="details-edit" class="new-parameters">
+
+              <h1>Детальная информация</h1>
+              <h2>Для удобства в идентификации</h2>
+
+              <div class="horizontal-line"></div>
+
+              <div class="parameters-inputs">
+
+                  <div class="parameters-input">
+                      <label for="driver-gender-edit">Пол</label>
+                      <select name="driverGender" id="driver-gender-edit">
+                          <option value="NS">Не указывать</option>
+                          <option value="male">Мужской</option>
+                          <option value="female">Женский</option>
+                      </select>
+                  </div>
+
+                  <div class="parameters-input">
+                      <label for="driver-license-edit">Водительское удостоверение<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                      <input name="driverLicense" type="text" id="driver-license-edit" placeholder="Номер водительского удостоверения" required>
+                  </div>
+
+                  <div class="parameters-input">
+                      <label for="driver-passport-edit">Удостоверение личности<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                      <input name="driverPassport" type="text" id="driver-passport-edit" placeholder="Номер удостоверения личности" required>
+                  </div>
+
+                  <div class="parameters-input">
+                      <label for="driver-phone-edit">Мобильный телефон<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                      <input name="driverPhone" type="text" id="driver-phone-edit" placeholder="Номер мобильного телефона" required>
+                  </div>
+
+                  <div class="parameters-input">
+                      <label for="driver-email-edit">Электронная почта<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                      <input name="driverEmail" type="text" id="driver-email-edit" placeholder="Электронная почта" required>
+                  </div>
+
+                  <div class="parameters-input">
+                      <label for="driver-transport-edit">Транспортное средство</label>
+                      <select name="driverTransport" id="driver-transport-edit">
+                        <option value="NS">Не указывать</option>
+                        {{#each Registrars}}
+                          <option value="{{this}}">{{this}}</option>
+                        {{/each}}
+                      </select>
+                  </div>
+
+                  <label for="driver-description-edit">Примечание</label>
+                  <input name="driverDescription" type="text" id="driver-description-edit" placeholder="Примечание">
+
+              </div>
+
+              <div class="horizontal-line"></div>
+
+              <button type="submit" id="send-edit">Сохранить</button>
+
+          </div>
+
+          </form>
+
+        </section>
+
+
+
+      </section>
+
+      <section id="newForm">
+        <section class="for-new">
+
+          <section class="stages">
+              <input name="newStage" type="radio" value="main" id="stage-main" checked><label for="stage-main">Основная информация</label>
+              <div class="vertical-line"></div>
+              <input name="newStage" type="radio" value="details" id="stage-details"><label for="stage-details">Детали</label>
+          </section>
+        </section>
+        <section id="add-new-container" class="add-new">
+          <img src="../img/xmark.svg" id="close-form-btn" onclick="closeForm()">
+
+          <form id="new-form" enctype="multipart/form-data" method="post" action="/adddriver">
+
+          <div id="main" class="new-parameters drivers active">
+
+              <h1>Основная информация</h1>
+              <h2>Сперва самое необходимое</h2>
+
+              <div class="horizontal-line"></div>
+
+              <label for="parameters-plate">Фотография<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <div id="upload-photo" class="upload-input">
+                  <img src="../img/upload.svg">
+                  <span class="upload-text">Загрузить фотографию водителя</span>
+                  <span class="upload-description">PNG, JPG (макс 20 мб)</span>
+              </div>
+              <div class="image-container" id="image-container" style="display: none;">
+                <img id="image-preview" src="#" alt="Uploaded Image">
+                <div class="upload-result">
+                  <img id="file-icon" src="../img/file.svg" />
+                  <span id="file-name"></span>
+                  <span id="file-size"></span>
+                  <img id="clear-button" src="../img/xmark.svg" />
+                </div>
+              </div>
+              <input id="input-upload-photo" type="file" accept=".png, .jpg, .jpeg" name="upload-file" style="display: none;">
+
+              <div class="parameters-inputs">
+                  <label for="driver-name">Имя<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                  <input name="driverName" type="text" id="driver-name" placeholder="Имя водителя" required>
+
+                  <label for="driver-surname">Фамилия<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                  <input name="driverSurname" type="text" id="driver-surname" placeholder="Фамилия водителя" required>
+
+                  <label for="driver-card">Карта водителя<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                  <input name="driverCard" type="text" id="driver-card" placeholder="Номер карты водителя" required>
+
+              </div>
+
+              <div class="horizontal-line"></div>
+
+              <button id="continue-main" type="button">Продолжить</button>
+
+          </div>
+
+          <div id="details" class="new-parameters">
+
+              <h1>Детальная информация</h1>
+              <h2>Для удобства в идентификации</h2>
+
+              <div class="horizontal-line"></div>
+
+              <div class="parameters-inputs">
+
+                  <div class="parameters-input">
+                      <label for="driver-gender">Пол</label>
+                      <select name="driverGender" id="driver-gender">
+                          <option value="NS">Не указывать</option>
+                          <option value="male">Мужской</option>
+                          <option value="female">Женский</option>
+                      </select>
+                  </div>
+
+                  <div class="parameters-input">
+                      <label for="driver-license">Водительское удостоверение<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                      <input name="driverLicense" type="text" id="driver-license" placeholder="Номер водительского удостоверения" required>
+                  </div>
+
+                  <div class="parameters-input">
+                      <label for="driver-passport">Удостоверение личности<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                      <input name="driverPassport" type="text" id="driver-passport" placeholder="Номер удостоверения личности" required>
+                  </div>
+
+                  <div class="parameters-input">
+                      <label for="driver-phone">Мобильный телефон<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                      <input name="driverPhone" type="text" id="driver-phone" placeholder="Номер мобильного телефона" required>
+                  </div>
+
+                  <div class="parameters-input">
+                      <label for="driver-email">Электронная почта<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                      <input name="driverEmail" type="text" id="driver-email" placeholder="Электронная почта" required>
+                  </div>
+
+                  <div class="parameters-input">
+                      <label for="driver-transport">Транспортное средство</label>
+                      <select name="driverTransport" id="driver-transport">
+                        <option value="NS">Не указывать</option>
+                        {{#each Registrars}}
+                          <option value="{{this}}">{{this}}</option>
+                        {{/each}}
+                      </select>
+                  </div>
+
+                  <label for="driver-description">Примечание</label>
+                  <input name="driverDescription" type="text" id="driver-description" placeholder="Примечание">
+
+              </div>
+
+              <div class="horizontal-line"></div>
+
+              <button type="submit" id="send-form">Сохранить</button>
+
+          </div>
+
+          </form>
+
+        </section>
+
+
+
+      </section>
+
+
+      
+
+        </section>
+        </section>
+        <section style="display: none;" class="dberror" id="deleteConfirmation">
+          <div class="erorr-container">
+            <img src="../img/warning.svg"> <br>
+            <h1>Удаление водителя </h1> <br>
+            <span>Вы уверены что хотите удалить <span id="driverDeleteInfo"></span>?</span>
+            <div class="buttons">
+            <button id="deleteCancel" onclick="closeDeletion();" style="display: inline-block; background-color: white; color: rgba(0, 0, 0, 0.7); margin-right: 5px;" type="button" onclick="deleteDriver()">Отменить</button>
+            <button id="deleteDriver" style="display: inline-block;" type="button">Подтвердить</button>
+          </div>
+          </div>
+        </section>
+
+        <script>
+          const devices = [
+      {{#each Drivers}}
+      {
+        id: "{{this.id}}",
+        name: "{{this.name}}",
+        surname: "{{this.surname}}",
+        numberTS: "{{this.transport}}",
+        phone: "{{this.phone}}",
+        mail: "{{this.email}}",
+        sim: "{{this.sim}}",
+        driverCard: "{{this.card}}",
+      },
+      {{/each}}
+    ];
+        </script>
+
     <script src="../scripts/table-drivers.js"></script>
     <script src="../scripts/jquery.min.js"></script>
+    <script src="https://rawgit.com/RobinHerbots/Inputmask/5.x/dist/jquery.inputmask.js"></script>
+    <script src="../scripts/drivers-form.js"></script>
+
+    <script>
+      const uploadPhotoInput = document.getElementById('input-upload-photo');
+      const uploadContainer = document.getElementById('upload-photo');
+      const imageContainer = document.getElementById('image-container');
+      const imagePreview = document.getElementById('image-preview');
+      const fileNameElement = document.getElementById('file-name');
+      const fileSizeElement = document.getElementById('file-size');
+      const clearButton = document.getElementById('clear-button');
+  
+      uploadPhotoInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function() {
+            uploadContainer.style.display = 'none';
+            imagePreview.src = reader.result;
+            imageContainer.style.display = 'block';
+            fileNameElement.textContent = file.name ;
+            fileSizeElement.textContent = formatFileSize(file.size);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      function formatFileSize(bytes) {
+      const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+      if (bytes === 0) return '0 Byte';
+      const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+      return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+    }
+  
+      clearButton.addEventListener('click', function() {
+        uploadContainer.style.display = 'block';
+        uploadPhotoInput.value = null;
+        imageContainer.style.display = 'none';
+        imagePreview.src = '#';
+        fileNameElement.textContent = '';
+        fileSizeElement.textContent = '';
+      });
+    </script>
+    <script>
+      var form = document.getElementById('new-form');
+      const sendButton = document.getElementById('send-form');
+  
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
+  
+        const formData = new FormData(form);
+  
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/adddriver', true);
+  
+        xhr.onload = function() {
+          if (xhr.status === 200) {
+            console.log('Водитель успешно добавлен!');
+            location.reload();
+          } else {
+            console.error('Ошибка отправки формы:', xhr.status);
+          }
+        };
+  
+        xhr.send(formData);
+      });
+
+      var form2 = document.getElementById('edit-form');
+      const editSendButton = document.getElementById('send-edit');
+  
+      form2.addEventListener('submit', function(event) {
+        event.preventDefault();
+  
+        const formData = new FormData(form2);
+  
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/updatedriver', true);
+  
+        xhr.onload = function() {
+          if (xhr.status === 200) {
+            console.log('Информация о водителе успешно обновлена!');
+            location.reload();
+          } else {
+            console.error('Ошибка отправки формы:', xhr.status);
+          }
+        };
+  
+        xhr.send(formData);
+      });
+    </script>
+    <script>
+      const fileSelect = document.getElementById("upload-photo");
+        const fileElem = document.getElementById("input-upload-photo");
+
+        fileSelect.addEventListener(
+                "click",
+                (e) => {
+                        if (fileElem) {
+                                fileElem.click();
+                        }
+                },
+                false
+        );
+      $(document).ready(function(){
+
+          $('#driver-phone').inputmask({"mask": "+7 (999) 999-9999"});
+          $('#driver-phone-edit').inputmask({"mask": "+7 (999) 999-9999"});
+
+      });
+
+      // Открывает popup форму
+      function openNew() {
+
+      var formContainer = $("#form-bg");
+      var newForm = $("#newForm");
+      var editForm = $("#editForm");
+
+      
+
+        activeContent = content1
+        switchContent(content1);
+
+        content2.style.opacity = 0;
+        content2.style.display = "none";
+        content3.style.opacity = 0;
+        content3.style.display = "none";
+        content4.style.opacity = 0;
+        content4.style.display = "none";
+
+        document.getElementById("stage-main").checked = true;
+
+
+        newForm.css("display", "flex");
+        editForm.css("display", "none");
+        // Открытие формы
+        formContainer.addClass("active");
+        newForm.addClass("form-animation");
+        $("body").css("overflow", "hidden");
+      }
+
+      function openEdit(id) {
+
+      var formContainer = $("#form-bg");
+      var newForm = $("#newForm");
+      var editForm = $("#editForm");
+
+      $.ajax({
+        url: "/driverdata", 
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ id: id }),
+        success: function(response) {
+          // Установка значений полей формы
+          $("#driver-name-edit").val(response.name);
+          $("#driver-surname-edit").val(response.surname);
+          $("#driver-card-edit").val(response.card);
+          $("#driver-gender-edit").val(response.gender);
+          $("#driver-license-edit").val(response.license);
+          $("#driver-passport-edit").val(response.passport);
+          $("#driver-phone-edit").val(response.phone);
+          $("#driver-email-edit").val(response.email);
+          $("#driver-transport-edit").val(response.transport);
+          $("#driver-description-edit").val(response.description);
+          $("#driver-id-edit").val(response.id);
+
+          activeContent = content3
+          switchContent(content3);
+
+          content1.style.opacity = 0;
+          content1.style.display = "none";
+          content2.style.opacity = 0;
+          content2.style.display = "none";
+          content4.style.opacity = 0;
+          content4.style.display = "none";
+
+          document.getElementById("stage-main").checked = true;
+
+          newForm.css("display", "none");
+          editForm.css("display", "flex");
+          // Открытие формы
+          formContainer.addClass("active");
+          editForm.addClass("form-animation");
+          $("body").css("overflow", "hidden");
+          },
+          error: function() {
+            // Обработка ошибки при запросе к серверу
+            alert("Произошла ошибка при запросе к серверу.");
+          }
+      });
+        
+      }
+
+      var formContainer = $("#form-bg");
+      var newForm = $("#newForm");
+      var editForm = $("#editForm");
+
+      // Функция для закрытия формы
+      function closeForm() {
+        formContainer.removeClass("active");
+        newForm.removeClass("form-animation");
+        editForm.removeClass("form-animation");
+        newForm.css("display", "none");
+        editForm.css("display", "none");
+        $("body").css("overflow", "auto");
+      }
+  </script>
+
+  <script>
+    function deleteDriver(id) {
+
+    var deleteConfirmation = $("#deleteConfirmation");
+
+    $.ajax({
+      url: "/driverdata", 
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ id: id }),
+      success: function(response) {
+        // Установка значений полей формы
+        $("#driverDeleteInfo").html(response.name + " " + response.surname);
+        document.getElementById('deleteDriver').setAttribute("onclick", `confirmDelete(${response.id})`);
+
+
+        document.getElementById('deleteConfirmation').style.display = "flex";
+
+        $("body").css("overflow", "hidden");
+        },
+        error: function() {
+          // Обработка ошибки при запросе к серверу
+          alert("Произошла ошибка при запросе к серверу.");
+        }
+    });
+      
+    }
+
+    function closeDeletion() {
+        document.getElementById('deleteConfirmation').style.display = "none";
+      }
+
+    function confirmDelete(id) {
+    $.ajax({
+      url: "/deletedriver", 
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ id: id }),
+      success: function(response) {
+        location.reload();
+        },
+        error: function() {
+          // Обработка ошибки при запросе к серверу
+          alert("Произошла ошибка при запросе к серверу.");
+        }
+    });
+      
+    }
+  </script>
+
+
     <script>
         // Скрытие/Показ дополнительных меню аккаунта
         const accountMain = document.getElementById('account-main');

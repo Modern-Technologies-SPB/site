@@ -445,6 +445,27 @@ header h2 span {
   background-color: #8086f9;
 }
 
+.organisation button {
+  position: absolute;
+  width: fit-content;
+  text-decoration: none;
+  font-size: 18px;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.5);
+  padding: 7px;
+  border-radius: 6px;
+  transition: 0.2s;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  bottom: 15px;
+  left: 35px;
+}
+
+.organisation button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
 .content .table {
   display: inline-block;
   width: calc(100% - 275px);
@@ -1052,6 +1073,69 @@ tr:nth-child(even) {
 .upload-description {
   font-weight: lighter;
   margin-top: 2px;
+}
+
+.upload-result {
+  /* width: calc(100% - 200px); */
+  width: 100%;
+  /* float: right; */
+  margin-bottom: 10px;
+  display: block;
+  border-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  position: relative;
+}
+
+.image-container #image-preview {
+  margin-top: 5px;
+  max-width: 150px;
+  max-height: 150px;
+  border-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.upload-result #file-name {
+  position: absolute;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+  color: rgba(0, 0, 0, 0.75);
+  /* margin-right: 50px; */
+  /* display: flex; */
+  top: 6px;
+  left: 40px;
+}
+
+.upload-result #file-size {
+  position: absolute;
+  bottom: 6px;
+  left: 40px;
+  /* display: flex; */
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.upload-result #file-icon {
+  display: flex;
+  padding: 8px;
+  height: 24px;
+  width: 24px;
+}
+
+.upload-result #clear-button {
+  /* display: flex; */
+  /* padding: 14px; */
+  cursor: pointer;
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 12px;
+  height: 12px;
 }
 
 .drivers select {

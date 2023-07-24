@@ -49,6 +49,16 @@
     </section>
 
     <section class="main">
+      {{#if ifDBError}}
+      <section class="dberror">
+        <div class="erorr-container">
+          <img src="../img/warning.svg"> <br>
+          <h1>Ошибка </h1> <br>
+          <span>Не удалось получить данные из БД</span>
+          <button type="button" onclick="location.reload();">Повторить попытку</button>
+        </div>
+      </section>
+      {{/if}}
         <div class="name">
             <span>Отчёты</span>
         </div>
@@ -64,7 +74,7 @@
                         <h1>Организация</h1>
 
                         <ul class="area">
-                          <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-1" class="checkbox-input" hidden checked><label for="name-1" class="checkbox-label">Группа 1</label>
+                          <!-- <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-1" class="checkbox-input" hidden checked><label for="name-1" class="checkbox-label">Группа 1</label>
                             <ul class="area-devices" id="devices-1">
                               <li class="device"><img><input type="checkbox" id="0001" class="checkbox-input device-filter" value="0001" hidden checked><label for="0001" class="checkbox-label"><div class="checkmark"></div>0001</label></li>
                               <li class="device"><img><input type="checkbox" id="0002" class="checkbox-input device-filter" value="0002" hidden checked><label for="0002" class="checkbox-label"><div class="checkmark"></div>0002</label></li>
@@ -82,7 +92,7 @@
                             <ul class="area-devices" id="devices-3">
                               <li class="device"><img><input type="checkbox" id="0007" class="checkbox-input device-filter" value="0007" hidden checked><label for="0007" class="checkbox-label"><div class="checkmark"></div>0007</label></li>
                             </ul>
-                          </li>
+                          </li> -->
                         </ul>
 
                         <div class="area-time-range">
@@ -126,6 +136,9 @@
                     <div id="pagination">
                         <!-- Сюда будут добавляться ссылки для переключения между страницами -->
                       </div>
+                      <br>
+                      <br>
+                      <span style="opacity:50%">Временное ограничение: 100 последних предупреждений</span>
                       
                       
 
@@ -135,7 +148,7 @@
         </section>
     </section>
 
-    <!-- <script>
+    <script>
       const devices = [
   {{#each Alarms}}
   {
@@ -144,10 +157,12 @@
     time: "{{this.time}}",
     serial: "{{this.serial}}",
     type: "{{this.type}}",
+    geo: "{{this.geo}}",
+    plate: "{{this.plate}}",
   },
   {{/each}}
 ];
-    </script> -->
+    </script>
 
     <script src="../scripts/table-reports.js"></script>
     <script src="../scripts/jquery.min.js"></script>

@@ -6,11 +6,26 @@ const fs = require("fs");
 const handlebars = require("handlebars");
 require("dotenv").config();
 const multer = require("multer");
+const http = require("http");
+const WebSocket = require("ws");
 
-const upload = multer();
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+
+// Для сохранения загруженных фотографий
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads"); // Папка для сохранения фотографий
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+const upload = multer({ storage: storage });
 
 app.use(express.static(path.join(__dirname, "static")));
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 app.get("/", index);
 app.get("/login", login);
@@ -20,21 +35,19 @@ app.get("/reports", reports);
 app.get("/reports/346", reports346);
 app.get("/devices", devices);
 app.get("/devices/drivers", drivers);
-app.get("/devices/newdevice", newdevice);
-app.get("/devices/newdriver", newdriver);
 app.get("/devices/update", update);
 
-// const DB_User = process.env.DB_USER;
-// const DB_Password = process.env.DB_PASSWORD;
-// const DB_Host = process.env.DB_HOST;
-// const DB_Port = process.env.DB_PORT;
-// const DB_Name = process.env.DB_NAME;
+const DB_User = process.env.DB_USER;
+const DB_Password = process.env.DB_PASSWORD;
+const DB_Host = process.env.DB_HOST;
+const DB_Port = process.env.DB_PORT;
+const DB_Name = process.env.DB_NAME;
 
-const DB_User = "postgres";
-const DB_Password = "password";
-const DB_Host = "postgres";
-const DB_Port = "5432";
-const DB_Name = "postgres";
+// const DB_User = "postgres";
+// const DB_Password = "password";
+// const DB_Host = "postgres";
+// const DB_Port = "5432";
+// const DB_Name = "postgres";
 
 async function index(req, res) {
   var templateData = {
@@ -179,6 +192,12 @@ app.post("/devices-geo", async (req, res) => {
 });
 
 async function reports(req, res) {
+  let templateData = {
+    Organisation: "Название организации",
+    User: "Тестовое Имя",
+    ifDBError: false,
+    Registrars: [],
+  };
   try {
     const pool = new Pool({
       user: DB_User,
@@ -190,16 +209,22 @@ async function reports(req, res) {
     const client = await pool.connect();
     // Выполняем запрос и получаем результат
     const query = `
-    SELECT id, cmdno, time, serial, st
-    FROM (
-    SELECT id, cmdno, time, serial, st
-    FROM alarms
-    ORDER BY time DESC
-    LIMIT 100
-    ) AS subquery
-    ORDER BY time ASC;
+      SELECT a.id, a.cmdno, a.time, a.serial, a.st, r.plate, g.latitude, g.longitude
+      FROM (
+        SELECT id, cmdno, time, serial, st
+        FROM alarms
+        ORDER BY time DESC 
+        LIMIT 100
+      ) AS a
+      LEFT JOIN registrars AS r ON a.serial = r.serial
+      LEFT JOIN (
+        SELECT *,
+          ROW_NUMBER() OVER (PARTITION BY serial ORDER BY ABS(EXTRACT(EPOCH FROM (time - $1)))) AS row_num
+        FROM geo
+      ) AS g ON a.serial = g.serial AND g.row_num = 1
+      ORDER BY a.time DESC;
     `;
-    const alarms = await client.query(query);
+    const alarms = await client.query(query, [new Date()]); // Pass current date/time to the query for finding the nearest geoposition.
 
     function formatDate(date) {
       const options = {
@@ -213,36 +238,120 @@ async function reports(req, res) {
       return formattedDate.replace(",", "");
     }
 
-    var templateData = {
-      Organisation: "Название организации",
-      User: "Тестовое Имя",
-      Alarms: alarms.rows.map((alarm) => {
-        let type;
-        switch (alarm.st) {
-          case "0":
-            type = "Усталость";
-            break;
-          case "1":
-            type = "Отсутствие водителя";
-            break;
-          case "2":
-            type = "Разговор по телефону";
-            break;
-          default:
-            type = "Неизвестный тип";
-        }
-        return {
-          id: alarm.id,
-          cmdno: alarm.cmdno,
-          time: formatDate(alarm.time),
-          serial: alarm.serial,
-          st: alarm.st,
-          type: type,
-        };
-      }),
-    };
+    (templateData.Alarms = alarms.rows.map((alarm) => {
+      let type;
+      switch (alarm.st) {
+        case "0":
+          type = "Усталость";
+          break;
+        case "1":
+          type = "Водитель пропал";
+          break;
+        case "2":
+          type = "Разговор по телефону";
+          break;
+        case "3":
+          type = "Курение за рулём";
+          break;
+        case "4":
+          type = "Водитель отвлекся";
+          break;
+        case "5":
+          type = "Выезд с полосы движения";
+          break;
+        case "6":
+          type = "!!! Лобовое столкновение";
+          break;
+        case "7":
+          type = "Скорость превышена";
+          break;
+        case "8":
+          type = "Распознавание номерных знаков";
+          break;
+        case "9":
+          type = "!! Маленькое расстояние спереди";
+          break;
+        case "10":
+          type = "Водитель зевает";
+          break;
+        case "11":
+          type = "!!! Столкновение с пешеходом";
+          break;
+        case "12":
+          type = "Проходы переполнены";
+          break;
+        case "13":
+          type = "!! Посадка/высадка вне остановки";
+          break;
+        case "14":
+          type = "!! Смена полосы с нарушением ПДД";
+          break;
+        case "15":
+          type = "! Включенный телефон у водителя";
+          break;
+        case "16":
+          type = "!!! Ремень безопасности";
+          break;
+        case "17":
+          type = "Проверка не удалась";
+          break;
+        case "18":
+          type = "Слепые зоны справа";
+          break;
+        case "19":
+          type = "!!! Заднее столкновение";
+          break;
+        case "20":
+          type = "!!! Управление без рук";
+          break;
+        case "21":
+          type = "!! Управление одной рукой";
+          break;
+        case "22":
+          type = "Очки, блокирующие инфракрасное излучение";
+          break;
+        case "23":
+          type = "Слепые зоны слева";
+          break;
+        case "24":
+          type = "Помехи для пассажиров";
+          break;
+        case "25":
+          type = "На перекрестке ограничена скорость";
+          break;
+        case "26":
+          type = "Обнаружен перекресток";
+          break;
+        case "27":
+          type = "Пешеходы на переходе";
+          break;
+        case "28":
+          type = "! Неучтивое отношение к пешеходам";
+          break;
+        case "29":
+          type = "Обнаружен пешеходный переход";
+          break;
+        case "30":
+          type = "Водитель матерится";
+          break;
+        default:
+          type = "Неизвестный тип";
+      }
 
-    console.log(templateData);
+      return {
+        id: alarm.id,
+        cmdno: alarm.cmdno,
+        time: formatDate(alarm.time),
+        serial: alarm.serial,
+        st: alarm.st,
+        type: type,
+        plate: alarm.plate,
+        latitude: alarm.latitude,
+        longitude: alarm.longitude,
+        geo: alarm.latitude + "," + alarm.longitude,
+      };
+    })),
+      console.log(templateData);
 
     const source = fs.readFileSync(
       "static/templates/reports/index.html",
@@ -255,7 +364,7 @@ async function reports(req, res) {
     res.send(resultT);
   } catch (error) {
     console.error(error);
-    // templateData.ifDBError = true;
+    templateData.ifDBError = true;
 
     const source = fs.readFileSync(
       "static/templates/reports/index.html",
@@ -265,8 +374,93 @@ async function reports(req, res) {
     const resultT = template(templateData);
     res.send(resultT);
   }
-  // res.sendFile(path.join(__dirname, "static/templates/reports/index.html"));
 }
+app.get("/api/devices", async (req, res) => {
+  try {
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+    const { page = 1, limit = 10 } = req.query;
+    const offset = (page - 1) * limit;
+
+    const query = `
+      SELECT a.id, a.cmdno, a.time, a.serial, a.st, r.plate, g.latitude, g.longitude
+      FROM (
+        SELECT id, cmdno, time, serial, st
+        FROM alarms
+        ORDER BY time DESC 
+        LIMIT $1 OFFSET $2
+      ) AS a
+      LEFT JOIN registrars AS r ON a.serial = r.serial
+      LEFT JOIN (
+        SELECT *,
+          ROW_NUMBER() OVER (PARTITION BY serial ORDER BY ABS(EXTRACT(EPOCH FROM (time - $3)))) AS row_num
+        FROM geo
+      ) AS g ON a.serial = g.serial AND g.row_num = 1
+      ORDER BY a.time DESC;
+    `;
+    const alarms = await pool.query(query, [limit, offset, new Date()]); // Pass current date/time to the query for finding the nearest geoposition.
+
+    function formatDate(date) {
+      const options = {
+        year: "2-digit",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      };
+      const formattedDate = new Date(date).toLocaleString("ru-RU", options);
+      return formattedDate.replace(",", "");
+    }
+
+    const alarmsData = alarms.rows.map((alarm) => {
+      let type;
+      switch (alarm.st) {
+        case "0":
+          type = "Усталость";
+          break;
+        case "1":
+          type = "Отсутствие водителя";
+          break;
+        case "2":
+          type = "Разговор по телефону";
+          break;
+        default:
+          type = "Неизвестный тип";
+      }
+      return {
+        id: alarm.id,
+        cmdno: alarm.cmdno,
+        time: formatDate(alarm.time),
+        serial: alarm.serial,
+        st: alarm.st,
+        type: type,
+        plate: alarm.plate,
+        latitude: alarm.latitude,
+        longitude: alarm.longitude,
+        geo: alarm.latitude + "," + alarm.longitude,
+      };
+    });
+
+    const totalCountQuery = "SELECT COUNT(*) FROM alarms;";
+    const totalCount = await pool.query(totalCountQuery);
+
+    const totalPages = Math.ceil(totalCount.rows[0].count / limit);
+
+    res.json({
+      data: alarmsData,
+      totalPages: totalPages,
+    });
+  } catch (error) {
+    console.error("Error executing query:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 function reports346(req, res) {
   res.sendFile(path.join(__dirname, "static/templates/reports/346.html"));
 }
@@ -380,6 +574,13 @@ app.post("/devicedata", async (req, res) => {
 });
 
 app.post("/updatedevice", async (req, res) => {
+  const pool = new Pool({
+    user: DB_User,
+    host: DB_Host,
+    database: DB_Name,
+    password: DB_Password,
+    port: DB_Port,
+  });
   const client = await pool.connect();
 
   var {
@@ -503,15 +704,267 @@ app.post("/updatedevice", async (req, res) => {
   }
 });
 
-function drivers(req, res) {
-  res.sendFile(path.join(__dirname, "static/templates/devices/drivers.html"));
+app.post("/updatedriver", upload.single("upload-file"), async (req, res) => {
+  const pool = new Pool({
+    user: DB_User,
+    host: DB_Host,
+    database: DB_Name,
+    password: DB_Password,
+    port: DB_Port,
+  });
+  const client = await pool.connect();
+
+  var {
+    driverName,
+    driverSurname,
+    driverCard,
+    driverGender,
+    driverLicense,
+    driverPassport,
+    driverPhone,
+    driverEmail,
+    driverTransport,
+    driverDescription,
+    driverID,
+  } = req.body;
+
+  try {
+    // Вставка новой строки в таблицу drivers
+    const query = `
+      UPDATE drivers
+      SET name = $1,
+          surname = $2,
+          card = $3,
+          gender = $4,
+          license = $5,
+          passport = $6,
+          phone = $7,
+          email = $8,
+          transport = $9,
+          description = $10
+      WHERE id = $11
+      RETURNING *;
+    `;
+
+    const values = [
+      driverName,
+      driverSurname,
+      driverCard,
+      driverGender,
+      driverLicense,
+      driverPassport,
+      driverPhone,
+      driverEmail,
+      driverTransport,
+      driverDescription,
+      driverID,
+    ];
+
+    const result = await client.query(query, values);
+
+    const newRow = result.rows[0];
+    console.log("New driver added:", newRow);
+
+    res.send("Data added successfully");
+  } catch (error) {
+    console.error("Error adding data:", error);
+    res.status(500).send("An error occurred while adding data");
+  } finally {
+    client.release();
+  }
+});
+
+app.post("/adddriver", upload.single("upload-file"), async (req, res) => {
+  const pool = new Pool({
+    user: DB_User,
+    host: DB_Host,
+    database: DB_Name,
+    password: DB_Password,
+    port: DB_Port,
+  });
+  const client = await pool.connect();
+
+  var {
+    driverName,
+    driverSurname,
+    driverCard,
+    driverGender,
+    driverLicense,
+    driverPassport,
+    driverPhone,
+    driverEmail,
+    driverTransport,
+    driverDescription,
+  } = req.body;
+
+  try {
+    // Вставка новой строки в таблицу drivers
+    const query = `
+      INSERT INTO drivers (
+        name,
+        surname,
+        card,
+        gender,
+        license,
+        passport,
+        phone,
+        email,
+        transport,
+        description
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING *;
+    `;
+
+    const values = [
+      driverName,
+      driverSurname,
+      driverCard,
+      driverGender,
+      driverLicense,
+      driverPassport,
+      driverPhone,
+      driverEmail,
+      driverTransport,
+      driverDescription,
+    ];
+
+    const result = await client.query(query, values);
+
+    const newRow = result.rows[0];
+    console.log("New driver added:", newRow);
+
+    res.send("Data added successfully");
+  } catch (error) {
+    console.error("Error adding data:", error);
+    res.status(500).send("An error occurred while adding data");
+  } finally {
+    client.release();
+  }
+});
+
+app.post("/driverdata", async (req, res) => {
+  const id = req.body.id;
+
+  const pool = new Pool({
+    user: DB_User,
+    host: DB_Host,
+    database: DB_Name,
+    password: DB_Password,
+    port: DB_Port,
+  });
+  const client = await pool.connect();
+
+  try {
+    // Выполняем запрос и получаем результат
+    const query = "SELECT * FROM drivers WHERE id = $1;";
+    const driverdata = await client.query(query, [id]);
+
+    // Формирование и отправка ответа
+    const response = driverdata.rows[0];
+    res.json(response);
+  } finally {
+    client.release();
+  }
+});
+
+app.post("/deletedriver", async (req, res) => {
+  const id = req.body.id;
+
+  const pool = new Pool({
+    user: DB_User,
+    host: DB_Host,
+    database: DB_Name,
+    password: DB_Password,
+    port: DB_Port,
+  });
+  const client = await pool.connect();
+
+  try {
+    // Выполняем запрос и получаем результат
+    const query = "DELETE FROM drivers WHERE id = $1;";
+    const driverdata = await client.query(query, [id]);
+
+    // Формирование и отправка ответа
+    res.send("Data deleted successfully");
+  } finally {
+    client.release();
+  }
+});
+
+async function drivers(req, res) {
+  let templateData = {
+    Organisation: "Название организации",
+    User: "Тестовое Имя",
+    ifDBError: false,
+    Drivers: [],
+    Registrars: [],
+  };
+
+  try {
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+    const client = await pool.connect();
+
+    // Выполняем запрос для объединения данных из таблиц drivers и registrars
+    const queryDrivers = `
+      SELECT d.id, d.name, d.surname, d.transport, d.phone, d.email, d.card, r.connected
+      FROM drivers d
+      LEFT JOIN registrars r ON d.transport = r.serial
+      ORDER BY r.connected DESC NULLS LAST, CASE WHEN r.connected = true THEN 0 ELSE 1 END, d.id
+    `;
+    const driversResult = await client.query(queryDrivers);
+
+    templateData.Drivers = driversResult.rows.map((driver) => ({
+      id: driver.id,
+      name: driver.name,
+      surname: driver.surname,
+      transport: driver.transport,
+      phone: driver.phone,
+      email: driver.email,
+      card: driver.card,
+    }));
+
+    const queryRegistrars = `
+      SELECT serial
+      FROM registrars
+    `;
+    const registrarsResult = await client.query(queryRegistrars);
+
+    templateData.Registrars = registrarsResult.rows.map(
+      (registrar) => registrar.serial
+    );
+
+    console.log(templateData);
+
+    const source = fs.readFileSync(
+      "static/templates/devices/drivers.html",
+      "utf8"
+    );
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+
+    client.release();
+  } catch (error) {
+    console.error(error);
+    templateData.ifDBError = true;
+
+    const source = fs.readFileSync(
+      "static/templates/devices/drivers.html",
+      "utf8"
+    );
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  }
 }
-function newdevice(req, res) {
-  res.sendFile(path.join(__dirname, "static/templates/devices/newdevice.html"));
-}
-function newdriver(req, res) {
-  res.sendFile(path.join(__dirname, "static/templates/devices/newdriver.html"));
-}
+
 function update(req, res) {
   res.sendFile(path.join(__dirname, "static/templates/devices/update.html"));
 }
