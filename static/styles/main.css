@@ -445,7 +445,7 @@ header h2 span {
   background-color: #8086f9;
 }
 
-.organisation button {
+.organisation .addDriver {
   position: absolute;
   width: fit-content;
   text-decoration: none;
@@ -462,7 +462,7 @@ header h2 span {
   left: 35px;
 }
 
-.organisation button:hover {
+.organisation .addDriver:hover {
   background-color: rgba(0, 0, 0, 0.05);
 }
 
