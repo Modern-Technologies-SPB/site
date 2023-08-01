@@ -7,10 +7,6 @@ const handlebars = require("handlebars");
 require("dotenv").config();
 const multer = require("multer");
 const http = require("http");
-const WebSocket = require("ws");
-
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
 
 // Для сохранения загруженных фотографий
 const storage = multer.diskStorage({
@@ -37,17 +33,18 @@ app.get("/devices", devices);
 app.get("/devices/drivers", drivers);
 app.get("/devices/update", update);
 
-// const DB_User = process.env.DB_USER;
-// const DB_Password = process.env.DB_PASSWORD;
-// const DB_Host = process.env.DB_HOST;
-// const DB_Port = process.env.DB_PORT;
-// const DB_Name = process.env.DB_NAME;
 
-const DB_User = "postgres";
-const DB_Password = "password";
-const DB_Host = "postgres";
-const DB_Port = "5432";
-const DB_Name = "postgres";
+const DB_User = process.env.DB_USER;
+const DB_Password = process.env.DB_PASSWORD;
+const DB_Host = process.env.DB_HOST;
+const DB_Port = process.env.DB_PORT;
+const DB_Name = process.env.DB_NAME;
+
+// const DB_User = "postgres";
+// const DB_Password = "password";
+// const DB_Host = "postgres";
+// const DB_Port = "5432";
+// const DB_Name = "postgres";
 
 async function index(req, res) {
   var templateData = {
@@ -119,11 +116,14 @@ async function live(req, res) {
     const client = await pool.connect();
 
     const query = `
-    SELECT id FROM registrars ORDER BY id ASC
+    SELECT id, serial FROM registrars ORDER BY id ASC
     `;
     const registrars = await client.query(query);
 
-    templateData.Registrars = registrars.rows.map((row) => row.id);
+    templateData.Registrars = registrars.rows.map((row) => ({
+      id: row.id,
+      serial: row.serial,
+    }));
 
     console.log(templateData);
 
@@ -155,7 +155,7 @@ app.post("/devices-geo", async (req, res) => {
     port: DB_Port,
   });
 
-  console.log(selectedDevices);
+  // console.log(selectedDevices);
 
   const placeholders = selectedDevices
     .map((_, index) => `$${index + 1}`)
@@ -184,7 +184,7 @@ app.post("/devices-geo", async (req, res) => {
       return;
     }
 
-    console.log(result.rows);
+    // console.log(result.rows);
 
     const devicesData = result.rows;
     res.json({ devicesData });

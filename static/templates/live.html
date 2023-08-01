@@ -12,6 +12,8 @@
 </head>
 <body>
 
+  
+
     <header>
         <h1>Аргус</h1>
         <h2><span>/</span> Название организации</h2>
@@ -70,7 +72,6 @@
         </nav>
         <section class="bg">
             <section class="content">
-
                 <section class="for-table">
 
                     <section class="organisation">
@@ -82,10 +83,13 @@
                               {{#each Registrars}}
                                 <li class="device">
                                   <img>
-                                  <input type="checkbox" name="devices" id="{{this}}" class="checkbox-input device-filter" value="{{this}}" hidden checked>
-                                  <label for="{{this}}" class="checkbox-label">
+                                  <input type="checkbox" name="devices" id="{{this.id}}" class="checkbox-input device-filter" value="{{this.id}}" hidden checked>
+                                  <label for="{{this.id}}" class="checkbox-label">
                                     <div class="checkmark"></div>
-                                    {{this}}
+                                  </label>
+                                  <input type="radio" name="camera-serial" id="radio-{{this.serial}}" class="radio-input" value="{{this.serial}}" hidden>
+                                  <label for="radio-{{this.serial}}" class="radio-label">
+                                    {{this.serial}}
                                   </label>
                                 </li>
                               {{/each}}
@@ -113,7 +117,7 @@
 
                 
 
-                    <section class="table">
+                    <section class="table" style="position: relative;">
                       <div id="signals-list" class="signals-list">
                         <h1>Сигналы ТС - 17</h1>
                         <svg id="left-slider" class="left-slider" xmlns="http://www.w3.org/2000/svg" width="19" height="19" fill="none" viewBox="0 0 11 19">
@@ -263,6 +267,32 @@
                         <div id="map"></div>
                       </div>
 
+                      <div class="cameras">
+                        <div class="cameras-swipe"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="11" fill="none" viewBox="0 0 17 11">
+                          <path fill="#000" fill-opacity=".5" d="M8.486 10.4a.88.88 0 0 0 .655-.283l7.558-7.744a.871.871 0 0 0 .264-.625.876.876 0 0 0-.889-.898.927.927 0 0 0-.635.254L7.96 8.75h1.045l-7.48-7.646A.892.892 0 0 0 .888.85.876.876 0 0 0 0 1.748a.91.91 0 0 0 .264.635l7.558 7.734c.186.186.41.283.664.283Z"/>
+                        </svg></div>
+                        <div class="video-container">
+                          <!-- <video id="camera-1"></video> -->
+                          <video id="camera-2"></video>
+                          <video id="camera-3"></video>
+                          <video id="camera-4"></video>
+                          <video id="camera-5"></video>
+                          <!-- <video id="camera-6"></video>
+                          <video id="camera-7"></video>
+                          <video id="camera-8"></video>
+                          <video id="camera-9"></video>
+                          <video id="camera-10"></video>
+                          <video id="camera-11"></video>
+                          <video id="camera-12"></video>
+                          <video id="camera-13"></video>
+                          <video id="camera-14"></video>
+                          <video id="camera-15"></video>
+                          <video id="camera-16"></video> -->
+                        </div>
+
+
+                      </div>
+
 
                     </section>
                       
@@ -272,6 +302,110 @@
             </section>
         </section>
     </section>
+
+    <script src="../scripts/jquery.min.js"></script>
+
+    <script>
+      var serial;
+      document.addEventListener("DOMContentLoaded", function () {
+      const radioInputs = document.querySelectorAll(".radio-input");
+
+      if (radioInputs.length > 0) {
+        radioInputs[0].checked = true;
+      }
+      serial = $("input[name=camera-serial]:checked").val()
+      playflv();
+    });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flv.js/1.5.0/flv.min.js"></script>
+              <script>
+                let flvPlayers = [];
+                function stopAllCameras() {
+                    flvPlayers.forEach(player => {
+                        player.pause();
+                        player.unload();
+                        player.detachMediaElement();
+                        player.destroy();
+                    });
+                    flvPlayers = [];
+                }
+
+                function stopAllCameras() {
+                    flvPlayers.forEach(player => {
+                        player.pause();
+                        player.unload();
+                        player.detachMediaElement();
+                        player.destroy();
+                    });
+                    flvPlayers = [];
+                }
+                function playflv() {
+                if (!flvjs.isSupported()) {
+                    console.log("Browser does not support.");
+                }
+
+                const cameras = 5;
+                const baseURL = "http://45.9.42.252:8080/http/live.flv";
+                let currentCamera = 2;
+                
+
+
+                
+
+                // stopAllCameras();
+
+                function playNextCamera(i) {
+                   console.log(flvPlayers)
+                    // if (i > cameras) {
+                    //     return; // Stop when all cameras have been played
+                    // }
+
+                    // stopAllCameras(); // Stop all previous connections before opening a new one
+
+                    const videoElement = document.getElementById(`camera-${i}`);
+                    const flvPlayer = flvjs.createPlayer({
+                        type: 'flv',
+                        isLive: true,
+                        cors: true,
+                        url: `${baseURL}?serial=${serial}&channel=${i}&quality=0`,
+                    }, {
+                        enableWorker: true,
+                        enableStashBuffer: false,
+                        autoCleanupSourceBuffer: true,
+                    });
+
+                    flvPlayer.attachMediaElement(videoElement);
+                    flvPlayer.load();
+                    flvPlayer.play();
+
+                    flvPlayers.push(flvPlayer); // Add the current player to the array
+
+                    setTimeout(() => {
+                        playNextCamera(i + 1);
+                    }, 100);
+                }
+
+                playNextCamera(currentCamera);
+            }
+
+
+              // document.addEventListener('DOMContentLoaded', playflv);
+
+              </script>
+
+              <script>
+                var cameraSerials = document.querySelectorAll('.radio-input');
+
+                cameraSerials.forEach((checkbox) => {
+                  checkbox.addEventListener('change', function() {
+                    console.log($("input[name=camera-serial]:checked").val())
+                    serial = $("input[name=camera-serial]:checked").val()
+                    stopAllCameras();
+                    playflv();
+                  });
+                });
+              </script>
+
 
     <script>
       window.addEventListener('DOMContentLoaded', function() {
@@ -307,7 +441,7 @@
 </script>
 
     <!-- <script src="../scripts/table-reports.js"></script> -->
-    <script src="../scripts/jquery.min.js"></script>
+    
 
 
     <script>

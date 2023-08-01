@@ -1598,6 +1598,17 @@ video {
   margin-right: 5px;
 }
 
+.radio-label {
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 5px;
+  margin-left: -5px;
+}
+
+.radio-input:checked + .radio-label {
+  background: rgba(0, 0, 0, 0.10);
+}
+
 .map {
   /* background-color: #ff443a2f; */
   width: 100%;
@@ -1612,6 +1623,47 @@ video {
   position: absolute;
   border-radius: 29px;
 }
+
+.cameras {
+  background: #F5F5FA;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: calc(100% - 345px - 2px);
+  z-index: 3;
+}
+
+.cameras-swipe {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 20px; 
+  transition: 0.1s;
+  cursor: pointer;
+}
+
+.cameras-swipe svg {
+  rotate: 180deg;
+}
+
+.cameras-swipe:hover {
+  background: #dcdce2;
+}
+
+.video-container {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.video-container video {
+  height: auto;
+  box-sizing: border-box;
+  width: 25%;
+  padding: 0;
+  border: 1px solid white;
+}
+
 
 .edit-container {
   position: fixed;
