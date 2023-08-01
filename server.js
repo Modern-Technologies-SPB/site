@@ -34,17 +34,17 @@ app.get("/devices/drivers", drivers);
 app.get("/devices/update", update);
 
 
-// const DB_User = process.env.DB_USER;
-// const DB_Password = process.env.DB_PASSWORD;
-// const DB_Host = process.env.DB_HOST;
-// const DB_Port = process.env.DB_PORT;
-// const DB_Name = process.env.DB_NAME;
+const DB_User = process.env.DB_USER;
+const DB_Password = process.env.DB_PASSWORD;
+const DB_Host = process.env.DB_HOST;
+const DB_Port = process.env.DB_PORT;
+const DB_Name = process.env.DB_NAME;
 
-const DB_User = "postgres";
-const DB_Password = "password";
-const DB_Host = "postgres";
-const DB_Port = "5432";
-const DB_Name = "postgres";
+// const DB_User = "postgres";
+// const DB_Password = "password";
+// const DB_Host = "postgres";
+// const DB_Port = "5432";
+// const DB_Name = "postgres";
 
 async function index(req, res) {
   var templateData = {
@@ -161,10 +161,13 @@ app.post("/devices-geo", async (req, res) => {
   // console.log(selectedDevices);
 
   const placeholders = selectedDevices
-    .map((_, index) => `$${index + 1}`)
-    .join(",");
+  .map((_, index) => `$${index + 1}`)
+  .join(",");
   const subquery = `
-    SELECT MAX(time) AS time, serial
+  SELECT g.serial, g.longitude, g.latitude, g.direction, g.speed, r.lastkeepalive
+  FROM geo g
+  INNER JOIN (
+    SELECT serial, MAX(time) AS time
     FROM geo
     WHERE serial IN (
       SELECT serial
@@ -172,24 +175,34 @@ app.post("/devices-geo", async (req, res) => {
       WHERE id IN (${placeholders})
     )
     GROUP BY serial
-  `;
-  const query = `
-    SELECT g.serial, g.longitude, g.latitude, g.direction, g.speed
-    FROM geo g
-    INNER JOIN (${subquery}) s
-    ON g.serial = s.serial AND g.time = s.time
-  `;
+  ) s ON g.serial = s.serial AND g.time = s.time
+  INNER JOIN registrars r ON g.serial = r.serial
+`;
 
-  pool.query(query, selectedDevices, (err, result) => {
-    if (err) {
-      console.error("Ошибка выполнения запроса:", err);
-      res.status(500).json({ error: "Ошибка сервера" });
-      return;
-    }
+pool.query(subquery, selectedDevices, (err, result) => {
+  if (err) {
+    console.error("Ошибка выполнения запроса:", err);
+    res.status(500).json({ error: "Ошибка сервера" });
+    return;
+  }
+
+  const minuteInMillis = 60000;
+
+  // Process the result to include lastkeepalive information
+  const devicesData = result.rows.map((row) => ({
+    serial: row.serial,
+    longitude: row.longitude,
+    latitude: row.latitude,
+    direction: row.direction,
+    speed: row.speed,
+    status: Date.now() - Date.parse(row.lastkeepalive) <= minuteInMillis,
+  }));
+
+
 
     // console.log(result.rows);
 
-    const devicesData = result.rows;
+
     res.json({ devicesData });
   });
 });
