@@ -115,14 +115,17 @@ async function live(req, res) {
     });
     const client = await pool.connect();
 
+    const minuteInMillis = 60 * 1000;
+
     const query = `
-    SELECT id, serial FROM registrars ORDER BY id ASC
+    SELECT id, serial, lastkeepalive FROM registrars ORDER BY id ASC
     `;
     const registrars = await client.query(query);
 
     templateData.Registrars = registrars.rows.map((row) => ({
       id: row.id,
       serial: row.serial,
+      status: Date.now() - Date.parse(row.lastkeepalive) <= minuteInMillis,
     }));
 
     console.log(templateData);
@@ -481,28 +484,24 @@ async function devices(req, res) {
       port: DB_Port,
     });
     const client = await pool.connect();
-
-    // Выполняем два запроса и получаем результаты
-    const queryConnected = `
-      SELECT id, serial, connected, name, "group", plate, sim, ip, port 
+  
+    const minuteInMillis = 60 * 1000; 
+  
+    // Выполняем запрос, чтобы получить все данные из таблицы registrars
+    const queryRegistrars = `
+      SELECT id, serial, lastkeepalive, name, "group", plate, sim, ip, port 
       FROM registrars
-      WHERE connected = true
       ORDER BY id
     `;
-    const queryDisconnected = `
-      SELECT id, serial, connected, name, "group", plate, sim, ip, port 
-      FROM registrars
-      WHERE connected = false
-      ORDER BY id
-    `;
-    const connectedRegistrars = await client.query(queryConnected);
-    const disconnectedRegistrars = await client.query(queryDisconnected);
-
-    templateData.Registrars = [
-      ...connectedRegistrars.rows.map((registrar) => ({
+    const registrarsResult = await client.query(queryRegistrars);
+    const allRegistrars = registrarsResult.rows;
+  
+    // Определяем статус connected на основе lastkeepalive
+    const templateData = {
+      Registrars: allRegistrars.map((registrar) => ({
         id: registrar.id,
         serial: registrar.serial,
-        status: registrar.connected,
+        status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
         name: registrar.name,
         group: registrar.group,
         plate: registrar.plate,
@@ -510,29 +509,15 @@ async function devices(req, res) {
         ip: registrar.ip,
         port: registrar.port,
       })),
-      ...disconnectedRegistrars.rows.map((registrar) => ({
-        id: registrar.id,
-        serial: registrar.serial,
-        status: registrar.connected,
-        name: registrar.name,
-        group: registrar.group,
-        plate: registrar.plate,
-        sim: registrar.sim,
-        ip: registrar.ip,
-        port: registrar.port,
-      })),
-    ];
-
+    };
+  
     console.log(templateData);
-
-    const source = fs.readFileSync(
-      "static/templates/devices/index.html",
-      "utf8"
-    );
+  
+    const source = fs.readFileSync("static/templates/devices/index.html", "utf8");
     const template = handlebars.compile(source);
     const resultT = template(templateData);
     res.send(resultT);
-
+  
     client.release();
   } catch (error) {
     console.error(error);

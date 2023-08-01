@@ -420,6 +420,10 @@ header h2 span {
   position: relative;
 }
 
+.active-false {
+  opacity: 50%;
+}
+
 .device img {
   margin-left: -22px;
   padding-right: 7px;

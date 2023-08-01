@@ -84,11 +84,11 @@
                                 <li class="device">
                                   <img>
                                   <input type="checkbox" name="devices" id="{{this.id}}" class="checkbox-input device-filter" value="{{this.id}}" hidden checked>
-                                  <label for="{{this.id}}" class="checkbox-label">
+                                  <label for="{{this.id}}" class="checkbox-label active-{{this.status}}">
                                     <div class="checkmark"></div>
                                   </label>
                                   <input type="radio" name="camera-serial" id="radio-{{this.serial}}" class="radio-input" value="{{this.serial}}" hidden>
-                                  <label for="radio-{{this.serial}}" class="radio-label">
+                                  <label for="radio-{{this.serial}}" class="radio-label active-{{this.status}}">
                                     {{this.serial}}
                                   </label>
                                 </li>
@@ -305,7 +305,7 @@
 
     <script src="../scripts/jquery.min.js"></script>
 
-    <script>
+    <!-- <script>
       var serial;
       document.addEventListener("DOMContentLoaded", function () {
       const radioInputs = document.querySelectorAll(".radio-input");
@@ -316,7 +316,7 @@
       serial = $("input[name=camera-serial]:checked").val()
       playflv();
     });
-    </script>
+    </script> -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flv.js/1.5.0/flv.min.js"></script>
               <script>
                 let flvPlayers = [];
@@ -402,6 +402,15 @@
                     serial = $("input[name=camera-serial]:checked").val()
                     stopAllCameras();
                     playflv();
+
+                    var svgId = "marker-" + serial;
+                    var svgElement = document.getElementById(svgId);
+                    if (svgElement) {
+                      svgElement.innerHTML = `
+                        <path fill="#FF6A4B" d="M12.669 24.673c6.565 0 12-5.435 12-12 0-6.553-5.447-12-12.012-12C6.104.673.67 6.12.67 12.673c0 6.565 5.447 12 12 12Z"/>
+                        <path fill="#fff" fill-opacity=".85" d="m7.104 17.92 4.683-11.93c.33-.823 1.423-.846 1.753-.023l4.682 11.953c.318.788-.553 1.47-1.294.73l-3.953-3.953c-.188-.2-.424-.2-.612 0L8.41 18.65c-.753.74-1.623.059-1.306-.73Z"/>
+                      `;
+                    }
                   });
                 });
               </script>
@@ -508,7 +517,7 @@ const selectedDevices = Array.from(checkboxes)
           .then(data => {
             console.log(data.devicesData);
             data.devicesData.forEach(device => {
-    const { longitude, latitude, direction, speed } = device;
+    const { serial, longitude, latitude, direction, speed } = device;
     var newDirection = direction + 90
     console.log(newDirection);
     
@@ -516,7 +525,7 @@ const selectedDevices = Array.from(checkboxes)
     const el = document.createElement('div');
     el.className = 'marker';
     // el.style.transform = `rotate(${direction / 100}deg)`;
-    el.innerHTML = `<svg style="transform: rotate(${direction}deg)" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26" fill="none">
+    el.innerHTML = `<svg id="marker-${serial}" style="transform: rotate(${direction}deg)" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26" fill="none">
   <path d="M12.9815 25.0195C19.5462 25.0336 24.9931 19.6101 25.0073 13.0454C25.0214 6.49253 19.5861 1.03375 13.0214 1.01961C6.46848 1.00549 1.02147 6.44081 1.00735 12.9937C0.993201 19.5584 6.42852 25.0054 12.9815 25.0195Z" fill="#8086F9"/>
   <path d="M7.43175 18.2547L12.1398 6.33536C12.471 5.51254 13.5652 5.49137 13.8928 6.31561L18.5493 18.2786C18.8653 19.0675 17.9932 19.748 17.2537 19.0052L13.3092 15.0438C13.1215 14.8434 12.8862 14.8429 12.6975 15.0425L8.73605 18.9868C7.98152 19.7264 7.1124 19.0422 7.43175 18.2547Z" fill="white" fill-opacity="0.85"/>
 </svg><br><span class="speed">${speed} км/ч</span>`;
@@ -542,7 +551,7 @@ function updateMapMarkers(devicesData) {
 
   // Создание новых маркеров на карте на основе полученных данных
   devicesData.forEach(device => {
-    const { longitude, latitude, direction, speed } = device;
+    const { serial, longitude, latitude, direction, speed } = device;
     var newDirection = direction + 90
     console.log(newDirection);
     
@@ -550,7 +559,7 @@ function updateMapMarkers(devicesData) {
     const el = document.createElement('div');
     el.className = 'marker';
     // el.style.transform = `rotate(${direction}deg)`;
-    el.innerHTML = `<svg style="transform: rotate(${direction}deg)" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26" fill="none">
+    el.innerHTML = `<svg id="marker-${serial}" style="transform: rotate(${direction}deg)" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26" fill="none">
   <path d="M12.9815 25.0195C19.5462 25.0336 24.9931 19.6101 25.0073 13.0454C25.0214 6.49253 19.5861 1.03375 13.0214 1.01961C6.46848 1.00549 1.02147 6.44081 1.00735 12.9937C0.993201 19.5584 6.42852 25.0054 12.9815 25.0195Z" fill="#8086F9"/>
   <path d="M7.43175 18.2547L12.1398 6.33536C12.471 5.51254 13.5652 5.49137 13.8928 6.31561L18.5493 18.2786C18.8653 19.0675 17.9932 19.748 17.2537 19.0052L13.3092 15.0438C13.1215 14.8434 12.8862 14.8429 12.6975 15.0425L8.73605 18.9868C7.98152 19.7264 7.1124 19.0422 7.43175 18.2547Z" fill="white" fill-opacity="0.85"/>
 </svg><br><span class="speed">${speed} км/ч</span>`;
@@ -563,6 +572,16 @@ function updateMapMarkers(devicesData) {
     // Добавление маркера в массив markers
     markers.push(marker);
   });
+  serial = $("input[name=camera-serial]:checked").val()
+
+                    var svgId = "marker-" + serial;
+                    var svgElement = document.getElementById(svgId);
+                    if (svgElement) {
+                      svgElement.innerHTML = `
+                        <path fill="#FF6A4B" d="M12.669 24.673c6.565 0 12-5.435 12-12 0-6.553-5.447-12-12.012-12C6.104.673.67 6.12.67 12.673c0 6.565 5.447 12 12 12Z"/>
+                        <path fill="#fff" fill-opacity=".85" d="m7.104 17.92 4.683-11.93c.33-.823 1.423-.846 1.753-.023l4.682 11.953c.318.788-.553 1.47-1.294.73l-3.953-3.953c-.188-.2-.424-.2-.612 0L8.41 18.65c-.753.74-1.623.059-1.306-.73Z"/>
+                      `;
+                    }
 }
 
 setInterval(() => {
