@@ -42,7 +42,7 @@ app.get("/devices/update", update);
 
 const DB_User = "postgres";
 const DB_Password = process.env.POSTGRES_PASSWORD;
-const DB_Host = "localhost";
+const DB_Host = "postgres";
 const DB_Port = "5432";
 const DB_Name = "postgres";
 
