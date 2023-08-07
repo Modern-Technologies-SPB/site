@@ -103,6 +103,8 @@ async function live(req, res) {
     User: "Тестовое Имя",
     ifDBError: false,
     Registrars: [],
+    Alarms: [],
+    Count: 0,
   };
 
   try {
@@ -115,7 +117,7 @@ async function live(req, res) {
     });
     const client = await pool.connect();
 
-    const minuteInMillis = 60 * 1000;
+    const minuteInMillis = 90 * 1000;
 
     const query = `
     SELECT id, serial, lastkeepalive FROM registrars ORDER BY id ASC
@@ -128,7 +130,152 @@ async function live(req, res) {
       status: Date.now() - Date.parse(row.lastkeepalive) <= minuteInMillis,
     }));
 
-    console.log(templateData);
+    const subquery = `
+      SELECT a.id, a.cmdno, a.time, a.serial, a.st, r.plate, g.latitude, g.longitude
+      FROM (
+        SELECT id, cmdno, time, serial, st
+        FROM alarms
+        WHERE alarmtype = 56
+        ORDER BY time DESC 
+        LIMIT 100
+      ) AS a
+      LEFT JOIN registrars AS r ON a.serial = r.serial
+      LEFT JOIN (
+        SELECT *,
+          ROW_NUMBER() OVER (PARTITION BY serial ORDER BY ABS(EXTRACT(EPOCH FROM (time - $1)))) AS row_num
+        FROM geo
+      ) AS g ON a.serial = g.serial AND g.row_num = 1
+      ORDER BY a.time DESC;
+    `;
+    const alarms = await client.query(subquery, [new Date()]); // Pass current date/time to the query for finding the nearest geoposition.
+
+    function formatDate(date) {
+      const options = {
+        year: "2-digit",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      };
+      const formattedDate = new Date(date).toLocaleString("ru-RU", options);
+      return formattedDate.replace(",", "");
+    }
+
+    (templateData.Alarms = alarms.rows.map((alarm) => {
+      let type;
+      switch (alarm.st) {
+        case "0":
+          type = "Усталость";
+          break;
+        case "1":
+          type = "Водитель пропал";
+          break;
+        case "2":
+          type = "Разговор по телефону";
+          break;
+        case "3":
+          type = "Курение за рулём";
+          break;
+        case "4":
+          type = "Водитель отвлекся";
+          break;
+        case "5":
+          type = "Выезд с полосы движения";
+          break;
+        case "6":
+          type = "!!! Лобовое столкновение";
+          break;
+        case "7":
+          type = "Скорость превышена";
+          break;
+        case "8":
+          type = "Распознавание номерных знаков";
+          break;
+        case "9":
+          type = "!! Маленькое расстояние спереди";
+          break;
+        case "10":
+          type = "Водитель зевает";
+          break;
+        case "11":
+          type = "!!! Столкновение с пешеходом";
+          break;
+        case "12":
+          type = "Проходы переполнены";
+          break;
+        case "13":
+          type = "!! Посадка/высадка вне остановки";
+          break;
+        case "14":
+          type = "!! Смена полосы с нарушением ПДД";
+          break;
+        case "15":
+          type = "! Включенный телефон у водителя";
+          break;
+        case "16":
+          type = "!!! Ремень безопасности";
+          break;
+        case "17":
+          type = "Проверка не удалась";
+          break;
+        case "18":
+          type = "Слепые зоны справа";
+          break;
+        case "19":
+          type = "!!! Заднее столкновение";
+          break;
+        case "20":
+          type = "!!! Управление без рук";
+          break;
+        case "21":
+          type = "!! Управление одной рукой";
+          break;
+        case "22":
+          type = "Очки, блокирующие инфракрасное излучение";
+          break;
+        case "23":
+          type = "Слепые зоны слева";
+          break;
+        case "24":
+          type = "Помехи для пассажиров";
+          break;
+        case "25":
+          type = "На перекрестке ограничена скорость";
+          break;
+        case "26":
+          type = "Обнаружен перекресток";
+          break;
+        case "27":
+          type = "Пешеходы на переходе";
+          break;
+        case "28":
+          type = "! Неучтивое отношение к пешеходам";
+          break;
+        case "29":
+          type = "Обнаружен пешеходный переход";
+          break;
+        case "30":
+          type = "Водитель матерится";
+          break;
+        default:
+          type = "Неизвестный тип";
+      }
+
+      return {
+        id: alarm.id,
+        cmdno: alarm.cmdno,
+        time: formatDate(alarm.time),
+        serial: alarm.serial,
+        st: alarm.st,
+        type: type,
+        plate: alarm.plate,
+        latitude: (alarm.latitude).toFixed(6),
+        longitude: (alarm.longitude).toFixed(6),
+        geo: alarm.latitude + "," + alarm.longitude,
+      };
+    }))
+
+    templateData.Count = templateData.Alarms.length;
 
     const source = fs.readFileSync("static/templates/live.html", "utf8");
     const template = handlebars.compile(source);
@@ -229,6 +376,7 @@ async function reports(req, res) {
       FROM (
         SELECT id, cmdno, time, serial, st
         FROM alarms
+        WHERE alarmtype = 56
         ORDER BY time DESC 
         LIMIT 100
       ) AS a
@@ -362,12 +510,11 @@ async function reports(req, res) {
         st: alarm.st,
         type: type,
         plate: alarm.plate,
-        latitude: alarm.latitude,
-        longitude: alarm.longitude,
-        geo: alarm.latitude + "," + alarm.longitude,
+        latitude: (alarm.latitude).toFixed(6),
+        longitude: (alarm.longitude).toFixed(6),
+        geo: (alarm.latitude).toFixed(6) + "," + (alarm.longitude).toFixed(6),
       };
-    })),
-      console.log(templateData);
+    }))
 
     const source = fs.readFileSync(
       "static/templates/reports/index.html",
@@ -498,7 +645,7 @@ async function devices(req, res) {
     });
     const client = await pool.connect();
   
-    const minuteInMillis = 60 * 1000; 
+    const minuteInMillis = 90 * 1000; 
   
     // Выполняем запрос, чтобы получить все данные из таблицы registrars
     const queryRegistrars = `
