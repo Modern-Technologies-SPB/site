@@ -28,23 +28,22 @@ app.get("/login", login);
 app.get("/register", register);
 app.get("/live", live);
 app.get("/reports", reports);
-app.get("/reports/346", reports346);
 app.get("/devices", devices);
 app.get("/devices/drivers", drivers);
 app.get("/devices/update", update);
 
 
-// const DB_User = process.env.DB_USER;
-// const DB_Password = process.env.DB_PASSWORD;
-// const DB_Host = process.env.DB_HOST;
-// const DB_Port = process.env.DB_PORT;
-// const DB_Name = process.env.DB_NAME;
+const DB_User = process.env.DB_USER;
+const DB_Password = process.env.DB_PASSWORD;
+const DB_Host = process.env.DB_HOST;
+const DB_Port = process.env.DB_PORT;
+const DB_Name = process.env.DB_NAME;
 
-const DB_User = "postgres";
-const DB_Password = process.env.POSTGRES_PASSWORD;
-const DB_Host = "postgres";
-const DB_Port = "5432";
-const DB_Name = "postgres";
+// const DB_User = "postgres";
+// const DB_Password = process.env.POSTGRES_PASSWORD;
+// const DB_Host = "postgres";
+// const DB_Port = "5432";
+// const DB_Name = "postgres";
 
 async function index(req, res) {
   var templateData = {
@@ -566,7 +565,7 @@ app.get("/api/devices", async (req, res) => {
       ) AS g ON a.serial = g.serial AND g.row_num = 1
       ORDER BY a.time DESC;
     `;
-    const alarms = await pool.query(query, [limit, offset, new Date()]); // Pass current date/time to the query for finding the nearest geoposition.
+    const alarms = await pool.query(query, [limit, offset, new Date()]); 
 
     function formatDate(date) {
       const options = {
@@ -624,9 +623,196 @@ app.get("/api/devices", async (req, res) => {
   }
 });
 
-function reports346(req, res) {
-  res.sendFile(path.join(__dirname, "static/templates/reports/346.html"));
-}
+app.get('/reports/:id', async (req, res) => {
+  const id = req.params.id;
+
+  let templateData = {
+    Organisation: "Название организации",
+    User: "Тестовое Имя",
+    ifDBError: false,
+    Id: id,
+    Type: "",
+    Speed: "",
+    Date: "",
+    Serial: "",
+    Geo: "",
+    DriverName: "",
+    DriverPhone: "",
+    DriverEmail: "",
+    DriverLicense: "",
+  };
+
+  try {
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+    const client = await pool.connect();
+  
+    const minuteInMillis = 90 * 1000; 
+  
+    // Выполняем запрос, чтобы получить все данные из таблицы registrars
+    const query = `
+    SELECT a.serial, a.st, a.time, a.geoid, g.longitude, g.latitude, g.speed,
+    d.name, d.surname, d.card, d.phone, d.email
+    FROM alarms a
+    LEFT JOIN geo g ON a.geoid = g.id
+    LEFT JOIN drivers d ON a.serial = d.transport
+    WHERE a.id = ${id}
+    LIMIT 1;
+    `;
+
+    const alarm = (await client.query(query)).rows[0];
+    console.log(alarm);
+
+    function formatDate(date) {
+      const options = {
+        year: "2-digit",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      };
+      const formattedDate = new Date(date).toLocaleString("ru-RU", options);
+      return formattedDate.replace(",", "");
+    }
+
+      let type;
+      switch (alarm.st) {
+        case "0":
+          type = "Усталость";
+          break;
+        case "1":
+          type = "Водитель пропал";
+          break;
+        case "2":
+          type = "Разговор по телефону";
+          break;
+        case "3":
+          type = "Курение за рулём";
+          break;
+        case "4":
+          type = "Водитель отвлекся";
+          break;
+        case "5":
+          type = "Выезд с полосы движения";
+          break;
+        case "6":
+          type = "!!! Лобовое столкновение";
+          break;
+        case "7":
+          type = "Скорость превышена";
+          break;
+        case "8":
+          type = "Распознавание номерных знаков";
+          break;
+        case "9":
+          type = "!! Маленькое расстояние спереди";
+          break;
+        case "10":
+          type = "Водитель зевает";
+          break;
+        case "11":
+          type = "!!! Столкновение с пешеходом";
+          break;
+        case "12":
+          type = "Проходы переполнены";
+          break;
+        case "13":
+          type = "!! Посадка/высадка вне остановки";
+          break;
+        case "14":
+          type = "!! Смена полосы с нарушением ПДД";
+          break;
+        case "15":
+          type = "! Включенный телефон у водителя";
+          break;
+        case "16":
+          type = "!!! Ремень безопасности";
+          break;
+        case "17":
+          type = "Проверка не удалась";
+          break;
+        case "18":
+          type = "Слепые зоны справа";
+          break;
+        case "19":
+          type = "!!! Заднее столкновение";
+          break;
+        case "20":
+          type = "!!! Управление без рук";
+          break;
+        case "21":
+          type = "!! Управление одной рукой";
+          break;
+        case "22":
+          type = "Очки, блокирующие инфракрасное излучение";
+          break;
+        case "23":
+          type = "Слепые зоны слева";
+          break;
+        case "24":
+          type = "Помехи для пассажиров";
+          break;
+        case "25":
+          type = "На перекрестке ограничена скорость";
+          break;
+        case "26":
+          type = "Обнаружен перекресток";
+          break;
+        case "27":
+          type = "Пешеходы на переходе";
+          break;
+        case "28":
+          type = "! Неучтивое отношение к пешеходам";
+          break;
+        case "29":
+          type = "Обнаружен пешеходный переход";
+          break;
+        case "30":
+          type = "Водитель матерится";
+          break;
+        default:
+          type = "Неизвестный тип";
+      }
+
+      templateData.Type = type;
+      templateData.Speed = alarm.speed;
+      templateData.Date = formatDate(alarm.time);
+      templateData.Serial = alarm.serial;
+      templateData.Geo = alarm.latitude + "," + alarm.longitude;
+
+      templateData.DriverName = alarm.name + " " + alarm.surname;
+      templateData.DriverPhone = alarm.phone;
+      templateData.DriverEmail = alarm.email;
+      templateData.DriverLicense = alarm.card;
+      
+    console.log(templateData);
+  
+    const source = fs.readFileSync("static/templates/reports/report.html", "utf8");
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  
+    client.release();
+  } catch (error) {
+    console.error(error);
+    templateData.ifDBError = true;
+
+    const source = fs.readFileSync(
+      "static/templates/reports/report.html",
+      "utf8"
+    );
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  }
+  // res.sendFile(path.join(__dirname, "static/templates/reports/report.html"));
+});
+
 async function devices(req, res) {
   let templateData = {
     Organisation: "Название организации",
@@ -657,8 +843,7 @@ async function devices(req, res) {
     const allRegistrars = registrarsResult.rows;
   
     // Определяем статус connected на основе lastkeepalive
-    const templateData = {
-      Registrars: allRegistrars.map((registrar) => ({
+    templateData.Registrars = allRegistrars.map((registrar) => ({
         id: registrar.id,
         serial: registrar.serial,
         status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
@@ -669,7 +854,6 @@ async function devices(req, res) {
         ip: registrar.ip,
         port: registrar.port,
       })),
-    };
   
     console.log(templateData);
   

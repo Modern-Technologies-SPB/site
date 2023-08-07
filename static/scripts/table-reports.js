@@ -165,7 +165,7 @@ const createTable = () => {
     const shareCell = document.createElement("td");
     const shareButton = document.createElement("button");
     shareButton.setAttribute("class", "share");
-    shareButton.setAttribute("onclick", "location.href = '/reports/346';");
+    shareButton.setAttribute("onclick", `location.href = '/reports/${device.id}';`);
     shareButton.value = `delete-device-${device.id}`;
     shareButton.id = `delete-device-${device.id}`;
 
