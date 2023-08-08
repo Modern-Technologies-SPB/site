@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Отчёты</title>
     <link rel="stylesheet" href="../styles/main.css" />
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
 </head>
 <body>
 
@@ -165,54 +167,49 @@
 
                       <video id="my-video" src="../test_video.MP4"></video>
 
-                      <div id="map"></div>
+                      <div class="map">
+                        <div id="map"></div>
+                      </div>
                     </section> 
 
   <style>
-    #map {
+    .map {
       height: 100%;
       width: calc(100% - 450px - 514px);
       display: inline-block;
       float: right;
+      border-radius: 0 10px 10px 0 !important;
     }
   </style>
-  <!-- <div id="map"></div> -->
 
-  <script src="https://cdn.jsdelivr.net/npm/leaflet/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
 
   <script>
-    function initMap() {
-      // Координаты начальной точки
-      var startPoint = L.latLng(55.769042, 37.647840);
-      // Координаты конечной точки
-      var endPoint = L.latLng(55.769723, 37.659341);
-
-      // Создание объекта карты
-      var map = L.map('map').setView(startPoint, 12);
-
-      // Добавление слоя OpenStreetMap
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(map);
-
-      // Прокладка маршрута
-      var control = L.Routing.control({
-        waypoints: [
-          startPoint,
-          endPoint
-        ],
-        routeWhileDragging: true,
-        show: false,
-      }).addTo(map);
-
-      // Удаление кнопки виджета маршрута
-      document.querySelector('.leaflet-routing-container').style.display = 'none';
-    }
+    mapboxgl.accessToken = 'pk.eyJ1IjoicHBlY2hlbmtvbyIsImEiOiJjbGs3Y3dkc3AwNmN1M2dudzRtd3gwNjl4In0.oEFhSBTsaiyBx1uOqHdrZQ';
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/ppechenkoo/clkwfa6wu00ck01qgcrm93msr',
+      center: [30.282995, 59.855198], // Задайте начальные координаты карты
+      zoom: 10, // Задайте начальный уровень масштабирования карты
+    });
   </script>
-  <script>initMap();</script>
+
+<script>
+  window.addEventListener('DOMContentLoaded', function() {
+    var mapContainer = document.querySelector('.map');
+    var mapArea = document.getElementById('map');
+
+    mapArea.style.height = (mapContainer.clientHeight) + 'px';
+    mapArea.style.width = (mapContainer.clientWidth) + 'px';
+  });
+
+  window.addEventListener("resize", function (event) {
+        var mapContainer = document.querySelector('.map');
+        var mapArea = document.getElementById('map');
+
+        mapArea.style.height = (mapContainer.clientHeight) + 'px';
+        mapArea.style.width = (mapContainer.clientWidth) + 'px';
+      });
+</script>
 
 
                      
