@@ -6,11 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Трансляция</title>
     <link rel="stylesheet" href="../styles/main.css" />
-    <!-- <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
-    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script> -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ol3/4.6.5/ol.css" type="text/css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/4.6.5/ol.js"></script>
-
+  <script src="https://unpkg.com/ol-mapbox-style@9.4.0/dist/olms.js"></script>
 </head>
 <body>
 
@@ -121,7 +119,7 @@
 
                     <section class="table" style="position: relative;">
                       <div id="signals-list" class="signals-list">
-                        <h1>Сигналы ТС - {{Count}}</h1>
+                        <h1>Сигналы ТС</h1>
                         <svg id="left-slider" class="left-slider" xmlns="http://www.w3.org/2000/svg" width="19" height="19" fill="none" viewBox="0 0 11 19">
                           <path fill="#000" fill-opacity=".75" d="M0 9.495c0 .273.101.514.315.722l8.92 8.477a.981.981 0 0 0 .73.295c.585 0 1.035-.427 1.035-.995 0-.285-.124-.525-.304-.711L2.508 9.495l8.188-7.789c.18-.186.304-.437.304-.71C11 .425 10.55 0 9.965 0c-.292 0-.54.098-.73.284L.314 8.773A.955.955 0 0 0 0 9.495Z"/>
                         </svg>
@@ -199,19 +197,6 @@
     </section>
 
     <script src="../scripts/jquery.min.js"></script>
-
-    <!-- <script>
-      var serial;
-      document.addEventListener("DOMContentLoaded", function () {
-      const radioInputs = document.querySelectorAll(".radio-input");
-
-      if (radioInputs.length > 0) {
-        radioInputs[0].checked = true;
-      }
-      serial = $("input[name=camera-serial]:checked").val()
-      playflv();
-    });
-    </script> -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flv.js/1.5.0/flv.min.js"></script>
               <script>
                 let flvPlayers = [];
@@ -242,20 +227,9 @@
                 const cameras = 5;
                 const baseURL = "http://45.9.42.252:8080/http/live.flv";
                 let currentCamera = 2;
-                
-
-
-                
-
-                // stopAllCameras();
 
                 function playNextCamera(i) {
                    console.log(flvPlayers)
-                    // if (i > cameras) {
-                    //     return; // Stop when all cameras have been played
-                    // }
-
-                    // stopAllCameras(); // Stop all previous connections before opening a new one
 
                     const videoElement = document.getElementById(`camera-${i}`);
                     const flvPlayer = flvjs.createPlayer({
@@ -273,7 +247,7 @@
                     flvPlayer.load();
                     flvPlayer.play();
 
-                    flvPlayers.push(flvPlayer); // Add the current player to the array
+                    flvPlayers.push(flvPlayer); 
 
                     setTimeout(() => {
                         playNextCamera(i + 1);
@@ -284,7 +258,6 @@
             }
 
 
-              // document.addEventListener('DOMContentLoaded', playflv);
 
               </script>
 
@@ -344,55 +317,44 @@
       });
 </script>
 
-    <!-- <script src="../scripts/table-reports.js"></script> -->
-    
-
-
     <script>
 
       var checkboxes = document.querySelectorAll('.checkbox-input');
       const form = document.getElementById('devices-1');
 
       form.addEventListener('change', () => {
-        // const selectedDevices = Array.from(checkboxes)
-        //   .filter(checkbox => checkbox.checked && checkbox.value !== 'on')
-        //   .map(checkbox => checkbox.value);
-
-        //   console.log(selectedDevices);
-
-        // fetch('/devices-geo', {
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify({ devices: selectedDevices }),
-        // })
-        //   .then(response => response.json())
-        //   .then(data => {
-        //     console.log(data.devicesData);
-        //     updateMapMarkers(data.devicesData);
-        //   })
-        //   .catch(error => {
-        //     console.error('Ошибка при отправке запроса:', error);
-        //   });
         fetchAndShowMarkers();
       });
 
     </script>
 
 <script>
-  const map = new ol.Map({
-    target: 'map',
-    layers: [
-      new ol.layer.Tile({
-        source: new ol.source.OSM() // Источник OpenStreetMap
+  
+  var map = new ol.Map({
+      target: 'map',
+      layers: [
+        new ol.layer.Tile({
+          source: new ol.source.OSM() 
+        })
+      ],
+      view: new ol.View({
+        center: ol.proj.fromLonLat([30.282995, 59.855198]),
+        zoom: 10 
       })
-    ],
-    view: new ol.View({
-      center: ol.proj.fromLonLat([30.282995, 59.855198]), // Преобразование координат в EPSG:3857
-      zoom: 10
-    })
-  });
+    });
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "../scripts/style.json", true);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        var customStyle = JSON.parse(xhr.responseText);
+
+        map.getLayers().forEach(function(layer) {
+          layer.setStyle(customStyle.layers[0].paint);
+        });
+      }
+    };
+    xhr.send();
 
   const markers = [];
   {{#if ifDBError}}
@@ -409,17 +371,19 @@
     markerElement.className = 'marker';
     if (serial === $("input[name=camera-serial]:checked").val()) {
       markerElement.innerHTML = `
+      <div class="marker-name active-${status}">${serial}</div>
     <svg class="active-${status}" id="marker-${serial}" style="transform: rotate(${direction}deg)" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26" fill="none">
       <path fill="#FF6A4B" d="M12.669 24.673c6.565 0 12-5.435 12-12 0-6.553-5.447-12-12.012-12C6.104.673.67 6.12.67 12.673c0 6.565 5.447 12 12 12Z"/>
       <path fill="#fff" fill-opacity=".85" d="m7.104 17.92 4.683-11.93c.33-.823 1.423-.846 1.753-.023l4.682 11.953c.318.788-.553 1.47-1.294.73l-3.953-3.953c-.188-.2-.424-.2-.612 0L8.41 18.65c-.753.74-1.623.059-1.306-.73Z"/>
-</svg><br><span class="speed active-${status}">${speed} км/ч</span>
+</svg>
     `;
     } else {
     markerElement.innerHTML = `
+    <div class="marker-name active-${status}">${serial}</div>
     <svg class="active-${status}" id="marker-${serial}" style="transform: rotate(${direction}deg)" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26" fill="none">
   <path d="M12.9815 25.0195C19.5462 25.0336 24.9931 19.6101 25.0073 13.0454C25.0214 6.49253 19.5861 1.03375 13.0214 1.01961C6.46848 1.00549 1.02147 6.44081 1.00735 12.9937C0.993201 19.5584 6.42852 25.0054 12.9815 25.0195Z" fill="#8086F9"/>
   <path d="M7.43175 18.2547L12.1398 6.33536C12.471 5.51254 13.5652 5.49137 13.8928 6.31561L18.5493 18.2786C18.8653 19.0675 17.9932 19.748 17.2537 19.0052L13.3092 15.0438C13.1215 14.8434 12.8862 14.8429 12.6975 15.0425L8.73605 18.9868C7.98152 19.7264 7.1124 19.0422 7.43175 18.2547Z" fill="white" fill-opacity="0.85"/>
-</svg><br><span class="speed active-${status}">${speed} км/ч</span>
+</svg>
     `;
 }
 
@@ -471,136 +435,7 @@
 </script>
 
 
-    <!-- <script>
-      mapboxgl.accessToken = 'pk.eyJ1IjoicHBlY2hlbmtvbyIsImEiOiJjbGs3Y3dkc3AwNmN1M2dudzRtd3gwNjl4In0.oEFhSBTsaiyBx1uOqHdrZQ';
-const map = new mapboxgl.Map({
-  container: 'map',
-  style: 'mapbox://styles/ppechenkoo/clkwfa6wu00ck01qgcrm93msr',
-  center: [30.282995, 59.855198], // Задайте начальные координаты карты
-  zoom: 10, // Задайте начальный уровень масштабирования карты
-});
-
-// Хранение текущих маркеров на карте
-const markers = [];
-{{#if ifDBError}}
-{{else}}
-
-
-const selectedDevices = Array.from(checkboxes)
-          .filter(checkbox => checkbox.checked && checkbox.value !== 'on')
-          .map(checkbox => checkbox.value);
-
-          console.log(selectedDevices);
-
-        fetch('/devices-geo', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ devices: selectedDevices }),
-        })
-          .then(response => response.json())
-          .then(data => {
-            console.log(data.devicesData);
-            data.devicesData.forEach(device => {
-    const { serial, status, longitude, latitude, direction, speed } = device;
-    var newDirection = direction + 90
-    console.log(newDirection);
     
-    // Создание HTML-элемента для маркера
-    const el = document.createElement('div');
-    el.className = 'marker';
-    // el.style.transform = `rotate(${direction / 100}deg)`;
-    el.innerHTML = `<svg class="active-${status}" id="marker-${serial}" style="transform: rotate(${direction}deg)" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26" fill="none">
-  <path d="M12.9815 25.0195C19.5462 25.0336 24.9931 19.6101 25.0073 13.0454C25.0214 6.49253 19.5861 1.03375 13.0214 1.01961C6.46848 1.00549 1.02147 6.44081 1.00735 12.9937C0.993201 19.5584 6.42852 25.0054 12.9815 25.0195Z" fill="#8086F9"/>
-  <path d="M7.43175 18.2547L12.1398 6.33536C12.471 5.51254 13.5652 5.49137 13.8928 6.31561L18.5493 18.2786C18.8653 19.0675 17.9932 19.748 17.2537 19.0052L13.3092 15.0438C13.1215 14.8434 12.8862 14.8429 12.6975 15.0425L8.73605 18.9868C7.98152 19.7264 7.1124 19.0422 7.43175 18.2547Z" fill="white" fill-opacity="0.85"/>
-</svg><br><span class="speed active-${status}">${speed} км/ч</span>`;
-
-    // Создание нового маркера на карте
-    const marker = new mapboxgl.Marker(el)
-      .setLngLat([longitude, latitude])
-      .addTo(map);
-
-    // Добавление маркера в массив markers
-    markers.push(marker);
-  });
-          })
-          .catch(error => {
-            console.error('Ошибка при отправке запроса:', error);
-          });
-
-// Функция для обновления маркеров на карте
-function updateMapMarkers(devicesData) {
-  // Очистка существующих маркеров на карте
-  markers.forEach(marker => marker.remove());
-  markers.length = 0;
-
-  // Создание новых маркеров на карте на основе полученных данных
-  devicesData.forEach(device => {
-    const { serial, status, longitude, latitude, direction, speed } = device;
-    var newDirection = direction + 90
-    console.log(newDirection);
-    
-    // Создание HTML-элемента для маркера
-    const el = document.createElement('div');
-    el.className = 'marker';
-    // el.style.transform = `rotate(${direction}deg)`;
-    el.innerHTML = `<svg class="active-${status}" id="marker-${serial}" style="transform: rotate(${direction}deg)" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26" fill="none">
-  <path d="M12.9815 25.0195C19.5462 25.0336 24.9931 19.6101 25.0073 13.0454C25.0214 6.49253 19.5861 1.03375 13.0214 1.01961C6.46848 1.00549 1.02147 6.44081 1.00735 12.9937C0.993201 19.5584 6.42852 25.0054 12.9815 25.0195Z" fill="#8086F9"/>
-  <path d="M7.43175 18.2547L12.1398 6.33536C12.471 5.51254 13.5652 5.49137 13.8928 6.31561L18.5493 18.2786C18.8653 19.0675 17.9932 19.748 17.2537 19.0052L13.3092 15.0438C13.1215 14.8434 12.8862 14.8429 12.6975 15.0425L8.73605 18.9868C7.98152 19.7264 7.1124 19.0422 7.43175 18.2547Z" fill="white" fill-opacity="0.85"/>
-</svg><br><span class="speed active-${status}">${speed} км/ч</span>`;
-
-    // Создание нового маркера на карте
-    const marker = new mapboxgl.Marker(el)
-      .setLngLat([longitude, latitude])
-      .addTo(map);
-
-    // Добавление маркера в массив markers
-    markers.push(marker);
-  });
-  serial = $("input[name=camera-serial]:checked").val()
-
-                    var svgId = "marker-" + serial;
-                    var svgElement = document.getElementById(svgId);
-                    if (svgElement) {
-                      svgElement.innerHTML = `
-                        <path fill="#FF6A4B" d="M12.669 24.673c6.565 0 12-5.435 12-12 0-6.553-5.447-12-12.012-12C6.104.673.67 6.12.67 12.673c0 6.565 5.447 12 12 12Z"/>
-                        <path fill="#fff" fill-opacity=".85" d="m7.104 17.92 4.683-11.93c.33-.823 1.423-.846 1.753-.023l4.682 11.953c.318.788-.553 1.47-1.294.73l-3.953-3.953c-.188-.2-.424-.2-.612 0L8.41 18.65c-.753.74-1.623.059-1.306-.73Z"/>
-                      `;
-                    }
-}
-
-setInterval(() => {
-  fetch('/devices-geo', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ devices: selectedDevices }),
-        })
-          .then(response => response.json())
-          .then(data => {
-            console.log(data.devicesData);
-            updateMapMarkers(data.devicesData);
-          })
-          .catch(error => {
-            console.error('Ошибка при отправке запроса:', error);
-          });
-}, 12000);
-{{/if}}
-    </script> -->
-
-    <!-- <script>
-      const panel = document.getElementById('signals-list');
-      const slider = document.getElementById('left-slider');
-
-      slider.addEventListener('click', () => {
-        panel.classList.toggle('hide');
-      });
-
-
-  </script> -->
-
     <script>
         // Скрытие/Показ дополнительных меню аккаунта
         const accountMain = document.getElementById('account-main');

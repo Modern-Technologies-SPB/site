@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Отчёты</title>
+    <title>Отчёт {{Id}}</title>
     <link rel="stylesheet" href="../styles/main.css" />
-    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
-    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ol3/4.6.5/ol.css" type="text/css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/4.6.5/ol.js"></script>
+  <script src="https://unpkg.com/ol-mapbox-style@9.4.0/dist/olms.js"></script>
 </head>
 <body>
 
@@ -83,7 +84,7 @@
 
                 <section class="for-table">
 
-                    <section class="report">
+                    <section class="report" style="position: relative;">
                       <div class="report-top">
                         <h1>Список предупреждений</h1>
                         <div class="export">
@@ -120,7 +121,7 @@
                       </div>
 
 
-                      <div class="driver-info">
+                      <!-- <div class="driver-info">
                         <ul>
                           <li><svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="none" viewBox="0 0 22 23">
                             <path fill="#000" fill-opacity=".75" d="M2.99 23h15.337c2.025 0 2.99-.61 2.99-1.952 0-3.197-4.04-7.821-10.653-7.821C4.04 13.226 0 17.85 0 21.047 0 22.39.964 23 2.99 23Zm-.574-1.842c-.317 0-.452-.086-.452-.342 0-2.001 3.1-5.747 8.7-5.747 5.589 0 8.688 3.746 8.688 5.747 0 .256-.122.342-.44.342H2.416Zm8.248-9.444c2.904 0 5.271-2.587 5.271-5.735 0-3.124-2.355-5.576-5.27-5.576-2.893 0-5.272 2.501-5.272 5.6.012 3.136 2.367 5.71 5.271 5.71Zm0-1.843c-1.781 0-3.306-1.708-3.306-3.868 0-2.123 1.5-3.758 3.306-3.758 1.818 0 3.307 1.61 3.307 3.734 0 2.16-1.513 3.892-3.307 3.892Z"/>
@@ -135,7 +136,7 @@
                             <path fill="#000" fill-opacity=".75" d="M4.633 5.91h6.292c.38 0 .682-.311.682-.692a.67.67 0 0 0-.682-.673H4.633a.656.656 0 0 0-.673.673c0 .38.283.693.673.693Zm0 2.605h4.604c.38 0 .683-.302.683-.683a.679.679 0 0 0-.683-.682H4.633a.664.664 0 0 0-.673.682c0 .38.283.683.673.683Zm12.076.264a2.333 2.333 0 0 0 2.33-2.341 2.333 2.333 0 0 0-2.33-2.341 2.342 2.342 0 0 0 0 4.682ZM3.063 17.957h16.874c2.049 0 3.063-1.004 3.063-3.014V3.023C23 1.015 21.986 0 19.937 0H3.063C1.024 0 0 1.014 0 3.024v11.92c0 2.009 1.024 3.013 3.063 3.013Zm.02-1.57c-.976 0-1.513-.517-1.513-1.532V3.112c0-1.015.537-1.542 1.512-1.542h16.836c.965 0 1.512.527 1.512 1.542v11.743c0 1.015-.547 1.532-1.512 1.532H3.082Z"/>
                           </svg>{{DriverLicense}}</li>
                         </ul>
-                      </div>
+                      </div> -->
 
                       <div class="speedometr">
                         <h1>Скорость</h1>
@@ -174,41 +175,120 @@
 
   <style>
     .map {
-      height: 100%;
       width: calc(100% - 450px - 514px);
-      display: inline-block;
       float: right;
-      border-radius: 0 10px 10px 0 !important;
     }
   </style>
 
 
   <script>
-    mapboxgl.accessToken = 'pk.eyJ1IjoicHBlY2hlbmtvbyIsImEiOiJjbGs3Y3dkc3AwNmN1M2dudzRtd3gwNjl4In0.oEFhSBTsaiyBx1uOqHdrZQ';
-    const map = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/ppechenkoo/clkwfa6wu00ck01qgcrm93msr',
-      center: [30.282995, 59.855198], // Задайте начальные координаты карты
-      zoom: 10, // Задайте начальный уровень масштабирования карты
-    });
+
+var prevLongitude = {{PrevLongitude}};
+var prevLatitude = {{PrevLatitude}};
+var nextLongitude = {{NextLongitude}};
+var nextLatitude = {{NextLatitude}};
+
+var startPoint = ol.proj.fromLonLat([prevLongitude, prevLatitude]);   
+var endPoint = ol.proj.fromLonLat([nextLongitude, nextLatitude]);     
+
+var routeStyle = new ol.style.Style({
+    stroke: new ol.style.Stroke({
+        color: 'red', 
+        width: 6 
+    })
+});
+
+var markerStyle = new ol.style.Style({
+    image: new ol.style.Circle({
+        radius: 7, 
+        fill: new ol.style.Fill({
+            color: 'red' 
+        }),
+        stroke: new ol.style.Stroke({
+            color: 'white', 
+            width: 2
+        })
+    })
+});
+
+var routeSource = new ol.source.Vector({
+    features: [
+        new ol.Feature({
+            geometry: new ol.geom.LineString([startPoint, endPoint])
+        })
+    ]
+});
+
+var routeLayer = new ol.layer.Vector({
+    source: routeSource,
+    style: routeStyle 
+});
+
+var startMarker = new ol.Feature({
+    geometry: new ol.geom.Point(startPoint)
+});
+startMarker.setStyle(markerStyle); 
+
+var endMarker = new ol.Feature({
+    geometry: new ol.geom.Point(endPoint)
+});
+endMarker.setStyle(markerStyle); 
+
+var markerSource = new ol.source.Vector({
+    features: [startMarker, endMarker]
+});
+
+var markerLayer = new ol.layer.Vector({
+    source: markerSource
+});
+
+var map = new ol.Map({
+    target: 'map', 
+    layers: [
+        new ol.layer.Tile({
+            source: new ol.source.OSM()
+        }),
+        markerLayer,
+        routeLayer
+    ],
+    view: new ol.View({
+        center: ol.proj.fromLonLat([prevLongitude, prevLatitude]), 
+        zoom: 17 
+    })
+});
+
+// Скрыть кнопки приближения/отдаления
+map.getControls().forEach(function(control) {
+    if (control instanceof ol.control.Zoom) {
+        map.removeControl(control);
+    }
+});
+
+// Скрыть информационную панель
+map.getControls().forEach(function(control) {
+    if (control instanceof ol.control.Attribution) {
+        map.removeControl(control);
+    }
+});
+
   </script>
 
 <script>
-  window.addEventListener('DOMContentLoaded', function() {
+
+  function sizeMap() {
     var mapContainer = document.querySelector('.map');
     var mapArea = document.getElementById('map');
-
     mapArea.style.height = (mapContainer.clientHeight) + 'px';
     mapArea.style.width = (mapContainer.clientWidth) + 'px';
-  });
+  }
+
+  // window.addEventListener('DOMContentLoaded', function() {
+  //   sizeMap();
+  // });
 
   window.addEventListener("resize", function (event) {
-        var mapContainer = document.querySelector('.map');
-        var mapArea = document.getElementById('map');
-
-        mapArea.style.height = (mapContainer.clientHeight) + 'px';
-        mapArea.style.width = (mapContainer.clientWidth) + 'px';
-      });
+    sizeMap();
+  });
 </script>
 
 
@@ -332,12 +412,12 @@ Chart.defaults.font.weight = 400;
       borderColor: "#8086F9",
       fill: false,
       data: [
-        17, 21, 40, 30, 43, 38, 40, 21, 24, 28, 26,
+        {{Speeds}}
       ],
       pointStyle: false,
       pointRadius: 25,
       pointHoverRadius: 25,
-      tension: 0.4,
+      tension: 0.1,
     },
   ],
 };

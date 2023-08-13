@@ -8,10 +8,9 @@ require("dotenv").config();
 const multer = require("multer");
 const http = require("http");
 
-// Для сохранения загруженных фотографий
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads"); // Папка для сохранения фотографий
+    cb(null, "uploads"); 
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-" + file.originalname);
@@ -33,17 +32,17 @@ app.get("/devices/drivers", drivers);
 app.get("/devices/update", update);
 
 
-// const DB_User = process.env.DB_USER;
-// const DB_Password = process.env.DB_PASSWORD;
-// const DB_Host = process.env.DB_HOST;
-// const DB_Port = process.env.DB_PORT;
-// const DB_Name = process.env.DB_NAME;
+const DB_User = process.env.DB_USER;
+const DB_Password = process.env.DB_PASSWORD;
+const DB_Host = process.env.DB_HOST;
+const DB_Port = process.env.DB_PORT;
+const DB_Name = process.env.DB_NAME;
 
-const DB_User = "postgres";
-const DB_Password = process.env.POSTGRES_PASSWORD;
-const DB_Host = "postgres";
-const DB_Port = "5432";
-const DB_Name = "postgres";
+// const DB_User = "postgres";
+// const DB_Password = process.env.POSTGRES_PASSWORD;
+// const DB_Host = "postgres";
+// const DB_Port = "5432";
+// const DB_Name = "postgres";
 
 async function index(req, res) {
   var templateData = {
@@ -87,7 +86,6 @@ async function index(req, res) {
     const resultT = template(templateData);
     res.send(resultT);
   }
-  // res.sendFile(path.join(__dirname, "static/templates/index.html"));
 }
 function login(req, res) {
   res.sendFile(path.join(__dirname, "static/templates/login.html"));
@@ -130,23 +128,23 @@ async function live(req, res) {
     }));
 
     const subquery = `
-      SELECT a.id, a.cmdno, a.time, a.serial, a.st, r.plate, g.latitude, g.longitude
-      FROM (
-        SELECT id, cmdno, time, serial, st
-        FROM alarms
-        WHERE alarmtype = 56
-        ORDER BY time DESC 
-        LIMIT 100
-      ) AS a
-      LEFT JOIN registrars AS r ON a.serial = r.serial
-      LEFT JOIN (
-        SELECT *,
-          ROW_NUMBER() OVER (PARTITION BY serial ORDER BY ABS(EXTRACT(EPOCH FROM (time - $1)))) AS row_num
-        FROM geo
-      ) AS g ON a.serial = g.serial AND g.row_num = 1
-      ORDER BY a.time DESC;
+    SELECT a.evtuuid, a.id, a.cmdno, a.time, a.serial, a.st, r.plate, g.latitude, g.longitude
+    FROM (
+      SELECT DISTINCT ON (evtuuid) evtuuid, id, cmdno, time, serial, st
+      FROM alarms
+      WHERE alarmtype = 56
+      ORDER BY evtuuid, time DESC 
+      LIMIT 100
+    ) AS a
+    LEFT JOIN registrars AS r ON a.serial = r.serial
+    LEFT JOIN (
+      SELECT *,
+        ROW_NUMBER() OVER (PARTITION BY serial ORDER BY ABS(EXTRACT(EPOCH FROM (time - $1)))) AS row_num
+      FROM geo
+    ) AS g ON a.serial = g.serial AND g.row_num = 1
+    ORDER BY a.time DESC;
     `;
-    const alarms = await client.query(subquery, [new Date()]); // Pass current date/time to the query for finding the nearest geoposition.
+    const alarms = await client.query(subquery, [new Date()]); 
 
     function formatDate(date) {
       const options = {
@@ -156,7 +154,10 @@ async function live(req, res) {
         hour: "2-digit",
         minute: "2-digit",
       };
-      const formattedDate = new Date(date).toLocaleString("ru-RU", options);
+      const adjustedDate = new Date(date);
+      adjustedDate.setHours(adjustedDate.getHours() - 3); 
+    
+      const formattedDate = adjustedDate.toLocaleString("ru-RU", options);
       return formattedDate.replace(",", "");
     }
 
@@ -304,8 +305,6 @@ app.post("/devices-geo", async (req, res) => {
     port: DB_Port,
   });
 
-  // console.log(selectedDevices);
-
   const placeholders = selectedDevices
   .map((_, index) => `$${index + 1}`)
   .join(",");
@@ -334,7 +333,6 @@ pool.query(subquery, selectedDevices, (err, result) => {
 
   const minuteInMillis = 60000;
 
-  // Process the result to include lastkeepalive information
   const devicesData = result.rows.map((row) => ({
     serial: row.serial,
     longitude: row.longitude,
@@ -343,11 +341,6 @@ pool.query(subquery, selectedDevices, (err, result) => {
     speed: row.speed,
     status: Date.now() - Date.parse(row.lastkeepalive) <= minuteInMillis,
   }));
-
-
-
-    // console.log(result.rows);
-
 
     res.json({ devicesData });
   });
@@ -369,25 +362,25 @@ async function reports(req, res) {
       port: DB_Port,
     });
     const client = await pool.connect();
-    // Выполняем запрос и получаем результат
+
     const query = `
-      SELECT a.id, a.cmdno, a.time, a.serial, a.st, r.plate, g.latitude, g.longitude
-      FROM (
-        SELECT id, cmdno, time, serial, st
-        FROM alarms
-        WHERE alarmtype = 56
-        ORDER BY time DESC 
-        LIMIT 100
-      ) AS a
-      LEFT JOIN registrars AS r ON a.serial = r.serial
-      LEFT JOIN (
-        SELECT *,
-          ROW_NUMBER() OVER (PARTITION BY serial ORDER BY ABS(EXTRACT(EPOCH FROM (time - $1)))) AS row_num
-        FROM geo
-      ) AS g ON a.serial = g.serial AND g.row_num = 1
-      ORDER BY a.time DESC;
+    SELECT a.evtuuid, a.id, a.cmdno, a.time, a.serial, a.st, r.plate, g.latitude, g.longitude
+    FROM (
+      SELECT DISTINCT ON (evtuuid) evtuuid, id, cmdno, time, serial, st
+      FROM alarms
+      WHERE alarmtype = 56
+      ORDER BY evtuuid, time DESC 
+      LIMIT 100
+    ) AS a
+    LEFT JOIN registrars AS r ON a.serial = r.serial
+    LEFT JOIN (
+      SELECT *,
+        ROW_NUMBER() OVER (PARTITION BY serial ORDER BY ABS(EXTRACT(EPOCH FROM (time - $1)))) AS row_num
+      FROM geo
+    ) AS g ON a.serial = g.serial AND g.row_num = 1
+    ORDER BY a.time DESC;
     `;
-    const alarms = await client.query(query, [new Date()]); // Pass current date/time to the query for finding the nearest geoposition.
+    const alarms = await client.query(query, [new Date()]); 
 
     function formatDate(date) {
       const options = {
@@ -397,7 +390,10 @@ async function reports(req, res) {
         hour: "2-digit",
         minute: "2-digit",
       };
-      const formattedDate = new Date(date).toLocaleString("ru-RU", options);
+      const adjustedDate = new Date(date);
+      adjustedDate.setHours(adjustedDate.getHours() - 3); 
+    
+      const formattedDate = adjustedDate.toLocaleString("ru-RU", options);
       return formattedDate.replace(",", "");
     }
 
@@ -537,6 +533,7 @@ async function reports(req, res) {
     res.send(resultT);
   }
 }
+
 app.get("/api/devices", async (req, res) => {
   try {
     const pool = new Pool({
@@ -575,7 +572,10 @@ app.get("/api/devices", async (req, res) => {
         hour: "2-digit",
         minute: "2-digit",
       };
-      const formattedDate = new Date(date).toLocaleString("ru-RU", options);
+      const adjustedDate = new Date(date);
+      adjustedDate.setHours(adjustedDate.getHours() - 3); 
+    
+      const formattedDate = adjustedDate.toLocaleString("ru-RU", options);
       return formattedDate.replace(",", "");
     }
 
@@ -636,10 +636,19 @@ app.get('/reports/:id', async (req, res) => {
     Date: "",
     Serial: "",
     Geo: "",
+    Latitude: "",
+    Longitude: "",
+    
     DriverName: "",
     DriverPhone: "",
     DriverEmail: "",
     DriverLicense: "",
+
+    PrevLatitude: "",
+    PrevLongitude: "",
+    NextLatitude: "",
+    NextLongitude: "",
+    Speeds: "",
   };
 
   try {
@@ -654,15 +663,46 @@ app.get('/reports/:id', async (req, res) => {
   
     const minuteInMillis = 90 * 1000; 
   
-    // Выполняем запрос, чтобы получить все данные из таблицы registrars
     const query = `
-    SELECT a.serial, a.st, a.time, a.geoid, g.longitude, g.latitude, g.speed,
-    d.name, d.surname, d.card, d.phone, d.email
-    FROM alarms a
-    LEFT JOIN geo g ON a.geoid = g.id
-    LEFT JOIN drivers d ON a.serial = d.transport
-    WHERE a.id = ${id}
-    LIMIT 1;
+    WITH PrevNextGeo AS (
+      SELECT
+        a.serial,
+        a.st,
+        a.time,
+        a.geoid,
+        (SELECT g1.latitude FROM alarms a1 LEFT JOIN geo g1 ON a1.geoid = g1.id WHERE a1.evtuuid = a.evtuuid ORDER BY a1.time ASC LIMIT 1) AS prev_latitude,
+        (SELECT g2.longitude FROM alarms a2 LEFT JOIN geo g2 ON a2.geoid = g2.id WHERE a2.evtuuid = a.evtuuid ORDER BY a2.time ASC LIMIT 1) AS prev_longitude,
+        (SELECT g3.latitude FROM alarms a3 LEFT JOIN geo g3 ON a3.geoid = g3.id WHERE a3.evtuuid = a.evtuuid ORDER BY a3.time DESC LIMIT 1) AS next_latitude,
+        (SELECT g4.longitude FROM alarms a4 LEFT JOIN geo g4 ON a4.geoid = g4.id WHERE a4.evtuuid = a.evtuuid ORDER BY a4.time DESC LIMIT 1) AS next_longitude,
+        g.longitude,
+        g.latitude,
+        g.speed,
+        d.name,
+        d.surname,
+        d.card,
+        d.phone,
+        d.email
+      FROM alarms a
+      LEFT JOIN geo g ON a.geoid = g.id
+      LEFT JOIN drivers d ON a.serial = d.transport
+      WHERE a.id = ${id}
+      LIMIT 1
+    ),
+    Speeds AS (
+      SELECT
+        g.speed,
+        ROW_NUMBER() OVER (ORDER BY ABS(EXTRACT(EPOCH FROM (a.time - (SELECT time FROM PrevNextGeo)))) ASC) AS row_number
+      FROM alarms a
+      LEFT JOIN geo g ON a.geoid = g.id
+      WHERE g.serial = (SELECT serial FROM PrevNextGeo) -- Ограничиваем результаты только записями с тем же serial
+    )
+    SELECT
+      *,
+      (
+        SELECT array_agg(speed) FROM Speeds
+        WHERE row_number <= 11
+      ) AS nearest_speeds
+    FROM PrevNextGeo;
     `;
 
     const alarm = (await client.query(query)).rows[0];
@@ -676,7 +716,10 @@ app.get('/reports/:id', async (req, res) => {
         hour: "2-digit",
         minute: "2-digit",
       };
-      const formattedDate = new Date(date).toLocaleString("ru-RU", options);
+      const adjustedDate = new Date(date);
+      adjustedDate.setHours(adjustedDate.getHours() - 3); 
+    
+      const formattedDate = adjustedDate.toLocaleString("ru-RU", options);
       return formattedDate.replace(",", "");
     }
 
@@ -784,11 +827,20 @@ app.get('/reports/:id', async (req, res) => {
       templateData.Date = formatDate(alarm.time);
       templateData.Serial = alarm.serial;
       templateData.Geo = alarm.latitude + "," + alarm.longitude;
+      templateData.Latitude = alarm.latitude
+      templateData.Longitude = alarm.longitude
 
       templateData.DriverName = alarm.name + " " + alarm.surname;
       templateData.DriverPhone = alarm.phone;
       templateData.DriverEmail = alarm.email;
       templateData.DriverLicense = alarm.card;
+
+      templateData.PrevLatitude = alarm.prev_latitude;   
+      templateData.PrevLongitude = alarm.prev_longitude; 
+      templateData.NextLatitude = alarm.next_latitude;   
+      templateData.NextLongitude = alarm.next_longitude; 
+
+      templateData.Speeds = alarm.nearest_speeds;
       
     console.log(templateData);
   
@@ -810,7 +862,6 @@ app.get('/reports/:id', async (req, res) => {
     const resultT = template(templateData);
     res.send(resultT);
   }
-  // res.sendFile(path.join(__dirname, "static/templates/reports/report.html"));
 });
 
 async function devices(req, res) {
@@ -890,11 +941,9 @@ app.post("/devicedata", async (req, res) => {
   const client = await pool.connect();
 
   try {
-    // Выполняем запрос и получаем результат
     const query = "SELECT * FROM registrars WHERE id = $1;";
     const devicedata = await client.query(query, [id]);
 
-    // Формирование и отправка ответа
     const response = devicedata.rows[0];
     res.json(response);
   } finally {
@@ -947,7 +996,7 @@ app.post("/updatedevice", async (req, res) => {
   } = req.body;
 
   try {
-    // Обновление строки в таблице registrars
+
     const query = `
       UPDATE registrars
       SET

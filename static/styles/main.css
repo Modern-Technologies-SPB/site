@@ -1627,6 +1627,18 @@ video {
   border-radius: 29px;
 }
 
+.marker-name {
+  width: 100%;
+  background: white;
+  border-radius: 5px;
+  padding-left: 7px;
+  padding-top: 4px;
+  padding-bottom: 2px;
+  margin-left: -40%;
+  margin-bottom: 3px;
+  font-weight: bold;
+}
+
 .cameras {
   background: #F5F5FA;
   position: absolute;
