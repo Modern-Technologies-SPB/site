@@ -1627,6 +1627,41 @@ video {
   border-radius: 29px;
 }
 
+.properties {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  z-index: 10;
+  background-color: white;
+  padding: 9px 11px;
+  border-radius: 10px;
+  display: inline-flex;
+}
+
+.properties .propert {
+  margin-right: 30px;
+}
+
+.properties .propert:last-child {
+  margin-right: 0;
+}
+
+.properties .propert h1 {
+  color: rgba(0, 0, 0, 0.95);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 500;
+  margin: 0 0 2px 0;
+}
+
+.properties .propert h2 {
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 500;
+  margin: 0;
+}
+
 .marker-name {
   width: 100%;
   background: white;

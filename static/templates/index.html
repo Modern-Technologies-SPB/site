@@ -86,6 +86,57 @@
         </section>
     </section>
 
+    <script>
+        var warningsData = {
+        labels: [
+            {{#each Dates}}
+            '{{this}}',
+            {{/each}}
+        ],
+        datasets: [
+            {
+            label: "Актуальный период",
+            backgroundColor: "rgba(235, 146, 139, 1)",
+            borderWidth: 0,
+            borderRadius: 9,
+            hoverBackgroundColor: "rgba(235, 146, 139, 0.8)",
+            data: [{{AlarmsLast11Days}}],
+            grouped: false,
+            },
+            {
+            label: "Предыдущий период",
+            backgroundColor: "rgba(235, 146, 139, 0.5)",
+            borderWidth: 0,
+            borderRadius: 9,
+            hoverBackgroundColor: "rgba(235, 146, 139, 0.3)",
+            data: [{{Alarms11DaysBefore}}],
+            },
+        ],
+        };
+
+        var positionsData = {
+        labels: [
+        {{#each Dates}}
+            '{{this}}',
+            {{/each}}
+        ],
+        datasets: [
+            {
+            label: "Позиционирование",
+            borderColor: "#8086F9",
+            fill: false,
+            data: [
+                {{PositionsLast11Days}}
+            ],
+            pointStyle: false,
+            pointRadius: 25,
+            pointHoverRadius: 25,
+            tension: 0.4,
+            },
+        ],
+        };
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../scripts/graphs.js"></script>
     <script>

@@ -157,6 +157,12 @@
                       </div>
 
                       <div class="map">
+                        <div id="properties" class="properties" style="display: none;">
+                          <div class="propert"><h1>Группа</h1><br><h2 id="propert-group">Автобусы</h2></div>
+                          <div class="propert"><h1>Скорость</h1><br><h2 id="propert-speed"> км/ч</h2></div>
+                          <div class="propert"><h1>Номерной знак</h1><br><h2 id="propert-plate"></h2></div>
+                          <div class="propert"><h1>Геопозиция</h1><br><h2 id="propert-geo"></h2></div>
+                        </div>
                         <div id="map"></div>
                       </div>
 
@@ -418,9 +424,35 @@
         data.devicesData.forEach(device => {
           addMarker(device);
         });
+
+        // Поиск устройства с выбранным серийным номером
+        const selectedDevice = data.devicesData.find(device => device.serial === $("input[name=camera-serial]:checked").val());
+
+        // Получение ссылок на элементы для заполнения данных
+        const groupElement = document.getElementById('propert-group');
+        const speedElement = document.getElementById('propert-speed');
+        const plateElement = document.getElementById('propert-plate');
+        const geoElement = document.getElementById('propert-geo');
+
+        const propertiesDiv = document.getElementById('properties');
+
+        if (selectedDevice) {
+          // Вывод нужных свойств устройства в консоль
+          // groupElement.textContent = selectedDevice.group;
+          speedElement.textContent = selectedDevice.speed + ' км/ч';
+          plateElement.textContent = selectedDevice.plate;
+          geoElement.textContent = `${selectedDevice.latitude.toFixed(6)}, ${selectedDevice.longitude.toFixed(6)}`;
+
+          propertiesDiv.style.display = 'inline-flex';
+        } else {
+          console.log('Устройство с выбранным серийным номером не найдено.');
+        }
       })
       .catch(error => {
         console.error('Ошибка при получении данных:', error);
+
+        const propertiesDiv = document.getElementById('properties');
+        propertiesDiv.style.display = 'none';
       });
       
   }

@@ -50,6 +50,10 @@ async function index(req, res) {
     User: "Тестовое Имя",
     ifDBError: false,
     Count: "",
+    AlarmsLast11Days: new Array(11).fill(0),
+    Alarms11DaysBefore: new Array(11).fill(0),
+    Dates: [], 
+    PositionsLast11Days: new Array(11).fill(0),
   };
   try {
     const pool = new Pool({
@@ -69,7 +73,67 @@ async function index(req, res) {
 
     templateData.Count = registrars.rows[0].count;
 
-    console.log(templateData);
+    const last11DaysQuery = `
+      SELECT COUNT(DISTINCT evtuuid) AS count
+      FROM alarms
+      WHERE time >= NOW() - INTERVAL '10 days' + INTERVAL '3 hours'
+        AND time <= NOW() + INTERVAL '1 day' + INTERVAL '3 hours'
+        AND st IS NOT NULL
+      GROUP BY DATE_TRUNC('day', time)
+      ORDER BY DATE_TRUNC('day', time)
+    `;
+    const last11DaysAlarms = await client.query(last11DaysQuery);
+    const last11DaysCounts = last11DaysAlarms.rows.map(row => parseInt(row.count, 10));
+    for (let i = 0; i < last11DaysCounts.length; i++) {
+      if (last11DaysCounts[i] > 0) {
+        templateData.AlarmsLast11Days[i] = last11DaysCounts[i];
+      }
+    }
+
+    const daysBeforeQuery = `
+      SELECT COUNT(DISTINCT evtuuid) AS count
+      FROM alarms
+      WHERE time >= NOW() - INTERVAL '21 days' + INTERVAL '3 hours'
+        AND time <= NOW() - INTERVAL '10 days' + INTERVAL '3 hours'
+        AND st IS NOT NULL
+      GROUP BY DATE_TRUNC('day', time)
+      ORDER BY DATE_TRUNC('day', time)
+    `;
+    const daysBeforeAlarms = await client.query(daysBeforeQuery);
+    const daysBeforeCounts = daysBeforeAlarms.rows.map(row => parseInt(row.count, 10));
+    for (let i = 0; i < daysBeforeCounts.length; i++) {
+      if (daysBeforeCounts[i] > 0) {
+        templateData.Alarms11DaysBefore[i] = daysBeforeCounts[i];
+      }
+    }
+
+    // Создание массива дат в формате "dd.mm" за последние 11 дней
+    const currentDate = new Date();
+    const dates = [];
+    for (let i = 10; i >= 0; i--) {
+      const date = new Date(currentDate - i * 24 * 60 * 60 * 1000);
+      const formattedDate = date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+      dates.push(formattedDate);
+    }
+    templateData.Dates = dates;
+
+    const positionsLast11DaysQuery = `
+      SELECT COUNT(*) AS count
+      FROM geo
+      WHERE time >= NOW() - INTERVAL '10 days' + INTERVAL '3 hours'
+        AND time <= NOW() + INTERVAL '1 day' + INTERVAL '3 hours'
+      GROUP BY DATE_TRUNC('day', time)
+      ORDER BY DATE_TRUNC('day', time)
+    `;
+    const positionsLast11Days = await client.query(positionsLast11DaysQuery);
+    const positionsLast11DaysCounts = positionsLast11Days.rows.map(row => parseInt(row.count, 10));
+    for (let i = 0; i < positionsLast11DaysCounts.length; i++) {
+      if (positionsLast11DaysCounts[i] > 0) {
+        templateData.PositionsLast11Days[i] = positionsLast11DaysCounts[i];
+      }
+    }
+
+    // console.log(templateData);
 
     const source = fs.readFileSync("static/templates/index.html", "utf8");
 
@@ -87,6 +151,7 @@ async function index(req, res) {
     res.send(resultT);
   }
 }
+
 function login(req, res) {
   res.sendFile(path.join(__dirname, "static/templates/login.html"));
 }
@@ -309,7 +374,7 @@ app.post("/devices-geo", async (req, res) => {
   .map((_, index) => `$${index + 1}`)
   .join(",");
   const subquery = `
-  SELECT g.serial, g.longitude, g.latitude, g.direction, g.speed, r.lastkeepalive
+  SELECT g.serial, g.longitude, g.latitude, g.direction, g.speed, r.lastkeepalive, r.plate, r.group
   FROM geo g
   INNER JOIN (
     SELECT serial, MAX(time) AS time
@@ -340,11 +405,16 @@ pool.query(subquery, selectedDevices, (err, result) => {
     direction: row.direction,
     speed: row.speed,
     status: Date.now() - Date.parse(row.lastkeepalive) <= minuteInMillis,
+    plate: row.plate,
+    group: row.group,
   }));
+  
+  console.log(devicesData)
 
     res.json({ devicesData });
   });
 });
+
 
 async function reports(req, res) {
   let templateData = {
