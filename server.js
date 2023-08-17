@@ -398,16 +398,22 @@ pool.query(subquery, selectedDevices, (err, result) => {
 
   const minuteInMillis = 60000;
 
-  const devicesData = result.rows.map((row) => ({
-    serial: row.serial,
-    longitude: row.longitude,
-    latitude: row.latitude,
-    direction: row.direction,
-    speed: row.speed,
-    status: Date.now() - Date.parse(row.lastkeepalive) <= minuteInMillis,
-    plate: row.plate,
-    group: row.group,
-  }));
+  const devicesData = result.rows.map((row) => {
+    if (row.speed > 150) {
+      row.speed /= 100;
+    }
+    
+    return {
+      serial: row.serial,
+      longitude: row.longitude,
+      latitude: row.latitude,
+      direction: row.direction,
+      speed: row.speed,
+      status: Date.now() - Date.parse(row.lastkeepalive) <= minuteInMillis,
+      plate: row.plate,
+      group: row.group,
+    };
+  });
   
   console.log(devicesData)
 
@@ -893,7 +899,7 @@ app.get('/reports/:id', async (req, res) => {
       }
 
       templateData.Type = type;
-      templateData.Speed = alarm.speed;
+      templateData.Speed = actualSpeed;
       templateData.Date = formatDate(alarm.time);
       templateData.Serial = alarm.serial;
       templateData.Geo = alarm.latitude + "," + alarm.longitude;
@@ -910,7 +916,14 @@ app.get('/reports/:id', async (req, res) => {
       templateData.NextLatitude = alarm.next_latitude;   
       templateData.NextLongitude = alarm.next_longitude; 
 
-      templateData.Speeds = alarm.nearest_speeds;
+      templateData.Speeds = alarm.nearest_speeds
+      templateData.Speeds = templateData.Speeds.map(speed => {
+        if (speed > 150) {
+          return speed / 100;
+        } else {
+          return speed;
+        }
+      });
       
     console.log(templateData);
   
