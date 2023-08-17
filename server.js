@@ -898,6 +898,13 @@ app.get('/reports/:id', async (req, res) => {
           type = "Неизвестный тип";
       }
 
+      var actualSpeed;
+      if (alarm.speed > 150) {
+        actualSpeed = alarm.speed / 100
+      } else {
+        actualSpeed = alarm.speed
+      }
+
       templateData.Type = type;
       templateData.Speed = actualSpeed;
       templateData.Date = formatDate(alarm.time);
