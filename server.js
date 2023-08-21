@@ -30,6 +30,7 @@ app.get("/reports", reports);
 app.get("/devices", devices);
 app.get("/devices/drivers", drivers);
 app.get("/devices/update", update);
+app.get("/videos", videos);
 
 
 // const DB_User = process.env.DB_USER;
@@ -64,7 +65,7 @@ async function index(req, res) {
       port: DB_Port,
     });
     const client = await pool.connect();
-    // Выполняем запрос и получаем результат
+
     const query = `
       SELECT COUNT(*) AS count 
       FROM registrars
@@ -74,40 +75,40 @@ async function index(req, res) {
     templateData.Count = registrars.rows[0].count;
 
     const last11DaysQuery = `
-      SELECT COUNT(DISTINCT evtuuid) AS count
-      FROM alarms
-      WHERE time >= NOW() - INTERVAL '10 days' + INTERVAL '3 hours'
-        AND time <= NOW() + INTERVAL '1 day' + INTERVAL '3 hours'
-        AND st IS NOT NULL
-      GROUP BY DATE_TRUNC('day', time)
-      ORDER BY DATE_TRUNC('day', time)
+    WITH date_sequence AS (
+      SELECT DATE_TRUNC('day', NOW() - INTERVAL '10 days') + (generate_series(0, 10) || ' days')::interval AS day
+    )
+    SELECT
+      date_sequence.day AS day,
+      COALESCE(COUNT(DISTINCT evtuuid), 0) AS count
+    FROM date_sequence
+    LEFT JOIN alarms ON DATE_TRUNC('day', alarms.time) = date_sequence.day
+      AND alarms.time >= NOW() - INTERVAL '10 days' + INTERVAL '3 hours'
+      AND alarms.time <= NOW() + INTERVAL '1 day' + INTERVAL '3 hours'
+      AND alarms.st IS NOT NULL
+    GROUP BY date_sequence.day
+    ORDER BY date_sequence.day DESC
     `;
     const last11DaysAlarms = await client.query(last11DaysQuery);
-    const last11DaysCounts = last11DaysAlarms.rows.map(row => parseInt(row.count, 10));
-    for (let i = 0; i < last11DaysCounts.length; i++) {
-      if (last11DaysCounts[i] > 0) {
-        templateData.AlarmsLast11Days[i] = last11DaysCounts[i];
-      }
-    }
 
     const daysBeforeQuery = `
-      SELECT COUNT(DISTINCT evtuuid) AS count
-      FROM alarms
-      WHERE time >= NOW() - INTERVAL '21 days' + INTERVAL '3 hours'
-        AND time <= NOW() - INTERVAL '10 days' + INTERVAL '3 hours'
-        AND st IS NOT NULL
-      GROUP BY DATE_TRUNC('day', time)
-      ORDER BY DATE_TRUNC('day', time)
-    `;
-    const daysBeforeAlarms = await client.query(daysBeforeQuery);
-    const daysBeforeCounts = daysBeforeAlarms.rows.map(row => parseInt(row.count, 10));
-    for (let i = 0; i < daysBeforeCounts.length; i++) {
-      if (daysBeforeCounts[i] > 0) {
-        templateData.Alarms11DaysBefore[i] = daysBeforeCounts[i];
-      }
-    }
+  WITH date_sequence AS (
+    SELECT DATE_TRUNC('day', NOW() - INTERVAL '21 days') + (generate_series(0, 10) || ' days')::interval AS day
+  )
+  SELECT
+    date_sequence.day AS day,
+    COALESCE(COUNT(DISTINCT evtuuid), 0) AS count
+  FROM date_sequence
+  LEFT JOIN alarms ON DATE_TRUNC('day', alarms.time) = date_sequence.day
+    AND alarms.time >= NOW() - INTERVAL '21 days' + INTERVAL '3 hours'
+    AND alarms.time <= NOW() - INTERVAL '10 days' + INTERVAL '3 hours'
+    AND alarms.st IS NOT NULL
+  GROUP BY date_sequence.day
+  ORDER BY date_sequence.day DESC
+`;
 
-    // Создание массива дат в формате "dd.mm" за последние 11 дней
+    const daysBeforeAlarms = await client.query(daysBeforeQuery);
+
     const currentDate = new Date();
     const dates = [];
     for (let i = 10; i >= 0; i--) {
@@ -118,22 +119,50 @@ async function index(req, res) {
     templateData.Dates = dates;
 
     const positionsLast11DaysQuery = `
-      SELECT COUNT(*) AS count
-      FROM geo
-      WHERE time >= NOW() - INTERVAL '10 days' + INTERVAL '3 hours'
-        AND time <= NOW() + INTERVAL '1 day' + INTERVAL '3 hours'
-      GROUP BY DATE_TRUNC('day', time)
-      ORDER BY DATE_TRUNC('day', time)
+    SELECT
+    COUNT(*) AS count,
+    DATE_TRUNC('day', time) AS day,
+    CASE WHEN COUNT(*) = 0 THEN 0 ELSE 1 END AS sort_value
+  FROM geo
+  WHERE time >= NOW() - INTERVAL '10 days' + INTERVAL '3 hours'
+    AND time <= NOW() + INTERVAL '1 day' + INTERVAL '3 hours'
+  GROUP BY DATE_TRUNC('day', time)
+  ORDER BY sort_value DESC, day DESC
     `;
     const positionsLast11Days = await client.query(positionsLast11DaysQuery);
-    const positionsLast11DaysCounts = positionsLast11Days.rows.map(row => parseInt(row.count, 10));
-    for (let i = 0; i < positionsLast11DaysCounts.length; i++) {
-      if (positionsLast11DaysCounts[i] > 0) {
-        templateData.PositionsLast11Days[i] = positionsLast11DaysCounts[i];
-      }
-    }
+    // console.log(positionsLast11Days.rows)
+    // const positionsLast11DaysCounts = positionsLast11Days.rows.map(row => parseInt(row.count, 10));
+    // for (let i = 0; i < positionsLast11DaysCounts.length; i++) {
+    //   if (positionsLast11DaysCounts[i] > 0) {
+    //     templateData.PositionsLast11Days[i] = positionsLast11DaysCounts[i];
+    //   }
+    // }
 
-    // console.log(templateData);
+    templateData.Dates.reverse();
+
+const last11DaysMap = new Map(last11DaysAlarms.rows.map(row => [row.day.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }), parseInt(row.count, 10)]));
+
+for (let i = 0; i < dates.length; i++) {
+  const dateKey = dates[i];
+  templateData.AlarmsLast11Days[i] = last11DaysMap.has(dateKey) ? last11DaysMap.get(dateKey) : 0;
+}
+
+const beforeDaysMap = new Map(daysBeforeAlarms.rows.map(row => [row.day.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }), parseInt(row.count, 10)]));
+
+for (let i = 0; i < dates.length; i++) {
+  const dateKey = dates[i];
+  templateData.Alarms11DaysBefore[i] = beforeDaysMap.has(dateKey) ? beforeDaysMap.get(dateKey) : 0;
+}
+
+const positionsMap = new Map(positionsLast11Days.rows.map(row => [row.day.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }), parseInt(row.count, 10)]));
+
+for (let i = 0; i < dates.length; i++) {
+  const dateKey = dates[i];
+  templateData.PositionsLast11Days[i] = positionsMap.has(dateKey) ? positionsMap.get(dateKey) : 0;
+}
+
+
+    console.log(templateData);
 
     const source = fs.readFileSync("static/templates/index.html", "utf8");
 
@@ -1436,6 +1465,105 @@ async function drivers(req, res) {
 function update(req, res) {
   res.sendFile(path.join(__dirname, "static/templates/devices/update.html"));
 }
+
+async function videos(req, res) {
+  let templateData = {
+    Organisation: "Название организации",
+    User: "Тестовое Имя",
+    ifDBError: false,
+    Registrars: [],
+  };
+
+  try {
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+    const client = await pool.connect();
+
+    const minuteInMillis = 60 * 1000;
+
+    const query = `
+    SELECT id, serial, lastkeepalive FROM registrars ORDER BY id ASC
+    `;
+    const registrars = await client.query(query);
+
+    templateData.Registrars = registrars.rows.map((row) => ({
+      id: row.id,
+      serial: row.serial,
+      status: Date.now() - Date.parse(row.lastkeepalive) <= minuteInMillis,
+    }));
+
+    console.log(templateData);
+
+    const source = fs.readFileSync("static/templates/videos/see.html", "utf8");
+    const template = handlebars.compile(source);
+    const resultHTML = template(templateData);
+    res.send(resultHTML);
+
+    client.release();
+  } catch (error) {
+    console.error(error);
+    templateData.ifDBError = true;
+
+    const source = fs.readFileSync("static/templates/videos/see.html", "utf8");
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  }
+}
+
+
+app.post("/getspeedarchive", async (req, res) => {
+  const { serial, datetime } = req.body;
+
+  const formattedDateTime = new Date(datetime).toISOString();
+  const pool = new Pool({
+    user: DB_User,
+    host: DB_Host,
+    database: DB_Name,
+    password: DB_Password,
+    port: DB_Port,
+  });
+  const client = await pool.connect();
+  const sqlQuery = `
+    SELECT speed, latitude, longitude
+    FROM geo
+    WHERE serial = $1
+    AND time >= $2
+    AND time < $3;
+  `;
+
+  const startTime = new Date(formattedDateTime);
+  startTime.setMinutes(0, 0, 0); // Округление до начала часа
+  const endTime = new Date(startTime);
+  endTime.setHours(endTime.getHours() + 1);
+
+  pool.query(sqlQuery, [serial, startTime, endTime], (error, results) => {
+    if (error) {
+      console.error("Ошибка при выполнении SQL-запроса:", error);
+      res.status(500).json({ error: "Ошибка на сервере" });
+    } else {
+      const speeds = results.rows.map((row) => row.speed);
+      const transformedSpeeds = speeds.map((speed) => {
+        if (speed > 150) {
+          return speed / 100;
+        } else {
+          return speed;
+        }
+      });
+
+      const geoData = results.rows.map((row) => ({
+        latitude: row.latitude,
+        longitude: row.longitude,
+      }));
+      res.json({ speeds: transformedSpeeds, geo: geoData });
+    }
+  });
+});
 
 const port = 8081;
 app.listen(port, () => {

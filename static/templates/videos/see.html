@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Записи</title>
+    <link rel="stylesheet" href="../styles/main.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ol3/4.6.5/ol.css" type="text/css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/4.6.5/ol.js"></script>
+  <script src="https://unpkg.com/ol-mapbox-style@9.4.0/dist/olms.js"></script>
+</head>
+<body>
+
+  
+
+    <header>
+        <h1>Аргус</h1>
+        <h2><span>/</span> {{Organisation}}</h2>
+    </header>
+
+    <section class="account-info">
+      <div id="account-main">
+          <img id="person" src="../img/person.svg">
+          <span>{{User}}</span>
+          <img id="down" src="../img/down.svg">
+          <img id="up" src="../img/up.svg">
+      </div>
+      <a href="/login"><div id="account-additional" class="additional">Выйти</div></a>
+  </section>
+
+    
+
+
+    <section class="navigation">
+        <a href="/">
+            <div><img src="../img/chart.svg">Главная</div>
+        </a>
+        <a href="/devices">
+            <div><img src="../img/cloud.svg">Устройства</div>
+        </a>
+        <a href="/reports">
+            <div><img src="../img/bubble.svg">Отчёты</div>
+        </a>
+        <a href="/live">
+            <div><img src="../img/waves.svg">Трансляция</div>
+        </a>
+        <a href="/videos">
+            <div class="selected"><img src="../img/play.svg">Записи</div>
+        </a>
+        <a class="settings" href="/">
+            <div><img src="../img/gear.svg">Настройки</div>
+        </a>
+    </section>
+
+    <section class="main">
+      {{#if ifDBError}}
+      <section class="dberror">
+        <div class="erorr-container">
+          <img src="../img/warning.svg"> <br>
+          <h1>Ошибка </h1> <br>
+          <span>Не удалось получить данные из БД</span>
+          <button type="button" onclick="location.reload();">Повторить попытку</button>
+        </div>
+      </section>
+      {{/if}}
+        <div class="name">
+            <span>Управление записями</span>
+        </div>
+        <nav>
+            <a class="selected" href="/videos">Воспроизведение</a>
+            <a href="/videos">Экспорт</a>
+        </nav>
+        <section class="bg">
+            <section class="content">
+                <section class="for-table">
+
+                    <section class="organisation">
+                        <h1>Организация</h1>
+
+                        <ul class="area">
+                          <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-1" class="checkbox-input" hidden checked><label for="name-1" class="checkbox-label">Группа 1</label>
+                            <ul class="area-devices" id="devices-1">
+                              {{#each Registrars}}
+                                <li class="device">
+                                  <img>
+                                  <input type="radio" name="camera-serial" id="radio-{{this.serial}}" class="radio-input" value="{{this.serial}}" hidden>
+                                  <label for="radio-{{this.serial}}" class="radio-label">
+                                    {{this.serial}}
+                                  </label>
+                                </li>
+                              {{/each}}
+                            </ul>
+                          </li>
+                        </ul>
+
+                          
+                    </section>
+
+                
+
+                    <section class="table" style="position: relative;">
+
+                      <div class="map">
+                        <div id="properties" class="properties" style="display: none;">
+                          <div class="propert"><h1>Группа</h1><br><h2 id="propert-group">Автобусы</h2></div>
+                          <div class="propert"><h1>Скорость</h1><br><h2 id="propert-speed"> км/ч</h2></div>
+                          <div class="propert"><h1>Номерной знак</h1><br><h2 id="propert-plate"></h2></div>
+                          <div class="propert"><h1>Геопозиция</h1><br><h2 id="propert-geo"></h2></div>
+                        </div>
+                        <div id="map"></div>
+                      </div>
+
+                      <div class="cameras">
+                        <div class="video-container">
+                          <div id="camera-1" onclick="playVideo(1);">
+                            <img src="../../img/play-circle.svg">
+                            <span>Запустить 1 камеру</span>
+                          </div>
+                          <div id="camera-2" onclick="playVideo(2);">
+                            <img src="../../img/play-circle.svg">
+                            <span>Запустить 2 камеру</span>
+                          </div>
+                          <div id="camera-3" onclick="playVideo(3);">
+                            <img src="../../img/play-circle.svg">
+                            <span>Запустить 3 камеру</span>
+                          </div>
+                          <div id="camera-4" onclick="playVideo(4);">
+                            <img src="../../img/play-circle.svg">
+                            <span>Запустить 4 камеру</span>
+                          </div>
+                          <div id="camera-5" onclick="playVideo(5);">
+                            <img src="../../img/play-circle.svg">
+                            <span>Запустить 5 камеру</span>
+                          </div>
+                          <div id="camera-6" onclick="playVideo(6);">
+                            <img src="../../img/play-circle.svg">
+                            <span>Запустить 6 камеру</span>
+                          </div>
+                          <div id="camera-7" onclick="playVideo(7);">
+                            <img src="../../img/play-circle.svg">
+                            <span>Запустить 7 камеру</span>
+                          </div>
+                          <div id="camera-8" onclick="playVideo(8);">
+                            <img src="../../img/play-circle.svg">
+                            <span>Запустить 8 камеру</span>
+                          </div>
+                          <div id="camera-9" onclick="playVideo(9);">
+                            <img src="../../img/play-circle.svg">
+                            <span>Запустить 9 камеру</span>
+                          </div>
+                          <div id="camera-10" onclick="playVideo(10);">
+                            <img src="../../img/play-circle.svg">
+                            <span>Запустить 10 камеру</span>
+                          </div>
+                          <div id="camera-11" onclick="playVideo(11);">
+                            <img src="../../img/play-circle.svg">
+                            <span>Запустить 11 камеру</span>
+                          </div>
+                          <div id="camera-12" onclick="playVideo(12);">
+                            <img src="../../img/play-circle.svg">
+                            <span>Запустить 12 камеру</span>
+                          </div>
+                        </div>
+                        <div class="video-container-right">
+                          <div id="camera-13" onclick="playVideo(13);">
+                            <img src="../../img/play-circle.svg">
+                            <span>Запустить 13 камеру</span>
+                          </div>
+                          <div id="camera-14" onclick="playVideo(14);">
+                            <img src="../../img/play-circle.svg">
+                            <span>Запустить 14 камеру</span>
+                          </div>
+                          <div id="camera-15" onclick="playVideo(15);">
+                            <img src="../../img/play-circle.svg">
+                            <span>Запустить 15 камеру</span>
+                          </div>
+                          <div id="camera-16" onclick="playVideo(16);">
+                            <img src="../../img/play-circle.svg">
+                            <span>Запустить 16 камеру</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="calendar">
+                        <div class="calendar-header">
+                            <button id="prevMonth"></button>
+                            <h2 id="monthYear"></h2>
+                            <button id="nextMonth"></button>
+                        </div>
+                        <div class="daysOfWeek">
+                            <div>Пн</div>
+                            <div>Вт</div>
+                            <div>Ср</div>
+                            <div>Чт</div>
+                            <div>Пт</div>
+                            <div>Сб</div>
+                            <div>Вс</div>
+                        </div>
+                        <div class="dates" id="dates">
+                        </div>
+                    </div>
+                    <input type="hidden" id="selectedDate" name="selectedDate" hidden>
+
+                    <div class="speedometr">
+                      <h1>Скорость</h1>
+                      <span>км/ч</span>
+                      <span style="float: right; font-size: 18px;">1 ч</span>
+                      <div>
+                          <canvas id="speed"></canvas>
+                      </div>
+                    </div>
+
+                    <div class="video-time">
+                      <input name="videoTime" type="time" id="video-time" step="1">
+                    </div>
+
+
+                    </section>
+                      
+
+                </section>
+
+            </section>
+        </section>
+    </section>
+
+    <style>
+      .table {
+        background-color:rgba(0, 0, 0, 0.02) !important;
+      }
+
+      .speedometr {
+        position: absolute;
+        right: 0;
+        bottom: 62px;
+        width: calc(75% - 300px - 10px - 32px);
+        height: 220px;
+        border-radius: 15px;
+        background-color: white;
+        padding-right: 32px;
+      }
+
+      .speedometr div {
+        height: 200px;
+      }
+    </style>
+
+    <script src="../scripts/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+function combineDateTime(dateString, timeString) {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  // Разбиение времени на часы, минуты и секунды
+  const timeParts = timeString.split(":");
+  const hours = timeParts[0].padStart(2, "0");
+  const minutes = timeParts[1].padStart(2, "0");
+  const seconds = timeParts[2].padStart(2, "0");
+
+  // Собираем дату и время в нужном формате
+  const combinedDateTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
+  return combinedDateTime;
+}
+
+function sendPostRequest() {
+  // Получение данных из полей ввода
+  const selectedDate = document.getElementById("selectedDate").value;
+  const videoTime = document.getElementById("video-time").value;
+  const selectedSerial = document.querySelector('input[name="camera-serial"]:checked').value;
+
+  // Объединяем дату и время и преобразуем в нужный формат
+  const combinedDateTime = combineDateTime(selectedDate, videoTime);
+
+  const requestData = {
+    serial: selectedSerial,
+    datetime: combinedDateTime, 
+  };
+
+  fetch("/getspeedarchive", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(requestData),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+
+      const existingChart = Chart.getChart("speed");
+
+      if (existingChart) {
+        existingChart.destroy();
+      }
+
+      const numberOfLabels = data.speeds.length;
+      const labels = Array.from({ length: numberOfLabels }, () => "");
+
+      // Обновление данных графика
+      const chart = new Chart("speed", {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: "Скорость",
+              borderColor: "#8086F9",
+              fill: false,
+              data: data.speeds,
+              pointStyle: false,
+              pointRadius: 25,
+              pointHoverRadius: 25,
+              tension: 0.1,
+            },
+          ],
+        },
+        options: {
+          plugins: {
+            legend: {
+              display: false,
+            },
+          },
+          labelStep: "3",
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              stacked: true,
+              grid: {
+                display: true,
+                color: "#D9D9D9",
+              },
+              ticks: {
+                stepSize: 10,
+              },
+            },
+            x: {
+              grid: {
+                display: false,
+              },
+            },
+          },
+        },
+      });
+
+      routeLayer.getSource().clear();
+      markerLayer.getSource().clear();
+
+      const geoData = data.geo; 
+
+      const routePoints = geoData.map((point) => {
+        return ol.proj.fromLonLat([point.longitude, point.latitude]);
+      });
+
+      const routeFeature = new ol.Feature({
+        geometry: new ol.geom.LineString(routePoints),
+      });
+      routeFeature.setStyle(routeStyle);
+
+      routeLayer.getSource().addFeature(routeFeature);
+
+      const startMarker = new ol.Feature({
+        geometry: new ol.geom.Point(routePoints[0]),
+      });
+      startMarker.setStyle(markerStyle);
+
+      const endMarker = new ol.Feature({
+        geometry: new ol.geom.Point(routePoints[routePoints.length - 1]),
+      });
+      endMarker.setStyle(markerStyle);
+
+      markerLayer.getSource().addFeatures([startMarker, endMarker]);
+
+      const mapElement = document.getElementById("map");
+
+      const map = new ol.Map({
+        target: null, 
+        layers: [
+          new ol.layer.Tile({
+            source: new ol.source.OSM(),
+          }),
+          markerLayer,
+          routeLayer,
+        ],
+        view: new ol.View({
+          center: ol.proj.fromLonLat([30.282995, 59.855198]),
+          zoom: 10 
+        }),
+      });
+
+      map.getLayers().clear();
+
+      map.setTarget(mapElement);
+
+      // Скрыть кнопки приближения/отдаления
+      map.getControls().forEach(function (control) {
+        if (control instanceof ol.control.Zoom) {
+          map.removeControl(control);
+        }
+      });
+
+      // Скрыть информационную панель
+      map.getControls().forEach(function (control) {
+        if (control instanceof ol.control.Attribution) {
+          map.removeControl(control);
+        }
+      });
+
+    })
+    .catch((error) => {
+      console.error("Ошибка при отправке запроса:", error);
+    });
+}
+
+
+const radioInputs = document.querySelectorAll(".radio-input");
+radioInputs.forEach((input) => {
+  input.addEventListener("change", sendPostRequest);
+});
+
+const selectedDateInput = document.getElementById("selectedDate");
+selectedDateInput.addEventListener("change", sendPostRequest);
+
+const videoTimeInput = document.getElementById("video-time");
+videoTimeInput.addEventListener("change", sendPostRequest);
+
+    </script>
+
+
+    <script>
+      var now = new Date();
+      now.setHours(now.getHours() - 1);
+      var formattedTime = now.toISOString().substr(11, 8);
+      document.getElementById("video-time").value = formattedTime;
+    </script>
+
+   
+    <script>
+     document.addEventListener("DOMContentLoaded", function () {
+    const prevMonthBtn = document.getElementById("prevMonth");
+    const nextMonthBtn = document.getElementById("nextMonth");
+    const monthYear = document.getElementById("monthYear");
+    const datesContainer = document.getElementById("dates");
+    const dateForm = document.getElementById("dateForm");
+    const selectedDateInput = document.getElementById("selectedDate");
+
+    let currentDate = new Date();
+    let selectedDate = currentDate; 
+    selectedDateInput.value = selectedDate.toISOString();
+    function renderCalendar() {
+        // Очистить предыдущий календарь
+        datesContainer.innerHTML = "";
+
+        // Установить заголовок с месяцем и годом
+        const options = { year: "numeric", month: "long" };
+        const formattedDate = currentDate.toLocaleDateString("ru-RU", options);
+        const formattedMonthYear = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1); 
+        monthYear.textContent = formattedMonthYear.replace('г.', '');
+
+        // Найти первый день текущего месяца
+        const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+
+        // Определить день недели, с которого начнется месяц
+        const startingDay = firstDayOfMonth.getDay() - 1;
+
+        // Определить количество дней в текущем месяце
+        const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+
+        // Создать дни месяца
+        for (let i = 0; i < startingDay; i++) {
+            const emptyDay = document.createElement("div");
+            emptyDay.classList.add("empty-day");
+            datesContainer.appendChild(emptyDay);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateCell = document.createElement("div");
+            dateCell.textContent = day;
+            dateCell.classList.add("date");
+            if (selectedDate.getDate() === day && selectedDate.getMonth() === currentDate.getMonth() && selectedDate.getFullYear() === currentDate.getFullYear()) {
+                dateCell.classList.add("selected");
+            }
+            dateCell.addEventListener("click", () => {
+                selectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+                renderCalendar();
+                selectedDateInput.value = selectedDate.toISOString();
+            });
+            datesContainer.appendChild(dateCell);
+        }
+        sendPostRequest();
+    }
+
+    // Перейти на предыдущий месяц
+    prevMonthBtn.addEventListener("click", () => {
+        currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+        renderCalendar();
+    });
+
+    // Перейти на следующий месяц
+    nextMonthBtn.addEventListener("click", () => {
+        currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+        renderCalendar();
+    });
+
+    // Инициализировать календарь
+    renderCalendar();
+});
+
+    </script>
+
+    <script>
+      function formatDate(selectedDate) {
+  const date = new Date(selectedDate);
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${year}${month}${day}`;
+}
+
+function formatTime(videoTime) {
+  const parts = videoTime.split(':');
+  const hours = parts[0].toString().padStart(2, '0');
+  const minutes = parts[1].toString().padStart(2, '0');
+  const seconds = parts[2].toString().padStart(2, '0');
+  return `${hours}${minutes}${seconds}`;
+}
+
+function playVideo(channel) {
+  const selectedDevice = document.querySelector('input[name="camera-serial"]:checked');
+  if (!selectedDevice) {
+    alert('Пожалуйста, выберите устройство из списка.');
+    return;
+  }
+
+  const startTimeInput = document.getElementById('video-time');
+  const selectedDateInput = document.getElementById('selectedDate');
+  const startTime = formatTime(startTimeInput.value);
+  const selectedDate = formatDate(selectedDateInput.value);
+  const serial = selectedDevice.value;
+
+  const url = `http://localhost:8081/?url=http%3A%2F%2Fkrbl.ru%3A8080%2Fhttp%2Fplayback.flv%3Fserial%3D${serial}%26channel%3D${channel}%26quality%3D1%26queryTime%3D${selectedDate}%26startTime%3D${startTime}%26endTime%3D130000`;
+
+  fetch(url)
+    .then(response => {
+      if (response.status === 200) {
+        console.log('Запрос выполнен успешно.');
+      } else {
+        console.error('Произошла ошибка при выполнении запроса.');
+      }
+    })
+    .catch(error => {
+      console.error('Произошла ошибка при выполнении запроса:', error);
+    });
+}
+
+
+
+
+    </script>
+
+ <script>
+  window.addEventListener('DOMContentLoaded', function() {
+    var mapContainer = document.querySelector('.map');
+    var mapArea = document.getElementById('map');
+
+    mapArea.style.height = (mapContainer.clientHeight) + 'px';
+    mapArea.style.width = (mapContainer.clientWidth) + 'px';
+  });
+
+  window.addEventListener("resize", function (event) {
+        var mapContainer = document.querySelector('.map');
+        var mapArea = document.getElementById('map');
+
+        mapArea.style.height = (mapContainer.clientHeight) + 'px';
+        mapArea.style.width = (mapContainer.clientWidth) + 'px';
+      });
+
+      var startPoint = ol.proj.fromLonLat([0, 0]);   
+var endPoint = ol.proj.fromLonLat([0, 0]);     
+
+var routeStyle = new ol.style.Style({
+    stroke: new ol.style.Stroke({
+        color: 'red', 
+        width: 6 
+    })
+});
+
+var markerStyle = new ol.style.Style({
+    image: new ol.style.Circle({
+        radius: 7, 
+        fill: new ol.style.Fill({
+            color: 'red' 
+        }),
+        stroke: new ol.style.Stroke({
+            color: 'white', 
+            width: 2
+        })
+    })
+});
+
+var routeSource = new ol.source.Vector({
+    features: [
+        new ol.Feature({
+            geometry: new ol.geom.LineString([startPoint, endPoint])
+        })
+    ]
+});
+
+var routeLayer = new ol.layer.Vector({
+    source: routeSource,
+    style: routeStyle 
+});
+
+var startMarker = new ol.Feature({
+    geometry: new ol.geom.Point(startPoint)
+});
+startMarker.setStyle(markerStyle); 
+
+var endMarker = new ol.Feature({
+    geometry: new ol.geom.Point(endPoint)
+});
+endMarker.setStyle(markerStyle); 
+
+var markerSource = new ol.source.Vector({
+    features: [startMarker, endMarker]
+});
+
+var markerLayer = new ol.layer.Vector({
+    source: markerSource
+});
+      var map = new ol.Map({
+      target: 'map',
+      layers: [
+        new ol.layer.Tile({
+          source: new ol.source.OSM() 
+        }),
+        markerLayer,
+        routeLayer,
+      ],
+      view: new ol.View({
+        center: ol.proj.fromLonLat([30.282995, 59.855198]),
+        zoom: 10 
+      })
+    });
+
+    // Скрыть кнопки приближения/отдаления
+map.getControls().forEach(function(control) {
+    if (control instanceof ol.control.Zoom) {
+        map.removeControl(control);
+    }
+});
+
+// Скрыть информационную панель
+map.getControls().forEach(function(control) {
+    if (control instanceof ol.control.Attribution) {
+        map.removeControl(control);
+    }
+});
+</script> 
+    
+    <script>
+        // Скрытие/Показ дополнительных меню аккаунта
+        const accountMain = document.getElementById('account-main');
+        const accountAdditional = document.getElementById('account-additional');
+        const accountUp = document.getElementById('up');
+        const accountDown = document.getElementById('down');
+        accountAdditional.style.display = 'none';
+        accountUp.style.display = 'none';
+        
+        accountMain.addEventListener('click', () => {
+          if (accountAdditional.style.display === 'none') {
+            accountAdditional.style.display = 'flex';
+            accountUp.style.display = 'unset';
+            accountDown.style.display = 'none';
+          } else {
+            accountAdditional.style.display = 'none';
+            accountUp.style.display = 'none';
+            accountDown.style.display = 'unset';
+          }
+        });
+      </script>
+
+<script>
+  Chart.defaults.color = "rgba(0, 0, 0, 0.4)";
+Chart.defaults.font.size = 15;
+Chart.defaults.font.weight = 400;
+  var speedData = {
+labels: [
+"",
+"",
+"",
+"",
+"",
+"",
+"",
+"",
+"",
+"",
+"",
+],
+datasets: [
+{
+label: "Скорость",
+borderColor: "#8086F9",
+fill: false,
+data: [
+  {{Speeds}}
+],
+pointStyle: false,
+pointRadius: 25,
+pointHoverRadius: 25,
+tension: 0.1,
+},
+],
+};
+
+var speedOptions = {
+plugins: {
+legend: {
+display: false,
+},
+},
+labelStep: "3",
+responsive: true,
+maintainAspectRatio: false,
+scales: {
+y: {
+stacked: true,
+grid: {
+  display: true,
+  color: "#D9D9D9",
+},
+ticks: {
+  stepSize: 10,
+},
+},
+x: {
+grid: {
+  display: false,
+},
+},
+},
+};
+
+new Chart("speed", {
+type: "line",
+data: speedData,
+options: speedOptions,
+});
+</script>
+
+      
+    
+</body>
+</html>

@@ -43,7 +43,7 @@
         <a href="/live">
             <div><img src="../img/waves.svg">Трансляция</div>
         </a>
-        <a href="/">
+        <a href="/videos">
             <div><img src="../img/play.svg">Записи</div>
         </a>
         <a class="settings" href="/">
@@ -168,14 +168,18 @@
 
                       <video id="my-video" src="../test_video.MP4"></video>
 
-                      <div class="map">
+                      <div class="stream-map">
                         <div id="map"></div>
                       </div>
                     </section> 
+                </section>
+                </section>
+                </section>
 
   <style>
-    .map {
+    .stream-map {
       width: calc(100% - 450px - 514px);
+      height: calc(100% - 62px);
       float: right;
     }
   </style>
@@ -253,7 +257,7 @@ var map = new ol.Map({
     ],
     view: new ol.View({
         center: ol.proj.fromLonLat([prevLongitude, prevLatitude]), 
-        zoom: 17 
+        zoom: 14 
     })
 });
 

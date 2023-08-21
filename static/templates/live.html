@@ -45,7 +45,7 @@
         <a href="/live">
             <div class="selected"><img src="../img/waves.svg">Трансляция</div>
         </a>
-        <a href="/">
+        <a href="/videos">
             <div><img src="../img/play.svg">Записи</div>
         </a>
         <a class="settings" href="/">
@@ -115,6 +115,15 @@
                           
                     </section>
 
+                    <div id="video-popup" class="video-popup">
+                      <div id="video-popup-content" class="video-popup-content">
+                          <span class="close-popup" id="close-popup">&times;</span>
+                          <div id="popup-video-container" class="popup-video-container">
+                            
+                          </div>
+                      </div>
+                    </div>
+
                 
 
                     <section class="table" style="position: relative;">
@@ -128,7 +137,8 @@
                         <ul id="list">
                           {{#each Alarms}}
                           <li>
-                            <input type="radio" name="signal" id="signal-{{this.id}}" hidden>
+                            <!-- <input type="radio" name="signal" id="signal-{{this.id}}" hidden> -->
+                            <a style="color:rgba(0, 0, 0, 0.7);" href="/reports/{{this.id}}" target="_blank">
                             <label for="signal-{{this.id}}">
                               <h2>{{this.type}}</h2>
                               <span>ID {{this.id}}</span>
@@ -149,6 +159,7 @@
                                 <path fill="#000" fill-opacity=".75" d="M10.38 14c1.25 0 2.07-.336 2.792-1.15.057-.056.114-.12.164-.178.428-.478.628-.95.628-1.4 0-.513-.3-.992-.935-1.434l-2.077-1.442c-.643-.443-1.393-.493-1.992.1l-.55.55c-.164.164-.307.17-.464.07-.386-.242-1.164-.92-1.692-1.448-.557-.55-1.092-1.164-1.378-1.614-.093-.164-.086-.3.079-.464l.542-.55c.6-.6.55-1.356.107-1.992L4.162.971C3.72.336 3.242.043 2.727.036c-.45-.007-.92.2-1.4.628-.063.057-.12.107-.178.157C.336 1.549 0 2.371 0 3.605c0 2.042 1.256 4.527 3.562 6.832C5.854 12.73 8.346 14 10.38 14Zm.008-1.1c-1.82.036-4.155-1.363-6.005-3.205-1.863-1.856-3.326-4.27-3.29-6.09.014-.785.292-1.463.849-1.949.05-.043.086-.078.136-.114.214-.186.442-.285.65-.285.206 0 .392.078.527.292L4.64 3.627c.15.221.165.47-.057.692l-.628.628c-.492.493-.457 1.093-.1 1.571.407.55 1.114 1.35 1.664 1.892.542.55 1.406 1.32 1.963 1.735.478.357 1.078.393 1.57-.1l.629-.628c.221-.222.464-.207.692-.065l2.078 1.385a.6.6 0 0 1 .292.536c0 .207-.1.435-.285.65l-.114.135c-.486.557-1.164.828-1.956.843Z"/>
                               </svg></p> -->
                             </label>
+                          </a>
                           </li>
                               {{/each}}
                           
@@ -156,7 +167,7 @@
 
                       </div>
 
-                      <div class="map">
+                      <div class="stream-map">
                         <div id="properties" class="properties" style="display: none;">
                           <div class="propert"><h1>Группа</h1><br><h2 id="propert-group">Автобусы</h2></div>
                           <div class="propert"><h1>Скорость</h1><br><h2 id="propert-speed"> км/ч</h2></div>
@@ -166,11 +177,11 @@
                         <div id="map"></div>
                       </div>
 
-                      <div class="cameras">
+                      <div class="stream-cameras">
                         <div class="cameras-swipe"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="11" fill="none" viewBox="0 0 17 11">
                           <path fill="#000" fill-opacity=".5" d="M8.486 10.4a.88.88 0 0 0 .655-.283l7.558-7.744a.871.871 0 0 0 .264-.625.876.876 0 0 0-.889-.898.927.927 0 0 0-.635.254L7.96 8.75h1.045l-7.48-7.646A.892.892 0 0 0 .888.85.876.876 0 0 0 0 1.748a.91.91 0 0 0 .264.635l7.558 7.734c.186.186.41.283.664.283Z"/>
                         </svg></div>
-                        <div class="video-container">
+                        <div class="stream-video-container">
                           <!-- <video id="camera-1"></video> -->
                           <video id="camera-2"></video>
                           <video id="camera-3"></video>
@@ -178,8 +189,8 @@
                           <video id="camera-5"></video>
                           <!-- <video id="camera-6"></video>
                           <video id="camera-7"></video>
-                          <video id="camera-8"></video> -->
-                          <!-- <video id="camera-9"></video>
+                          <video id="camera-8"></video>
+                          <video id="camera-9"></video>
                           <video id="camera-10"></video>
                           <video id="camera-11"></video>
                           <video id="camera-12"></video>
@@ -348,6 +359,19 @@
         zoom: 10 
       })
     });
+    // Скрыть кнопки приближения/отдаления
+map.getControls().forEach(function(control) {
+    if (control instanceof ol.control.Zoom) {
+        map.removeControl(control);
+    }
+});
+
+// Скрыть информационную панель
+map.getControls().forEach(function(control) {
+    if (control instanceof ol.control.Attribution) {
+        map.removeControl(control);
+    }
+});
 
     var xhr = new XMLHttpRequest();
     xhr.open("GET", "../scripts/style.json", true);
@@ -366,9 +390,21 @@
   {{#if ifDBError}}
 {{else}}
 
-  const selectedDevices = Array.from(checkboxes)
-          .filter(checkbox => checkbox.checked && checkbox.value !== 'on')
-          .map(checkbox => checkbox.value);
+const selectedDevices = Array.from(checkboxes)
+            .filter(checkbox => checkbox.checked && checkbox.value !== 'on')
+            .map(checkbox => checkbox.value);
+
+            checkboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        selectedDevices.length = 0; // Очищаем массив
+        selectedDevices.push(...Array.from(checkboxes)
+            .filter(checkbox => checkbox.checked && checkbox.value !== 'on')
+            .map(checkbox => checkbox.value));
+        
+        console.log(selectedDevices); // Вывести выбранные устройства в консоль
+    });
+});
+
 
   function addMarker(device) {
     const { serial, status, longitude, latitude, direction, speed } = device;
@@ -410,6 +446,7 @@
   }
 
   function fetchAndShowMarkers() {
+    console.log(selectedDevices);
     fetch('/devices-geo', {
           method: 'POST',
           headers: {
@@ -436,8 +473,9 @@
 
         const propertiesDiv = document.getElementById('properties');
 
+        console.log(selectedDevice);
+
         if (selectedDevice) {
-          // Вывод нужных свойств устройства в консоль
           // groupElement.textContent = selectedDevice.group;
           speedElement.textContent = selectedDevice.speed + ' км/ч';
           plateElement.textContent = selectedDevice.plate;
@@ -573,6 +611,80 @@ for (var i = 0; i < tableCheckboxes.length; i++) {
 });
 
       </script>
+
+<script>
+  // Получаем ссылки на элементы
+const videoContainers = document.querySelectorAll('.stream-video-container video');
+const popup = document.getElementById('video-popup');
+const popupVideo = document.getElementById('popup-video');
+const closePopup = document.getElementById('close-popup');
+const popupVideoContainer = document.getElementById('popup-video-container');
+const popupContainer = document.getElementById('video-popup-content');
+
+let originalVideo = null; // Сохраняем оригинальное видео элемент
+
+// Функция для открытия попапа с видео
+function openVideoPopup(video) {
+// Сохраняем оригинальное видео
+originalVideo = video;
+
+// Меняем стили видео
+video.style.position = 'fixed';
+video.style.top = '10%';
+video.style.left = '0';
+video.style.width = '100%';
+video.style.height = '80%';
+video.style.zIndex = '1000';
+
+popup.style.display = 'block';
+popupContainer.style.width = '100%';
+popupContainer.style.height = '80%';
+}
+
+// Функция для закрытия попапа с видео
+function closeVideoPopup() {
+// Восстанавливаем оригинальные стили видео
+if (originalVideo) {
+originalVideo.style.position = '';
+originalVideo.style.top = '';
+originalVideo.style.left = '';
+originalVideo.style.width = '';
+originalVideo.style.height = '';
+originalVideo.style.zIndex = '';
+
+// Очищаем контейнер попапа
+popup.style.display = 'none';
+
+// Сбрасываем оригинальное видео
+originalVideo = null;
+}
+}
+
+// Добавляем обработчики событий для клика на видео и кнопку закрытия
+videoContainers.forEach((video) => {
+video.addEventListener('click', () => {
+openVideoPopup(video);
+});
+});
+
+closePopup.addEventListener('click', () => {
+closeVideoPopup();
+});
+
+// Закрыть попап при клике вне его области
+window.addEventListener('click', (event) => {
+if (event.target === popup) {
+closeVideoPopup();
+}
+});
+
+// Закрыть попап при нажатии на клавишу Esc
+window.addEventListener('keydown', (event) => {
+if (event.key === 'Escape') {
+closeVideoPopup();
+}
+});
+</script>
 
       
     
