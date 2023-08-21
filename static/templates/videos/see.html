@@ -543,7 +543,7 @@ function playVideo(channel) {
   const selectedDate = formatDate(selectedDateInput.value);
   const serial = selectedDevice.value;
 
-  const url = `http://localhost:8081/?url=http%3A%2F%2Fkrbl.ru%3A8080%2Fhttp%2Fplayback.flv%3Fserial%3D${serial}%26channel%3D${channel}%26quality%3D1%26queryTime%3D${selectedDate}%26startTime%3D${startTime}%26endTime%3D130000`;
+  const url = `http://localho.st:8081/?url=http%3A%2F%2Fkrbl.ru%3A8080%2Fhttp%2Fplayback.flv%3Fserial%3D${serial}%26channel%3D${channel}%26quality%3D1%26queryTime%3D${selectedDate}%26startTime%3D${startTime}%26endTime%3D130000`;
 
   const xhr = new XMLHttpRequest();
   
