@@ -9,6 +9,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ol3/4.6.5/ol.css" type="text/css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/4.6.5/ol.js"></script>
   <script src="https://unpkg.com/ol-mapbox-style@9.4.0/dist/olms.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v1.10.1/mapbox-gl.js'></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v1.10.1/mapbox-gl.css' rel='stylesheet' />
 </head>
 <body>
 
@@ -184,98 +188,46 @@
     }
   </style>
 
+<script>
+  var prevLongitude = {{PrevLongitude}};
+  var prevLatitude = {{PrevLatitude}};
+  var nextLongitude = {{NextLongitude}};
+  var nextLatitude = {{NextLatitude}};
 
-  <script>
+  var startPoint = [prevLatitude, prevLongitude];
+  var endPoint = [nextLatitude, nextLongitude];
 
-var prevLongitude = {{PrevLongitude}};
-var prevLatitude = {{PrevLatitude}};
-var nextLongitude = {{NextLongitude}};
-var nextLatitude = {{NextLatitude}};
+  var map = L.map('map').setView(startPoint, 17);
 
-var startPoint = ol.proj.fromLonLat([prevLongitude, prevLatitude]);   
-var endPoint = ol.proj.fromLonLat([nextLongitude, nextLatitude]);     
+  L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}{r}.png').addTo(map);
 
-var routeStyle = new ol.style.Style({
-    stroke: new ol.style.Stroke({
-        color: 'red', 
-        width: 6 
-    })
-});
+  var routeStyle = {
+      color: 'red',
+      weight: 6
+  };
 
-var markerStyle = new ol.style.Style({
-    image: new ol.style.Circle({
-        radius: 7, 
-        fill: new ol.style.Fill({
-            color: 'red' 
-        }),
-        stroke: new ol.style.Stroke({
-            color: 'white', 
-            width: 2
-        })
-    })
-});
+  var routeCoordinates = [startPoint, endPoint];
+  var route = L.polyline(routeCoordinates, routeStyle).addTo(map);
 
-var routeSource = new ol.source.Vector({
-    features: [
-        new ol.Feature({
-            geometry: new ol.geom.LineString([startPoint, endPoint])
-        })
-    ]
-});
+  var markerStyle = {
+      radius: 7,
+      fillColor: 'red',
+      color: 'white',
+      weight: 2,
+      opacity: 1,
+      fillOpacity: 1
+  };
 
-var routeLayer = new ol.layer.Vector({
-    source: routeSource,
-    style: routeStyle 
-});
+  var startMarker = L.circleMarker(startPoint, markerStyle).addTo(map);
+  var endMarker = L.circleMarker(endPoint, markerStyle).addTo(map);
 
-var startMarker = new ol.Feature({
-    geometry: new ol.geom.Point(startPoint)
-});
-startMarker.setStyle(markerStyle); 
+  // Убрать кнопки приближения/отдаления
+  map.zoomControl.remove();
 
-var endMarker = new ol.Feature({
-    geometry: new ol.geom.Point(endPoint)
-});
-endMarker.setStyle(markerStyle); 
+  // Убрать информационную панель
+  map.attributionControl.remove();
+</script>
 
-var markerSource = new ol.source.Vector({
-    features: [startMarker, endMarker]
-});
-
-var markerLayer = new ol.layer.Vector({
-    source: markerSource
-});
-
-var map = new ol.Map({
-    target: 'map', 
-    layers: [
-        new ol.layer.Tile({
-            source: new ol.source.OSM()
-        }),
-        markerLayer,
-        routeLayer
-    ],
-    view: new ol.View({
-        center: ol.proj.fromLonLat([prevLongitude, prevLatitude]), 
-        zoom: 14 
-    })
-});
-
-// Скрыть кнопки приближения/отдаления
-map.getControls().forEach(function(control) {
-    if (control instanceof ol.control.Zoom) {
-        map.removeControl(control);
-    }
-});
-
-// Скрыть информационную панель
-map.getControls().forEach(function(control) {
-    if (control instanceof ol.control.Attribution) {
-        map.removeControl(control);
-    }
-});
-
-  </script>
 
 <script>
 
