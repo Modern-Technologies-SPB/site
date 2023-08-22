@@ -6,9 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Трансляция</title>
     <link rel="stylesheet" href="../styles/main.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ol3/4.6.5/ol.css" type="text/css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/4.6.5/ol.js"></script>
-  <script src="https://unpkg.com/ol-mapbox-style@9.4.0/dist/olms.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 </head>
 <body>
 
@@ -347,46 +346,15 @@
 
 <script>
   
-  var map = new ol.Map({
-      target: 'map',
-      layers: [
-        new ol.layer.Tile({
-          source: new ol.source.OSM() 
-        })
-      ],
-      view: new ol.View({
-        center: ol.proj.fromLonLat([30.282995, 59.855198]),
-        zoom: 10 
-      })
-    });
-    // Скрыть кнопки приближения/отдаления
-map.getControls().forEach(function(control) {
-    if (control instanceof ol.control.Zoom) {
-        map.removeControl(control);
-    }
-});
+  var map = L.map('map').setView([59.855198, 30.282995], 10);
 
-// Скрыть информационную панель
-map.getControls().forEach(function(control) {
-    if (control instanceof ol.control.Attribution) {
-        map.removeControl(control);
-    }
-});
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}').addTo(map);
 
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", "../scripts/style.json", true);
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        var customStyle = JSON.parse(xhr.responseText);
+        map.zoomControl.remove();
 
-        map.getLayers().forEach(function(layer) {
-          layer.setStyle(customStyle.layers[0].paint);
-        });
-      }
-    };
-    xhr.send();
+        map.attributionControl.remove();
 
-  const markers = [];
+  let markers = [];
   {{#if ifDBError}}
 {{else}}
 
@@ -409,41 +377,39 @@ const selectedDevices = Array.from(checkboxes)
   function addMarker(device) {
     const { serial, status, longitude, latitude, direction, speed } = device;
 
-    const markerElement = document.createElement('div');
-    markerElement.className = 'marker';
+    console.log(serial, status, longitude, latitude, direction, speed)
+    console.log("Trying add marker")
+
+            
     if (serial === $("input[name=camera-serial]:checked").val()) {
-      markerElement.innerHTML = `
-      <div class="marker-name active-${status}">${serial}</div>
+      var marker = L.divIcon({
+                className: 'marker',
+                html: `<div class="marker-name active-${status}">${serial}</div>
     <svg class="active-${status}" id="marker-${serial}" style="transform: rotate(${direction}deg)" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26" fill="none">
       <path fill="#FF6A4B" d="M12.669 24.673c6.565 0 12-5.435 12-12 0-6.553-5.447-12-12.012-12C6.104.673.67 6.12.67 12.673c0 6.565 5.447 12 12 12Z"/>
       <path fill="#fff" fill-opacity=".85" d="m7.104 17.92 4.683-11.93c.33-.823 1.423-.846 1.753-.023l4.682 11.953c.318.788-.553 1.47-1.294.73l-3.953-3.953c-.188-.2-.424-.2-.612 0L8.41 18.65c-.753.74-1.623.059-1.306-.73Z"/>
-</svg>
-    `;
+</svg>`
+            });
     } else {
-    markerElement.innerHTML = `
-    <div class="marker-name active-${status}">${serial}</div>
+      var marker = L.divIcon({
+                className: 'marker',
+                html: `<div class="marker-name active-${status}">${serial}</div>
     <svg class="active-${status}" id="marker-${serial}" style="transform: rotate(${direction}deg)" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26" fill="none">
   <path d="M12.9815 25.0195C19.5462 25.0336 24.9931 19.6101 25.0073 13.0454C25.0214 6.49253 19.5861 1.03375 13.0214 1.01961C6.46848 1.00549 1.02147 6.44081 1.00735 12.9937C0.993201 19.5584 6.42852 25.0054 12.9815 25.0195Z" fill="#8086F9"/>
   <path d="M7.43175 18.2547L12.1398 6.33536C12.471 5.51254 13.5652 5.49137 13.8928 6.31561L18.5493 18.2786C18.8653 19.0675 17.9932 19.748 17.2537 19.0052L13.3092 15.0438C13.1215 14.8434 12.8862 14.8429 12.6975 15.0425L8.73605 18.9868C7.98152 19.7264 7.1124 19.0422 7.43175 18.2547Z" fill="white" fill-opacity="0.85"/>
-</svg>
-    `;
+</svg>`
+            });
 }
 
-    const marker = new ol.Overlay({
-      position: ol.proj.fromLonLat([longitude, latitude]),
-      positioning: 'center-center',
-      element: markerElement,
-      stopEvent: false
-    });
-
-    map.addOverlay(marker);
-    markers.push(marker);
+var markerObj = L.marker([latitude, longitude], { icon: marker });
+            markerObj.addTo(map);
+            markers.push(markerObj);
   }
 
   function clearMarkers() {
-    markers.forEach(marker => map.removeOverlay(marker));
-    markers.length = 0;
-  }
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+        }
 
   function fetchAndShowMarkers() {
     console.log(selectedDevices);
@@ -460,6 +426,7 @@ const selectedDevices = Array.from(checkboxes)
         clearMarkers();
         data.devicesData.forEach(device => {
           addMarker(device);
+          console.log(device);
         });
 
         // Поиск устройства с выбранным серийным номером
@@ -505,6 +472,7 @@ const selectedDevices = Array.from(checkboxes)
 </script>
 
 
+
     
     <script>
         // Скрытие/Показ дополнительных меню аккаунта
@@ -526,90 +494,6 @@ const selectedDevices = Array.from(checkboxes)
             accountDown.style.display = 'unset';
           }
         });
-      </script>
-
-      <script>
-        var checkboxes = document.querySelectorAll('.organisation .checkbox-input');
-
-checkboxes.forEach((checkbox) => {
-    applyFilterAndSearch();
-  checkbox.addEventListener('change', function() {
-    document.querySelector('#device-all').checked = false;
-    applyFilterAndSearch();
-    const devices = this.parentNode.querySelector('.area-devices');
-    if (this.checked) {
-      devices.style.display = 'block';
-
-      // Активируем дочерние чекбоксы
-      const childCheckboxes = devices.querySelectorAll('.device-filter');
-      childCheckboxes.forEach((childCheckbox) => {
-        childCheckbox.checked = true;
-        applyFilterAndSearch();
-      });
-    } else {
-      devices.style.display = 'none';
-      applyFilterAndSearch();
-
-      // Деактивируем дочерние чекбоксы
-      const childCheckboxes = devices.querySelectorAll('.device-filter');
-      childCheckboxes.forEach((childCheckbox) => {
-        childCheckbox.checked = false;
-        applyFilterAndSearch();
-      });
-    }
-
-    // Деактивируем дочерние чекбоксы, если родительский чекбокс не выбран
-    if (!this.checked) {
-      const childCheckboxes = devices.querySelectorAll('.device-filter');
-      childCheckboxes.forEach((childCheckbox) => {
-        childCheckbox.checked = false;
-        applyFilterAndSearch();
-      });
-      devices.style.display = 'none';
-    }
-  });
-});
-
-      </script>
-
-      <script>
-
-var table = document.querySelector('#deviceTable');
-var tableCheckboxAll = table.querySelector('#device-all');
-var tableCheckboxes = table.querySelectorAll('tbody input[type="checkbox"]');
-
-tableCheckboxAll.addEventListener('click', function(event) {
-    table = document.querySelector('#deviceTable');
-    tableCheckboxes = table.querySelectorAll('tbody input[type="checkbox"]');
-    if (tableCheckboxAll.checked) {
-    tableCheckboxes.forEach((tableCheckbox) => {
-        tableCheckbox.checked = true;
-      });
-    } else {
-        tableCheckboxes.forEach((tableCheckbox) => {
-        tableCheckbox.checked = false;
-      });
-    }
-});
-
-$('#deviceTable').click( function(event) {
-    table = document.querySelector('#deviceTable');
-    tableCheckboxes = table.querySelectorAll('tbody input[type="checkbox"]');
-
-
-for (var i = 0; i < tableCheckboxes.length; i++) {
-    tableCheckboxes[i].addEventListener('click', function(event) {
-    for (var j = 0; j < tableCheckboxes.length; j++) {
-      if (!tableCheckboxes[j].checked || tableCheckboxes[j].disabled) {
-        tableCheckboxAll.checked = false;
-        return;
-      }
-    }
-    tableCheckboxAll.checked = true;
-  });
-}
-});
-
       </script>
 
 <script>

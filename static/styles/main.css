@@ -1610,7 +1610,7 @@ input[type="datetime-local"] {
   position: absolute;
   bottom: 0;
   right: 0;
-
+  z-index: 2 !important;
 }
 
 .map {
@@ -1674,6 +1674,16 @@ input[type="datetime-local"] {
   margin-left: -40%;
   margin-bottom: 3px;
   font-weight: bold;
+  font-size: 14px !important;
+}
+
+.marker {
+  cursor: grab !important;
+}
+
+.leaflet-marker-icon {
+  width: auto !important;
+  height: auto !important;
 }
 
 .stream-cameras {
