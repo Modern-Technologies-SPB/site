@@ -141,35 +141,47 @@ async function index(req, res) {
 
     const last11DaysQuery = `
     WITH date_sequence AS (
-      SELECT DATE_TRUNC('day', NOW() - INTERVAL '10 days') + (generate_series(0, 10) || ' days')::interval AS day
+      SELECT DATE_TRUNC('day', NOW() - INTERVAL '10 days' - INTERVAL '3 hours') + (generate_series(0, 10) || ' days')::interval AS day
     )
     SELECT
       date_sequence.day AS day,
-      COALESCE(COUNT(DISTINCT evtuuid), 0) AS count
+      COALESCE(COUNT(DISTINCT a.evtuuid), 0) AS count
     FROM date_sequence
-    LEFT JOIN alarms ON DATE_TRUNC('day', alarms.time) = date_sequence.day
-      AND alarms.time >= NOW() - INTERVAL '11 days' + INTERVAL '3 hours'
-      AND alarms.time <= NOW() + INTERVAL '1 day' + INTERVAL '3 hours'
-      AND alarms.st IS NOT NULL
+    LEFT JOIN (
+      SELECT DISTINCT ON (evtuuid) evtuuid, time
+      FROM alarms
+      WHERE alarmtype = 56
+      AND time >= NOW() - INTERVAL '11 days' + INTERVAL '3 hours'
+      AND time <= NOW() + INTERVAL '1 day' + INTERVAL '3 hours'
+      ORDER BY evtuuid, time DESC 
+      LIMIT 100
+    ) AS a ON DATE_TRUNC('day', a.time) = date_sequence.day
     GROUP BY date_sequence.day
-    ORDER BY date_sequence.day DESC
+    ORDER BY date_sequence.day DESC;
+    
     `;
     const last11DaysAlarms = await client.query(last11DaysQuery);
 
     const daysBeforeQuery = `
     WITH date_sequence AS (
-      SELECT DATE_TRUNC('day', NOW() - INTERVAL '21 days') + (generate_series(0, 10) || ' days')::interval AS day
+      SELECT DATE_TRUNC('day', NOW() - INTERVAL '21 days' - INTERVAL '3 hours') + (generate_series(0, 10) || ' days')::interval AS day
     )
     SELECT
       date_sequence.day AS day,
-      COALESCE(COUNT(DISTINCT evtuuid), 0) AS count
+      COALESCE(COUNT(DISTINCT a.evtuuid), 0) AS count
     FROM date_sequence
-    LEFT JOIN alarms ON DATE_TRUNC('day', alarms.time) = date_sequence.day
-      AND alarms.time >= NOW() - INTERVAL '21 days' + INTERVAL '3 hours'
-      AND alarms.time <= NOW() - INTERVAL '10 days' + INTERVAL '3 hours'
-      AND alarms.st IS NOT NULL
+    LEFT JOIN (
+      SELECT DISTINCT ON (evtuuid) evtuuid, time
+      FROM alarms
+      WHERE alarmtype = 56
+      AND time >= NOW() - INTERVAL '21 days' + INTERVAL '3 hours'
+      AND time <= NOW() + INTERVAL '10 day' + INTERVAL '3 hours'
+      ORDER BY evtuuid, time DESC 
+      LIMIT 100
+    ) AS a ON DATE_TRUNC('day', a.time) = date_sequence.day
     GROUP BY date_sequence.day
-    ORDER BY date_sequence.day DESC;       
+    ORDER BY date_sequence.day DESC;
+          
 `;
 
     const daysBeforeAlarms = await client.query(daysBeforeQuery);
@@ -876,7 +888,7 @@ app.get('/reports/:id', async (req, res) => {
     `;
 
     const alarm = (await client.query(query)).rows[0];
-    console.log(alarm);
+    // console.log(alarm);
 
     function formatDate(date) {
       const options = {
@@ -1026,7 +1038,7 @@ app.get('/reports/:id', async (req, res) => {
         }
       });
       
-    console.log(templateData);
+    // console.log(templateData);
   
     const source = fs.readFileSync("static/templates/reports/report.html", "utf8");
     const template = handlebars.compile(source);
@@ -1255,7 +1267,7 @@ app.post("/updatedevice", async (req, res) => {
     const result = await client.query(query, values);
 
     const updatedRow = result.rows[0];
-    console.log("Updated row:", updatedRow);
+    // console.log("Updated row:", updatedRow);
 
     res.send("Data updated successfully");
   } catch (error) {
@@ -1325,7 +1337,7 @@ app.post("/updatedriver", upload.single("upload-file"), async (req, res) => {
     const result = await client.query(query, values);
 
     const newRow = result.rows[0];
-    console.log("New driver added:", newRow);
+    // console.log("New driver added:", newRow);
 
     res.send("Data added successfully");
   } catch (error) {
@@ -1394,7 +1406,7 @@ app.post("/adddriver", upload.single("upload-file"), async (req, res) => {
     const result = await client.query(query, values);
 
     const newRow = result.rows[0];
-    console.log("New driver added:", newRow);
+    // console.log("New driver added:", newRow);
 
     res.send("Data added successfully");
   } catch (error) {
@@ -1502,7 +1514,7 @@ async function drivers(req, res) {
       (registrar) => registrar.serial
     );
 
-    console.log(templateData);
+    // console.log(templateData);
 
     const source = fs.readFileSync(
       "static/templates/devices/drivers.html",
@@ -1566,7 +1578,7 @@ async function videos(req, res) {
       status: Date.now() - Date.parse(row.lastkeepalive) <= minuteInMillis,
     }));
 
-    console.log(templateData);
+    // console.log(templateData);
 
     const source = fs.readFileSync("static/templates/videos/playback.html", "utf8");
     const template = handlebars.compile(source);
@@ -1616,7 +1628,7 @@ async function videoExport(req, res) {
       status: Date.now() - Date.parse(row.lastkeepalive) <= minuteInMillis,
     }));
 
-    console.log(templateData);
+    // console.log(templateData);
 
     const source = fs.readFileSync("static/templates/videos/export.html", "utf8");
     const template = handlebars.compile(source);
