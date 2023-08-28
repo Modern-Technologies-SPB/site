@@ -311,6 +311,106 @@ header h2 span {
   width: 100%;
 }
 
+.whole-width {
+  width: 100%;
+  background-color: white;
+  border: 2px solid rgba(245, 245, 250, 1);
+  border-radius: 30px;
+  position: relative;
+}
+
+.whole-width h1 {
+    font-weight: 500;
+    font-size: 30px;
+    margin: 35px 0 0 44px;
+}
+
+.whole-width h3 {
+  font-weight: 400;
+  opacity: 50%;
+  font-size: 16px;
+  margin: 10px 0 0 44px;
+}
+
+.whole-width button {
+  margin: 30px 0 35px 44px;
+}
+
+@keyframes loader_5191 {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.loader {
+  margin-bottom: 25px;
+}
+
+.square {
+  background: #8086F9;
+  width: 10px;
+  height: 10px;
+  position: absolute;
+  /* top: 50%; */
+  /* left: 50%; */
+  margin-top: -5px;
+  margin-left: -5px;
+  margin-bottom: 25px;
+}
+
+#sq1 {
+  margin-top: -25px;
+  margin-left: -25px;
+  animation: loader_5191 675ms ease-in-out 0s infinite alternate;
+}
+
+#sq2 {
+  margin-top: -25px;
+  animation: loader_5191 675ms ease-in-out 75ms infinite alternate;
+}
+
+#sq3 {
+  margin-top: -25px;
+  margin-left: 15px;
+  animation: loader_5191 675ms ease-in-out 150ms infinite;
+}
+
+#sq4 {
+  margin-left: -25px;
+  animation: loader_5191 675ms ease-in-out 225ms infinite;
+}
+
+#sq5 {
+  animation: loader_5191 675ms ease-in-out 300ms infinite;
+}
+
+#sq6 {
+  margin-left: 15px;
+  animation: loader_5191 675ms ease-in-out 375ms infinite;
+}
+
+#sq7 {
+  margin-top: 15px;
+  margin-left: -25px;
+  animation: loader_5191 675ms ease-in-out 450ms infinite;
+}
+
+#sq8 {
+  margin-top: 15px;
+  animation: loader_5191 675ms ease-in-out 525ms infinite;
+}
+
+#sq9 {
+  margin-top: 15px;
+  margin-left: 15px;
+  animation: loader_5191 675ms ease-in-out 600ms infinite;
+}
+
+
 .content .organisation {
   width: 250px;
   display: inline-block;
@@ -1013,7 +1113,8 @@ tr:nth-child(even) {
 }
 
 .new-parameters button,
-.update-info button {
+.update-info button,
+.button-purple {
   padding: 10px 16px;
   font-weight: 500;
   font-size: 16px;
@@ -1023,10 +1124,14 @@ tr:nth-child(even) {
   background: #8086f9;
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 5px;
-  float: right;
-  margin-bottom: 50px;
   cursor: pointer;
   transition: 0.2s;
+}
+
+.new-parameters button,
+.update-info button {
+  float: right;
+  margin-bottom: 50px;
 }
 
 .update-info button {
@@ -1035,7 +1140,8 @@ tr:nth-child(even) {
 }
 
 .new-parameters button:hover,
-.update-info button:hover {
+.update-info button:hover,
+.button-purple:hover {
   filter: brightness(0.9);
 }
 
@@ -1633,7 +1739,7 @@ input[type="datetime-local"] {
   position: absolute;
   top: 10px;
   left: 50%;
-  z-index: 3;
+  z-index: 999;
   background-color: white;
   padding: 9px 11px;
   border-radius: 10px;
@@ -1694,6 +1800,18 @@ input[type="datetime-local"] {
   width: calc(100% - 345px - 2px);
   z-index: 3;
 }
+
+.stream-cameras button {
+  font-family: "Nunito";
+  background-color: white;
+  border: 2px solid rgb(201, 201, 206);
+  padding: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.stream-cameras button:hover {
+  filter: brightness(0.9);
+}
 .cameras {
   background: #F5F5FA;
   position: absolute;
@@ -1727,6 +1845,16 @@ input[type="datetime-local"] {
   flex-wrap: wrap;
   width: 100%;
 }
+/* Скрыть все видео кроме первой группы */
+.video-group {
+  display: none;
+}
+
+/* Отобразить активную группу */
+.video-group.active {
+  display: block;
+}
+
 
 .stream-video-container video {
   height: auto;

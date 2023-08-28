@@ -7,6 +7,8 @@ const handlebars = require("handlebars");
 require("dotenv").config();
 const multer = require("multer");
 const http = require("http");
+const Client = require('ssh2').Client;
+
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -31,6 +33,69 @@ app.get("/devices", devices);
 app.get("/devices/drivers", drivers);
 app.get("/devices/update", update);
 app.get("/videos", videos);
+app.get("/videos/export",videoExport);
+app.get("/settings", settings);
+
+const connectionProperties = {
+  host: process.env.SSH_HOST,
+  port: process.env.SSH_PORT,
+  username: process.env.SSH_USERNAME,
+  password: process.env.SSH_PASSWORD, 
+};
+
+const commandToExecute = 'docker ps | grep connectionserver-video-server';
+
+const conn = new Client();
+
+app.post("/videos/restart", async (req, res) => {
+conn.on('ready', function() {
+  
+  console.log('Подключение по SSH успешно');
+
+  conn.exec(commandToExecute, function(err, stream) {
+    if (err) throw err;
+
+    let containerId = '';
+
+    stream
+      .on('data', function(data) {
+        const lines = data.toString().split('\n');
+        
+        for (const line of lines) {
+          if (line.includes('connectionserver-video-server')) {
+            containerId = line.trim().split(/\s+/)[0];
+            break;
+          }
+        }
+
+        if (containerId) {
+          console.log('Найден CONTAINER ID:', containerId);
+          const restartCommand = `docker restart ${containerId}`;
+          conn.exec(restartCommand, function(err, stream) {
+            if (err);
+            console.log('Команда для рестарта выполнена.');
+            conn.end(); // Закрываем соединение SSH
+            res.status(200).json({ message: "Команда для рестарта выполнена." });
+            return;
+          });
+        } else {
+          console.log('Контейнер connectionserver-video-server не найден.');
+          conn.end(); // Закрываем соединение SSH
+        }
+      })
+      .stderr.on('data', function(data) {
+        console.error('Ошибка выполнения команды:', data.toString());
+        conn.end(); // Закрываем соединение SSH
+        res.status(500).json({ error: "Ошибка сервера" });
+        return;
+      });
+  });
+}).connect(connectionProperties);
+
+conn.on('error', function(err) {
+  console.error('Ошибка подключения: ' + err.message);
+});
+});
 
 
 // const DB_User = process.env.DB_USER;
@@ -83,7 +148,7 @@ async function index(req, res) {
       COALESCE(COUNT(DISTINCT evtuuid), 0) AS count
     FROM date_sequence
     LEFT JOIN alarms ON DATE_TRUNC('day', alarms.time) = date_sequence.day
-      AND alarms.time >= NOW() - INTERVAL '10 days' + INTERVAL '3 hours'
+      AND alarms.time >= NOW() - INTERVAL '11 days' + INTERVAL '3 hours'
       AND alarms.time <= NOW() + INTERVAL '1 day' + INTERVAL '3 hours'
       AND alarms.st IS NOT NULL
     GROUP BY date_sequence.day
@@ -92,31 +157,37 @@ async function index(req, res) {
     const last11DaysAlarms = await client.query(last11DaysQuery);
 
     const daysBeforeQuery = `
-  WITH date_sequence AS (
-    SELECT DATE_TRUNC('day', NOW() - INTERVAL '21 days') + (generate_series(0, 10) || ' days')::interval AS day
-  )
-  SELECT
-    date_sequence.day AS day,
-    COALESCE(COUNT(DISTINCT evtuuid), 0) AS count
-  FROM date_sequence
-  LEFT JOIN alarms ON DATE_TRUNC('day', alarms.time) = date_sequence.day
-    AND alarms.time >= NOW() - INTERVAL '21 days' + INTERVAL '3 hours'
-    AND alarms.time <= NOW() - INTERVAL '10 days' + INTERVAL '3 hours'
-    AND alarms.st IS NOT NULL
-  GROUP BY date_sequence.day
-  ORDER BY date_sequence.day DESC
+    WITH date_sequence AS (
+      SELECT DATE_TRUNC('day', NOW() - INTERVAL '21 days') + (generate_series(0, 10) || ' days')::interval AS day
+    )
+    SELECT
+      date_sequence.day AS day,
+      COALESCE(COUNT(DISTINCT evtuuid), 0) AS count
+    FROM date_sequence
+    LEFT JOIN alarms ON DATE_TRUNC('day', alarms.time) = date_sequence.day
+      AND alarms.time >= NOW() - INTERVAL '21 days' + INTERVAL '3 hours'
+      AND alarms.time <= NOW() - INTERVAL '10 days' + INTERVAL '3 hours'
+      AND alarms.st IS NOT NULL
+    GROUP BY date_sequence.day
+    ORDER BY date_sequence.day DESC;       
 `;
 
     const daysBeforeAlarms = await client.query(daysBeforeQuery);
 
     const currentDate = new Date();
     const dates = [];
+    const dates11DaysAgo = [];
     for (let i = 10; i >= 0; i--) {
       const date = new Date(currentDate - i * 24 * 60 * 60 * 1000);
       const formattedDate = date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
       dates.push(formattedDate);
+
+      const date11DaysAgo = new Date(currentDate - i * 24 * 60 * 60 * 1000 - 11 * 24 * 60 * 60 * 1000);
+      const formattedDate11DaysAgo = date11DaysAgo.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+      dates11DaysAgo.push(formattedDate11DaysAgo);
     }
     templateData.Dates = dates;
+    dates11DaysAgo.reverse();
 
     const positionsLast11DaysQuery = `
     SELECT
@@ -130,13 +201,6 @@ async function index(req, res) {
   ORDER BY sort_value DESC, day DESC
     `;
     const positionsLast11Days = await client.query(positionsLast11DaysQuery);
-    // console.log(positionsLast11Days.rows)
-    // const positionsLast11DaysCounts = positionsLast11Days.rows.map(row => parseInt(row.count, 10));
-    // for (let i = 0; i < positionsLast11DaysCounts.length; i++) {
-    //   if (positionsLast11DaysCounts[i] > 0) {
-    //     templateData.PositionsLast11Days[i] = positionsLast11DaysCounts[i];
-    //   }
-    // }
 
     templateData.Dates.reverse();
 
@@ -150,7 +214,7 @@ for (let i = 0; i < dates.length; i++) {
 const beforeDaysMap = new Map(daysBeforeAlarms.rows.map(row => [row.day.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }), parseInt(row.count, 10)]));
 
 for (let i = 0; i < dates.length; i++) {
-  const dateKey = dates[i];
+  const dateKey = dates11DaysAgo[i];
   templateData.Alarms11DaysBefore[i] = beforeDaysMap.has(dateKey) ? beforeDaysMap.get(dateKey) : 0;
 }
 
@@ -211,13 +275,14 @@ async function live(req, res) {
     const minuteInMillis = 90 * 1000;
 
     const query = `
-    SELECT id, serial, lastkeepalive FROM registrars ORDER BY id ASC
+    SELECT id, serial, channels, lastkeepalive FROM registrars ORDER BY id ASC
     `;
     const registrars = await client.query(query);
 
     templateData.Registrars = registrars.rows.map((row) => ({
       id: row.id,
       serial: row.serial,
+      channels: row.channels,
       status: Date.now() - Date.parse(row.lastkeepalive) <= minuteInMillis,
     }));
 
@@ -444,7 +509,7 @@ pool.query(subquery, selectedDevices, (err, result) => {
     };
   });
   
-  console.log(devicesData)
+  // console.log(devicesData)
 
     res.json({ devicesData });
   });
@@ -1466,6 +1531,10 @@ function update(req, res) {
   res.sendFile(path.join(__dirname, "static/templates/devices/update.html"));
 }
 
+function settings(req, res) {
+  res.sendFile(path.join(__dirname, "static/templates/settings.html"));
+}
+
 async function videos(req, res) {
   let templateData = {
     Organisation: "Название организации",
@@ -1499,7 +1568,7 @@ async function videos(req, res) {
 
     console.log(templateData);
 
-    const source = fs.readFileSync("static/templates/videos/see.html", "utf8");
+    const source = fs.readFileSync("static/templates/videos/playback.html", "utf8");
     const template = handlebars.compile(source);
     const resultHTML = template(templateData);
     res.send(resultHTML);
@@ -1509,7 +1578,57 @@ async function videos(req, res) {
     console.error(error);
     templateData.ifDBError = true;
 
-    const source = fs.readFileSync("static/templates/videos/see.html", "utf8");
+    const source = fs.readFileSync("static/templates/videos/playback.html", "utf8");
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  }
+}
+
+async function videoExport(req, res) {
+  let templateData = {
+    Organisation: "Название организации",
+    User: "Тестовое Имя",
+    ifDBError: false,
+    Registrars: [],
+  };
+
+  try {
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+    const client = await pool.connect();
+
+    const minuteInMillis = 60 * 1000;
+
+    const query = `
+    SELECT id, serial, lastkeepalive FROM registrars ORDER BY id ASC
+    `;
+    const registrars = await client.query(query);
+
+    templateData.Registrars = registrars.rows.map((row) => ({
+      id: row.id,
+      serial: row.serial,
+      status: Date.now() - Date.parse(row.lastkeepalive) <= minuteInMillis,
+    }));
+
+    console.log(templateData);
+
+    const source = fs.readFileSync("static/templates/videos/export.html", "utf8");
+    const template = handlebars.compile(source);
+    const resultHTML = template(templateData);
+    res.send(resultHTML);
+
+    client.release();
+  } catch (error) {
+    console.error(error);
+    templateData.ifDBError = true;
+
+    const source = fs.readFileSync("static/templates/videos/export.html", "utf8");
     const template = handlebars.compile(source);
     const resultT = template(templateData);
     res.send(resultT);

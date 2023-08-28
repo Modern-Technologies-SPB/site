@@ -47,7 +47,7 @@
         <a href="/videos">
             <div><img src="../img/play.svg">Записи</div>
         </a>
-        <a class="settings" href="/">
+        <a class="settings" href="/settings">
             <div><img src="../img/gear.svg">Настройки</div>
         </a>
     </section>
@@ -86,6 +86,7 @@
                                   <label for="{{this.id}}" class="checkbox-label active-{{this.status}}">
                                     <div class="checkmark"></div>
                                   </label>
+                                  <input type="number" id="channels-{{this.serial}}" value="{{this.channels}}" hidden>
                                   <input type="radio" name="camera-serial" id="radio-{{this.serial}}" class="radio-input" value="{{this.serial}}" hidden>
                                   <label for="radio-{{this.serial}}" class="radio-label active-{{this.status}}">
                                     {{this.serial}}
@@ -177,29 +178,14 @@
                       </div>
 
                       <div class="stream-cameras">
-                        <div class="cameras-swipe"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="11" fill="none" viewBox="0 0 17 11">
-                          <path fill="#000" fill-opacity=".5" d="M8.486 10.4a.88.88 0 0 0 .655-.283l7.558-7.744a.871.871 0 0 0 .264-.625.876.876 0 0 0-.889-.898.927.927 0 0 0-.635.254L7.96 8.75h1.045l-7.48-7.646A.892.892 0 0 0 .888.85.876.876 0 0 0 0 1.748a.91.91 0 0 0 .264.635l7.558 7.734c.186.186.41.283.664.283Z"/>
-                        </svg></div>
                         <div class="stream-video-container">
-                          <!-- <video id="camera-1"></video> -->
+                          <video id="camera-1"></video>
                           <video id="camera-2"></video>
                           <video id="camera-3"></video>
                           <video id="camera-4"></video>
-                          <video id="camera-5"></video>
-                          <!-- <video id="camera-6"></video>
-                          <video id="camera-7"></video>
-                          <video id="camera-8"></video>
-                          <video id="camera-9"></video>
-                          <video id="camera-10"></video>
-                          <video id="camera-11"></video>
-                          <video id="camera-12"></video>
-                          <video id="camera-13"></video>
-                          <video id="camera-14"></video>
-                          <video id="camera-15"></video>
-                          <video id="camera-16"></video> -->
                         </div>
-
-
+                        <button onclick="switchCameras(-1)">Назад</button>
+                        <button onclick="switchCameras(1)">Вперед</button>
                       </div>
 
 
@@ -214,90 +200,108 @@
 
     <script src="../scripts/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flv.js/1.5.0/flv.min.js"></script>
-              <script>
-                let flvPlayers = [];
-                function stopAllCameras() {
-                    flvPlayers.forEach(player => {
-                        player.pause();
-                        player.unload();
-                        player.detachMediaElement();
-                        player.destroy();
-                    });
-                    flvPlayers = [];
-                }
+    <script>
+      var cameraSerials = document.querySelectorAll('.radio-input');
 
-                function stopAllCameras() {
-                    flvPlayers.forEach(player => {
-                        player.pause();
-                        player.unload();
-                        player.detachMediaElement();
-                        player.destroy();
-                    });
-                    flvPlayers = [];
-                }
-                function playflv() {
-                if (!flvjs.isSupported()) {
-                    console.log("Browser does not support.");
-                }
+      cameraSerials.forEach((checkbox) => {
+        checkbox.addEventListener('change', function() {
+          console.log($("input[name=camera-serial]:checked").val())
+          serial = $("input[name=camera-serial]:checked").val()
+          stopAllCameras();
+          currentCameraGroup = 1
+          totalCameras = $(`#channels-${serial}`).val() - 1;
+          console.log(totalCameras);
+          playNextCamerasInGroup();
 
-                const cameras = 5;
-                const baseURL = "http://45.9.42.252:8080/http/live.flv";
-                let currentCamera = 2;
+          var svgId = "marker-" + serial;
+          var svgElement = document.getElementById(svgId);
+          if (svgElement) {
+            svgElement.innerHTML = `
+              <path fill="#FF6A4B" d="M12.669 24.673c6.565 0 12-5.435 12-12 0-6.553-5.447-12-12.012-12C6.104.673.67 6.12.67 12.673c0 6.565 5.447 12 12 12Z"/>
+              <path fill="#fff" fill-opacity=".85" d="m7.104 17.92 4.683-11.93c.33-.823 1.423-.846 1.753-.023l4.682 11.953c.318.788-.553 1.47-1.294.73l-3.953-3.953c-.188-.2-.424-.2-.612 0L8.41 18.65c-.753.74-1.623.059-1.306-.73Z"/>
+            `;
+          }
+        });
+      });
+    </script>
+    <script>
+      let flvPlayers = [];
+      let currentCameraGroup = 1;
+      const camerasPerGroup = 4;
+      var totalCameras = 12 - 1; 
+      const baseURL = "http://45.9.42.252:8080/http/live.flv";
+    
+      function stopAllCameras() {
+        flvPlayers.forEach(player => {
+          player.pause();
+          player.unload();
+          player.detachMediaElement();
+          player.destroy();
+        });
+        flvPlayers = [];
+      }
+    
+      async function playNextCamerasInGroup() {
+        const startCamera = (currentCameraGroup - 1) * camerasPerGroup + 2;
+        const endCamera = startCamera + camerasPerGroup - 1;
+    
+        if (startCamera > totalCameras) {
+          // currentCameraGroup = 1;
+          // playNextCamerasInGroup();
+          return;
+        }
+    
+        stopAllCameras();
+    
+        let videoElementIndex = 1;
+    
+        for (let i = startCamera; i <= endCamera && i <= totalCameras; i++) {
+          const videoElement = document.getElementById(`camera-${videoElementIndex}`);
+          const flvPlayer = flvjs.createPlayer({
+            type: 'flv',
+            isLive: true,
+            cors: true,
+            url: `${baseURL}?serial=${serial}&channel=${i}&quality=1`,
+          }, {
+            enableWorker: true,
+            enableStashBuffer: false,
+            autoCleanupSourceBuffer: true,
+          });
+    
+          flvPlayer.attachMediaElement(videoElement);
+          flvPlayer.load();
+          flvPlayer.play();
+    
+          flvPlayers.push(flvPlayer);
+    
+          videoElementIndex++;
+    
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+    
+      function switchCameras(direction) {
+        if ((currentCameraGroup === 1 && direction === -1) || (currentCameraGroup === Math.ceil(totalCameras / camerasPerGroup) && direction === 1)) {
+          // Если текущая группа - первая и переключаемся назад, или текущая группа - последняя и переключаемся вперед, не переключаемся
+          return;
+        }
+        currentCameraGroup += direction;
+        if (currentCameraGroup < 1) {
+          currentCameraGroup = Math.ceil(totalCameras / camerasPerGroup);
+        } else if (currentCameraGroup > Math.ceil(totalCameras / camerasPerGroup)) {
+          currentCameraGroup = 1;
+        }
+        playNextCamerasInGroup();
+      }
+    
+      // Запустить воспроизведение видео при загрузке страницы
+      playNextCamerasInGroup();
+    </script>
+    
+    
+    
 
-                function playNextCamera(i) {
-                   console.log(flvPlayers)
-
-                    const videoElement = document.getElementById(`camera-${i}`);
-                    const flvPlayer = flvjs.createPlayer({
-                        type: 'flv',
-                        isLive: true,
-                        cors: true,
-                        url: `${baseURL}?serial=${serial}&channel=${i}&quality=0`,
-                    }, {
-                        enableWorker: true,
-                        enableStashBuffer: false,
-                        autoCleanupSourceBuffer: true,
-                    });
-
-                    flvPlayer.attachMediaElement(videoElement);
-                    flvPlayer.load();
-                    flvPlayer.play();
-
-                    flvPlayers.push(flvPlayer); 
-
-                    setTimeout(() => {
-                        playNextCamera(i + 1);
-                    }, 100);
-                }
-
-                playNextCamera(currentCamera);
-            }
-
-
-
-              </script>
-
-              <script>
-                var cameraSerials = document.querySelectorAll('.radio-input');
-
-                cameraSerials.forEach((checkbox) => {
-                  checkbox.addEventListener('change', function() {
-                    console.log($("input[name=camera-serial]:checked").val())
-                    serial = $("input[name=camera-serial]:checked").val()
-                    stopAllCameras();
-                    playflv();
-
-                    var svgId = "marker-" + serial;
-                    var svgElement = document.getElementById(svgId);
-                    if (svgElement) {
-                      svgElement.innerHTML = `
-                        <path fill="#FF6A4B" d="M12.669 24.673c6.565 0 12-5.435 12-12 0-6.553-5.447-12-12.012-12C6.104.673.67 6.12.67 12.673c0 6.565 5.447 12 12 12Z"/>
-                        <path fill="#fff" fill-opacity=".85" d="m7.104 17.92 4.683-11.93c.33-.823 1.423-.846 1.753-.023l4.682 11.953c.318.788-.553 1.47-1.294.73l-3.953-3.953c-.188-.2-.424-.2-.612 0L8.41 18.65c-.753.74-1.623.059-1.306-.73Z"/>
-                      `;
-                    }
-                  });
-                });
-              </script>
+              
 
 
     <script>
@@ -346,7 +350,7 @@
 
 <script>
   
-  var map = L.map('map').setView([59.855198, 30.282995], 10);
+  var map = L.map('map').setView([59.855198, 30.282995], 12);
 
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}').addTo(map);
 
