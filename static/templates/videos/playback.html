@@ -68,7 +68,7 @@
         </div>
         <nav>
             <a class="selected" href="/videos">Воспроизведение</a>
-            <a href="/videos">Экспорт</a>
+            <a href="/videos/export">Экспорт</a>
         </nav>
         <section class="bg">
             <section class="content">
@@ -202,6 +202,9 @@
                     <input type="hidden" id="selectedDate" name="selectedDate" hidden>
 
                     <div class="speedometr">
+                      <div style="display: none;" id="speed-bg" class="speed-bg">
+                        <h1>Данных для выбранного периода нет.</h1>
+                      </div>
                       <h1>Скорость</h1>
                       <span>км/ч</span>
                       <span style="float: right; font-size: 18px;">1 ч</span>
@@ -267,117 +270,134 @@ function combineDateTime(dateString, timeString) {
   return combinedDateTime;
 }
 
-function sendPostRequest() {
+let HasData;
+var selectedChannel = 1;
+
+async function sendPostRequest() {
   // Получение данных из полей ввода
   const selectedDate = document.getElementById("selectedDate").value;
   const videoTime = document.getElementById("video-time").value;
   const selectedSerial = document.querySelector('input[name="camera-serial"]:checked').value;
+  
 
   // Объединяем дату и время и преобразуем в нужный формат
   const combinedDateTime = combineDateTime(selectedDate, videoTime);
 
-  const requestData = {
-    serial: selectedSerial,
-    datetime: combinedDateTime, 
-  };
+                const response = await fetch(`/getData?serial=${selectedSerial}&selectedDate=${formatDate(selectedDate)}&selectedTime=${formatTime(videoTime)}&selectedChannel=${selectedChannel}`);
+                const data = await response.json();
 
-  fetch("/getspeedarchive", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(requestData),
-  })
-    .then((response) => response.json())
-    .then((data) => {
+                HasData = data.success;
 
-      const existingChart = Chart.getChart("speed");
+                if (data.success) {
+                  console.log(`Данные доступны. DATAID: ${data.dataId}`)
+                  const requestData = {
+                    serial: selectedSerial,
+                    datetime: combinedDateTime, 
+                  };
 
-      if (existingChart) {
-        existingChart.destroy();
-      }
+                  fetch("/getspeedarchive", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(requestData),
+                  })
+                    .then((response) => response.json())
+                    .then((data) => {
 
-      const numberOfLabels = data.speeds.length;
-      const labels = Array.from({ length: numberOfLabels }, () => "");
+                      const existingChart = Chart.getChart("speed");
 
-      // Обновление данных графика
-      const chart = new Chart("speed", {
-        type: "line",
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: "Скорость",
-              borderColor: "#8086F9",
-              fill: false,
-              data: data.speeds,
-              pointStyle: false,
-              pointRadius: 25,
-              pointHoverRadius: 25,
-              tension: 0.1,
-            },
-          ],
-        },
-        options: {
-          plugins: {
-            legend: {
-              display: false,
-            },
-          },
-          labelStep: "3",
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              stacked: true,
-              grid: {
-                display: true,
-                color: "#D9D9D9",
-              },
-              ticks: {
-                stepSize: 10,
-              },
-            },
-            x: {
-              grid: {
-                display: false,
-              },
-            },
-          },
-        },
-      });
+                      if (existingChart) {
+                        existingChart.destroy();
+                      }
 
+                      const numberOfLabels = data.speeds.length;
+                      const labels = Array.from({ length: numberOfLabels }, () => "");
 
-      const geoData = data.geo; 
-
-      // Очищаем все слои на карте
-map.eachLayer(layer => {
-    if (layer !== map) {
-        map.removeLayer(layer);
-    }
-});
-
-// Добавляем слой с плитками OpenStreetMap
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}').addTo(map);
-
-// Создаем слой для маршрута
-const routeLayer = L.layerGroup().addTo(map);
-
-// Создаем слой для маркеров
-const markerLayer = L.layerGroup().addTo(map);
-
-// Преобразуем координаты точек маршрута
-const routePoints = geoData.map(point => [point.latitude, point.longitude]);
-
-// Создаем линию маршрута
-const route = L.polyline(routePoints, { color: 'red',weight: 5 }).addTo(routeLayer);
+                      // Обновление данных графика
+                      const chart = new Chart("speed", {
+                        type: "line",
+                        data: {
+                          labels: labels,
+                          datasets: [
+                            {
+                              label: "Скорость",
+                              borderColor: "#8086F9",
+                              fill: false,
+                              data: data.speeds,
+                              pointStyle: false,
+                              pointRadius: 25,
+                              pointHoverRadius: 25,
+                              tension: 0.1,
+                            },
+                          ],
+                        },
+                        options: {
+                          plugins: {
+                            legend: {
+                              display: false,
+                            },
+                          },
+                          labelStep: "3",
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          scales: {
+                            y: {
+                              stacked: true,
+                              grid: {
+                                display: true,
+                                color: "#D9D9D9",
+                              },
+                              ticks: {
+                                stepSize: 10,
+                              },
+                            },
+                            x: {
+                              grid: {
+                                display: false,
+                              },
+                            },
+                          },
+                        },
+                      });
 
 
+                      const geoData = data.geo; 
 
-    })
-    .catch((error) => {
-      console.error("Ошибка при отправке запроса:", error);
-    });
+                      // Очищаем все слои на карте
+                map.eachLayer(layer => {
+                    if (layer !== map) {
+                        map.removeLayer(layer);
+                    }
+                });
+
+                // Добавляем слой с плитками OpenStreetMap
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}').addTo(map);
+
+                // Создаем слой для маршрута
+                const routeLayer = L.layerGroup().addTo(map);
+
+                // Создаем слой для маркеров
+                const markerLayer = L.layerGroup().addTo(map);
+
+                // Преобразуем координаты точек маршрута
+                const routePoints = geoData.map(point => [point.latitude, point.longitude]);
+
+                // Создаем линию маршрута
+                const route = L.polyline(routePoints, { color: 'red',weight: 5 }).addTo(routeLayer);
+
+
+
+                    })
+                    .catch((error) => {
+                      console.error("Ошибка при отправке запроса:", error);
+                    });
+                } else {
+                  const speedBG = document.getElementById("speed-bg");
+                  speedBG.style.display = 'flex';
+                }
+
+  
 }
 
 
@@ -452,10 +472,11 @@ videoTimeInput.addEventListener("change", sendPostRequest);
                 selectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
                 renderCalendar();
                 selectedDateInput.value = selectedDate.toISOString();
+                sendPostRequest();
             });
             datesContainer.appendChild(dateCell);
         }
-        sendPostRequest();
+        
     }
 
     // Перейти на предыдущий месяц
@@ -508,6 +529,11 @@ videoTimeInput.addEventListener("change", sendPostRequest);
       alert('Пожалуйста, выберите устройство из списка.');
       return;
     }
+    if (!HasData) {
+      alert('Пожалуйста, выберите другой временной период.');
+      return;
+    }
+
 
     const startTimeInput = document.getElementById('video-time');
     const selectedDateInput = document.getElementById('selectedDate');
@@ -517,6 +543,8 @@ videoTimeInput.addEventListener("change", sendPostRequest);
     const endTime = addOneHourToTime(startTimeInput.value);
 
     const serial = selectedDevice.value;
+
+    selectedChannel = channel;
 
     const url = `http://localhost:8081/playback?url=http%3A%2F%2Fkrbl.ru%3A8080%2Fhttp%2Fplayback.flv%3Fserial%3D${serial}%26channel%3D${channel}%26quality%3D1%26queryTime%3D${selectedDate}%26startTime%3D${startTime}%26endTime%3D${endTime}`;
     window.open(url, '_blank');

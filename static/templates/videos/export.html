@@ -114,69 +114,69 @@
                         <div class="video-container">
                           <div id="camera-1" onclick="playVideo(1);">
                             <img src="../../img/play-circle.svg">
-                            <span>Запустить 1 камеру</span>
+                            <span>Экспортировать 1 камеру</span>
                           </div>
                           <div id="camera-2" onclick="playVideo(2);">
                             <img src="../../img/play-circle.svg">
-                            <span>Запустить 2 камеру</span>
+                            <span>Экспортировать 2 камеру</span>
                           </div>
                           <div id="camera-3" onclick="playVideo(3);">
                             <img src="../../img/play-circle.svg">
-                            <span>Запустить 3 камеру</span>
+                            <span>Экспортировать 3 камеру</span>
                           </div>
                           <div id="camera-4" onclick="playVideo(4);">
                             <img src="../../img/play-circle.svg">
-                            <span>Запустить 4 камеру</span>
+                            <span>Экспортировать 4 камеру</span>
                           </div>
                           <div id="camera-5" onclick="playVideo(5);">
                             <img src="../../img/play-circle.svg">
-                            <span>Запустить 5 камеру</span>
+                            <span>Экспортировать 5 камеру</span>
                           </div>
                           <div id="camera-6" onclick="playVideo(6);">
                             <img src="../../img/play-circle.svg">
-                            <span>Запустить 6 камеру</span>
+                            <span>Экспортировать 6 камеру</span>
                           </div>
                           <div id="camera-7" onclick="playVideo(7);">
                             <img src="../../img/play-circle.svg">
-                            <span>Запустить 7 камеру</span>
+                            <span>Экспортировать 7 камеру</span>
                           </div>
                           <div id="camera-8" onclick="playVideo(8);">
                             <img src="../../img/play-circle.svg">
-                            <span>Запустить 8 камеру</span>
+                            <span>Экспортировать 8 камеру</span>
                           </div>
                           <div id="camera-9" onclick="playVideo(9);">
                             <img src="../../img/play-circle.svg">
-                            <span>Запустить 9 камеру</span>
+                            <span>Экспортировать 9 камеру</span>
                           </div>
                           <div id="camera-10" onclick="playVideo(10);">
                             <img src="../../img/play-circle.svg">
-                            <span>Запустить 10 камеру</span>
+                            <span>Экспортировать 10 камеру</span>
                           </div>
                           <div id="camera-11" onclick="playVideo(11);">
                             <img src="../../img/play-circle.svg">
-                            <span>Запустить 11 камеру</span>
+                            <span>Экспортировать 11 камеру</span>
                           </div>
                           <div id="camera-12" onclick="playVideo(12);">
                             <img src="../../img/play-circle.svg">
-                            <span>Запустить 12 камеру</span>
+                            <span>Экспортировать 12 камеру</span>
                           </div>
                         </div>
                         <div class="video-container-right">
                           <div id="camera-13" onclick="playVideo(13);">
                             <img src="../../img/play-circle.svg">
-                            <span>Запустить 13 камеру</span>
+                            <span>Экспортировать 13 камеру</span>
                           </div>
                           <div id="camera-14" onclick="playVideo(14);">
                             <img src="../../img/play-circle.svg">
-                            <span>Запустить 14 камеру</span>
+                            <span>Экспортировать 14 камеру</span>
                           </div>
                           <div id="camera-15" onclick="playVideo(15);">
                             <img src="../../img/play-circle.svg">
-                            <span>Запустить 15 камеру</span>
+                            <span>Экспортировать 15 камеру</span>
                           </div>
                           <div id="camera-16" onclick="playVideo(16);">
                             <img src="../../img/play-circle.svg">
-                            <span>Запустить 16 камеру</span>
+                            <span>Экспортировать 16 камеру</span>
                           </div>
                         </div>
                       </div>
@@ -202,6 +202,9 @@
                     <input type="hidden" id="selectedDate" name="selectedDate" hidden>
 
                     <div class="speedometr">
+                      <div style="display: none;" id="speed-bg" class="speed-bg">
+                        <h1>Данных для выбранного периода нет.</h1>
+                      </div>
                       <h1>Скорость</h1>
                       <span>км/ч</span>
                       <span style="float: right; font-size: 18px;">1 ч</span>
@@ -211,7 +214,10 @@
                     </div>
 
                     <div class="video-time">
+                      <span style="margin-left: 15px;">с</span>
                       <input name="videoTime" type="time" id="video-time" step="1">
+                      <span>до</span>
+                      <input name="videoEndTime" type="time" id="video-end-time" step="1">
                     </div>
 
 
@@ -267,117 +273,168 @@ function combineDateTime(dateString, timeString) {
   return combinedDateTime;
 }
 
-function sendPostRequest() {
+let HasData;
+let recordID;
+var selectedChannel = 1;
+
+
+
+async function sendPostRequest() {
   // Получение данных из полей ввода
   const selectedDate = document.getElementById("selectedDate").value;
   const videoTime = document.getElementById("video-time").value;
+  const videoEndTime = document.getElementById("video-end-time").value;
   const selectedSerial = document.querySelector('input[name="camera-serial"]:checked').value;
+  
 
   // Объединяем дату и время и преобразуем в нужный формат
   const combinedDateTime = combineDateTime(selectedDate, videoTime);
 
-  const requestData = {
-    serial: selectedSerial,
-    datetime: combinedDateTime, 
-  };
+                const response = await fetch(`/getData?serial=${selectedSerial}&selectedDate=${formatDate(selectedDate)}&selectedTime=${formatTime(videoTime)}&selectedChannel=${selectedChannel}`);
 
-  fetch("/getspeedarchive", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(requestData),
-  })
-    .then((response) => response.json())
-    .then((data) => {
+                const data = await response.json();
 
-      const existingChart = Chart.getChart("speed");
+                HasData = data.success;
 
-      if (existingChart) {
-        existingChart.destroy();
-      }
+                if (data.success) {
+                  console.log(`Данные доступны. DATAID: ${data.dataId}`)
+                  recordID = data.dataId;
+                  const requestData = {
+                    serial: selectedSerial,
+                    datetime: combinedDateTime, 
+                  };
 
-      const numberOfLabels = data.speeds.length;
-      const labels = Array.from({ length: numberOfLabels }, () => "");
+                  fetch("/getspeedarchive", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(requestData),
+                  })
+                    .then((response) => response.json())
+                    .then((data) => {
 
-      // Обновление данных графика
-      const chart = new Chart("speed", {
-        type: "line",
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: "Скорость",
-              borderColor: "#8086F9",
-              fill: false,
-              data: data.speeds,
-              pointStyle: false,
-              pointRadius: 25,
-              pointHoverRadius: 25,
-              tension: 0.1,
-            },
-          ],
-        },
-        options: {
-          plugins: {
-            legend: {
-              display: false,
-            },
-          },
-          labelStep: "3",
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              stacked: true,
-              grid: {
-                display: true,
-                color: "#D9D9D9",
-              },
-              ticks: {
-                stepSize: 10,
-              },
-            },
-            x: {
-              grid: {
-                display: false,
-              },
-            },
-          },
-        },
-      });
+                      const existingChart = Chart.getChart("speed");
 
+                      if (existingChart) {
+                        existingChart.destroy();
+                      }
 
-      const geoData = data.geo; 
+                      const numberOfLabels = data.speeds.length;
+                      const labels = Array.from({ length: numberOfLabels }, () => "");
 
-      // Очищаем все слои на карте
-map.eachLayer(layer => {
-    if (layer !== map) {
-        map.removeLayer(layer);
-    }
-});
-
-// Добавляем слой с плитками OpenStreetMap
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}').addTo(map);
-
-// Создаем слой для маршрута
-const routeLayer = L.layerGroup().addTo(map);
-
-// Создаем слой для маркеров
-const markerLayer = L.layerGroup().addTo(map);
-
-// Преобразуем координаты точек маршрута
-const routePoints = geoData.map(point => [point.latitude, point.longitude]);
-
-// Создаем линию маршрута
-const route = L.polyline(routePoints, { color: 'red',weight: 5 }).addTo(routeLayer);
+                      // Обновление данных графика
+                      const chart = new Chart("speed", {
+                        type: "line",
+                        data: {
+                          labels: labels,
+                          datasets: [
+                            {
+                              label: "Скорость",
+                              borderColor: "#8086F9",
+                              fill: false,
+                              data: data.speeds,
+                              pointStyle: false,
+                              pointRadius: 25,
+                              pointHoverRadius: 25,
+                              tension: 0.1,
+                            },
+                          ],
+                        },
+                        options: {
+                          plugins: {
+                            legend: {
+                              display: false,
+                            },
+                          },
+                          labelStep: "3",
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          scales: {
+                            y: {
+                              stacked: true,
+                              grid: {
+                                display: true,
+                                color: "#D9D9D9",
+                              },
+                              ticks: {
+                                stepSize: 10,
+                              },
+                            },
+                            x: {
+                              grid: {
+                                display: false,
+                              },
+                            },
+                          },
+                        },
+                      });
 
 
+                      const geoData = data.geo; 
 
-    })
-    .catch((error) => {
-      console.error("Ошибка при отправке запроса:", error);
-    });
+                      // Очищаем все слои на карте
+                map.eachLayer(layer => {
+                    if (layer !== map) {
+                        map.removeLayer(layer);
+                    }
+                });
+
+                // Добавляем слой с плитками OpenStreetMap
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}').addTo(map);
+
+                // Создаем слой для маршрута
+                const routeLayer = L.layerGroup().addTo(map);
+
+                // Создаем слой для маркеров
+                const markerLayer = L.layerGroup().addTo(map);
+
+                // Преобразуем координаты точек маршрута
+                const routePoints = geoData.map(point => [point.latitude, point.longitude]);
+
+                // Создаем линию маршрута
+                const route = L.polyline(routePoints, { color: 'red',weight: 5 }).addTo(routeLayer);
+
+
+
+                    })
+                    .catch((error) => {
+                      console.error("Ошибка при отправке запроса:", error);
+                    });
+
+                    const endResponse = await fetch(`/getData?serial=${selectedSerial}&selectedDate=${formatDate(selectedDate)}&selectedTime=${formatTime(videoEndTime)}&selectedChannel=${selectedChannel}`);
+
+                    const endData = await endResponse.json();
+
+                    if (endData.success) {
+                      console.log(`Конечные данные доступны. DATAID: ${endData.dataId}`)
+                      const speedBG = document.getElementById("speed-bg");
+                      speedBG.style.display = 'none';
+                      HasData = true;
+                      if (data.dataId != endData.dataId) {
+                        HasData = false;
+                        var h1Element = document.querySelector('.speedometr h1');
+                        h1Element.textContent = 'Временной диапазон находится в разных видео сессиях. Измените время.';
+                        const speedBG = document.getElementById("speed-bg");
+                        speedBG.style.display = 'flex';
+                      } 
+                    } else {
+                        HasData = false;
+                        const speedBG = document.getElementById("speed-bg");
+                        speedBG.style.display = 'flex';
+                        var h1Element = document.querySelector('.speedometr h1');
+                        h1Element.textContent = 'Данных для выбранного периода нет.';
+                      }
+                      
+                      
+                } else {
+                  var h1Element = document.querySelector('.speedometr h1');
+                  h1Element.textContent = 'Данных для выбранного периода нет.';
+                  const speedBG = document.getElementById("speed-bg");
+                  speedBG.style.display = 'flex';
+                }
+
+  
 }
 
 
@@ -392,6 +449,9 @@ selectedDateInput.addEventListener("change", sendPostRequest);
 const videoTimeInput = document.getElementById("video-time");
 videoTimeInput.addEventListener("change", sendPostRequest);
 
+const endVideoTimeInput = document.getElementById("video-end-time");
+endVideoTimeInput.addEventListener("change", sendPostRequest);
+
     </script>
 
 
@@ -400,6 +460,20 @@ videoTimeInput.addEventListener("change", sendPostRequest);
       now.setHours(now.getHours() - 1);
       var formattedTime = now.toISOString().substr(11, 8);
       document.getElementById("video-time").value = formattedTime;
+      const startTimeInput = document.getElementById('video-time');
+    const endTimeInput = document.getElementById('video-end-time');
+
+    const startTime = new Date(`1970-01-01T${startTimeInput.value}Z`);
+
+    startTime.setHours(startTime.getHours() - 3);
+    startTime.setSeconds(startTime.getSeconds() + 10);
+
+    const hours = startTime.getHours().toString().padStart(2, '0');
+    const minutes = startTime.getMinutes().toString().padStart(2, '0');
+    const seconds = startTime.getSeconds().toString().padStart(2, '0');
+    const endTimeString = `${hours}:${minutes}:${seconds}`;
+    
+    endTimeInput.value = endTimeString;
     </script>
 
    
@@ -452,10 +526,11 @@ videoTimeInput.addEventListener("change", sendPostRequest);
                 selectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
                 renderCalendar();
                 selectedDateInput.value = selectedDate.toISOString();
+                sendPostRequest();
             });
             datesContainer.appendChild(dateCell);
         }
-        sendPostRequest();
+        
     }
 
     // Перейти на предыдущий месяц
@@ -477,7 +552,7 @@ videoTimeInput.addEventListener("change", sendPostRequest);
     </script>
 
 <script>
-  function formatDate(selectedDate) {
+ function formatDate(selectedDate) {
     const date = new Date(selectedDate);
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -493,33 +568,45 @@ videoTimeInput.addEventListener("change", sendPostRequest);
     return `${hours}${minutes}${seconds}`;
   }
 
-  function addOneHourToTime(videoTime) {
-  const parts = videoTime.split(':');
-  let hours = parseInt(parts[0], 10);
-  hours += 1; 
-  const minutes = parts[1].toString().padStart(2, '0');
-  const seconds = parts[2].toString().padStart(2, '0');
-  return formatTime(`${hours}:${minutes}:${seconds}`);
-}
 
-  function playVideo(channel) {
+  async function playVideo(channel) {
     const selectedDevice = document.querySelector('input[name="camera-serial"]:checked');
     if (!selectedDevice) {
       alert('Пожалуйста, выберите устройство из списка.');
       return;
     }
+    if (!HasData) {
+      alert('Пожалуйста, выберите другой временной период.');
+      return;
+    }
+    if (videoTimeInput.value > endVideoTimeInput.value) {
+      alert('Конечное время не может быть больше начального.');
+      return;
+    }
 
     const startTimeInput = document.getElementById('video-time');
+    const endTimeInput = document.getElementById('video-end-time');
     const selectedDateInput = document.getElementById('selectedDate');
     const startTime = formatTime(startTimeInput.value);
+    const endTime = formatTime(endTimeInput.value);
     const selectedDate = formatDate(selectedDateInput.value);
 
-    const endTime = addOneHourToTime(startTimeInput.value);
+    selectedChannel = channel;
+
+    const reqDate = document.getElementById("selectedDate").value;
+    const reqTime = document.getElementById("video-time").value;
+    const reqSerial = document.querySelector('input[name="camera-serial"]:checked').value;
+    
+
+    const finalResponse = await fetch(`/getData?serial=${reqSerial}&selectedDate=${formatDate(reqDate)}&selectedTime=${formatTime(reqTime)}&selectedChannel=${selectedChannel}`);
+
+    const resData = await finalResponse.json();
+
 
     const serial = selectedDevice.value;
 
-    const url = `http://localhost:7081/playback?url=http%3A%2F%2Fkrbl.ru%3A8080%2Fhttp%2Fplayback.flv%3Fserial%3D${serial}%26channel%3D${channel}%26quality%3D1%26queryTime%3D${selectedDate}%26startTime%3D${startTime}%26endTime%3D${endTime}`;
-    window.open(url, '_blank');
+    const url = `http://localhost:8081/export?url=http%3A%2F%2Fkrbl.ru%3A8080%2Fhttp%2Fdownload.flv%3Fserial%3D${serial}%26channel%3D${channel}%26queryTime%3D${selectedDate}%26startTime%3D${startTime}%26endTime%3D${endTime}%26recordID%3D${resData.dataId}`;
+    window.open(url, '_blank'); 
   }
 </script>
 

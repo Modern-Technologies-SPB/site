@@ -8,6 +8,9 @@ require("dotenv").config();
 const multer = require("multer");
 const http = require("http");
 const Client = require('ssh2').Client;
+const axios = require('axios');
+const moment = require('moment');
+
 
 
 const storage = multer.diskStorage({
@@ -1647,6 +1650,71 @@ async function videoExport(req, res) {
   }
 }
 
+app.get('/getData', async (req, res) => {
+  const selectedSerial = req.query.serial;
+  const selectedDate = req.query.selectedDate;
+  const selectedTime = req.query.selectedTime;
+  const selectedChannel = req.query.selectedChannel;
+
+  try {
+    const successResponse = await axios.get(`http://krbl.ru:8080/http/filelist/request?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`);
+    if (successResponse.data.SUCCESS) {
+      const dataResponse = await axios.get(`http://krbl.ru:8080/http/filelist/get?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`);
+      if (successResponse.data.SUCCESS) {
+      const dataId = dataResponse.data.DATAID;
+      const dateRanges = dataResponse.data.DATA;
+      let dataFound = false;
+      let selectedDataId = null;
+      const selectedDateTime = moment(selectedDate + selectedTime, 'YYYYMMDDHHmmss').valueOf(); 
+
+      if (dateRanges.length === 1) {
+        // Если в массиве DATA только одно значение
+        const [startRange, endRange] = dateRanges[0].split('-');
+        const startDateTime = moment(startRange, 'YYYYMMDDHHmmss').valueOf();
+        const endDateTime = moment(endRange, 'YYYYMMDDHHmmss').valueOf();
+        
+        if (!isNaN(selectedDateTime) && !isNaN(startDateTime) && !isNaN(endDateTime)) {
+          if (selectedDateTime >= startDateTime && selectedDateTime <= endDateTime) {
+            dataFound = true;
+            selectedDataId = dataId[0];
+          }
+        } else {
+          console.error("Неверный формат данных для сравнения.");
+        }
+      } else {
+        // Если в массиве DATA больше одного значения
+        for (let i = 0; i < dateRanges.length; i++) {
+          const [startRange, endRange] = dateRanges[i].split('-');
+          const startDateTime = moment(startRange, 'YYYYMMDDHHmmss').valueOf();
+          const endDateTime = moment(endRange, 'YYYYMMDDHHmmss').valueOf();
+          
+          if (!isNaN(selectedDateTime) && !isNaN(startDateTime) && !isNaN(endDateTime)) {
+            if (selectedDateTime >= startDateTime && selectedDateTime <= endDateTime) {
+              dataFound = true;
+              selectedDataId = dataId[i];
+              break;
+            }
+          } else {
+            console.error("Неверный формат данных для сравнения.");
+          }
+        }
+      }
+
+
+      if (dataFound) {
+        // Здесь можно отправить запрос скоростей и отрисовать график
+        res.json({ success: true, dataId: selectedDataId });
+      } else {
+        res.json({ success: false, message: 'Данных для выбранного периода нет' });
+      }
+    }} else {
+      res.json({ success: false, message: 'Ошибка при получении данных' });
+    }
+  } catch (error) {
+    console.error('Ошибка при отправке запроса:', error);
+    res.json({ success: false, message: 'Ошибка при отправке запроса' });
+  }
+});
 
 app.post("/getspeedarchive", async (req, res) => {
   const { serial, datetime } = req.body;
