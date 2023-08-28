@@ -1659,6 +1659,7 @@ app.get('/getData', async (req, res) => {
   try {
     const successResponse = await axios.get(`http://krbl.ru:8080/http/filelist/request?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`);
     if (successResponse.data.SUCCESS) {
+      await new Promise(resolve => setTimeout(resolve, 5000));
       const dataResponse = await axios.get(`http://krbl.ru:8080/http/filelist/get?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`);
       if (successResponse.data.SUCCESS) {
       const dataId = dataResponse.data.DATAID;
