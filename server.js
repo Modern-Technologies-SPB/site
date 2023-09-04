@@ -10,7 +10,8 @@ const http = require("http");
 const Client = require('ssh2').Client;
 const axios = require('axios');
 const moment = require('moment');
-
+const bodyParser = require('body-parser');
+const _ = require('lodash');
 
 
 const storage = multer.diskStorage({
@@ -26,6 +27,7 @@ const upload = multer({ storage: storage });
 app.use(express.static(path.join(__dirname, "static")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 app.get("/", index);
 app.get("/login", login);
@@ -241,7 +243,7 @@ for (let i = 0; i < dates.length; i++) {
 }
 
 
-    console.log(templateData);
+    // console.log(templateData);
 
     const source = fs.readFileSync("static/templates/index.html", "utf8");
 
@@ -275,6 +277,7 @@ async function live(req, res) {
     Registrars: [],
     Alarms: [],
     Count: 0,
+    Groups: [],
   };
 
   try {
@@ -451,6 +454,44 @@ async function live(req, res) {
 
     templateData.Count = templateData.Alarms.length;
 
+    // Выполняем запрос, чтобы получить все данные из таблицы registrars
+    const queryRegistrars = `
+      SELECT id, serial, channels, lastkeepalive, name, "group", plate, sim, ip, port 
+      FROM registrars
+      ORDER BY id
+    `;
+    const registrarsResult = await client.query(queryRegistrars);
+    const allRegistrars = registrarsResult.rows;
+
+    // Группируем устройства по группам и сохраняем данные каждого устройства
+    const groupedRegistrars = {};
+    allRegistrars.forEach((registrar) => {
+      if (!groupedRegistrars[registrar.group]) {
+        groupedRegistrars[registrar.group] = [];
+      }
+      groupedRegistrars[registrar.group].push({
+        id: registrar.id,
+        serial: registrar.serial,
+        channels: registrar.channels,
+        status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
+        name: registrar.name,
+        group: registrar.group,
+        plate: registrar.plate,
+        sim: registrar.sim,
+        ip: registrar.ip,
+        port: registrar.port,
+      });
+    });
+
+    // Заполняем массив групп данными устройств в каждой группе
+    for (const groupName in groupedRegistrars) {
+      templateData.Groups.push({
+        name: groupName,
+        devices: groupedRegistrars[groupName],
+      });
+    }
+
+
     const source = fs.readFileSync("static/templates/live.html", "utf8");
     const template = handlebars.compile(source);
     const resultHTML = template(templateData);
@@ -537,6 +578,7 @@ async function reports(req, res) {
     User: "Тестовое Имя",
     ifDBError: false,
     Registrars: [],
+    Groups: [],
   };
   try {
     const pool = new Pool({
@@ -695,6 +737,32 @@ async function reports(req, res) {
         geo: (alarm.latitude).toFixed(6) + "," + (alarm.longitude).toFixed(6),
       };
     }))
+
+     // Выполняем запрос, чтобы получить все данные из таблицы registrars
+     const queryRegistrars = `
+     SELECT id, serial, lastkeepalive, name, "group", plate, sim, ip, port 
+     FROM registrars
+     ORDER BY id
+   `;
+   const registrarsResult = await client.query(queryRegistrars);
+   const allRegistrars = registrarsResult.rows;
+     
+    // Группируем устройства по группам
+    const groupedRegistrars = {};
+    allRegistrars.forEach((registrar) => {
+      if (!groupedRegistrars[registrar.group]) {
+        groupedRegistrars[registrar.group] = [];
+      }
+      groupedRegistrars[registrar.group].push(registrar.serial);
+    });
+
+    // Заполняем массив групп и серийными номерами устройств в каждой группе
+    for (const groupName in groupedRegistrars) {
+      templateData.Groups.push({
+        name: groupName,
+        serials: groupedRegistrars[groupName],
+      });
+    }
 
     const source = fs.readFileSync(
       "static/templates/reports/index.html",
@@ -1069,6 +1137,7 @@ async function devices(req, res) {
     User: "Тестовое Имя",
     ifDBError: false,
     Registrars: [],
+    Groups: [],
   };
 
   try {
@@ -1103,9 +1172,26 @@ async function devices(req, res) {
         sim: registrar.sim,
         ip: registrar.ip,
         port: registrar.port,
-      })),
+      }));
+
+ // Группируем устройства по группам
+ const groupedRegistrars = {};
+ allRegistrars.forEach((registrar) => {
+   if (!groupedRegistrars[registrar.group]) {
+     groupedRegistrars[registrar.group] = [];
+   }
+   groupedRegistrars[registrar.group].push(registrar.serial);
+ });
+
+ // Заполняем массив групп и серийными номерами устройств в каждой группе
+ for (const groupName in groupedRegistrars) {
+   templateData.Groups.push({
+     name: groupName,
+     serials: groupedRegistrars[groupName],
+   });
+ }
   
-    console.log(templateData);
+    // console.log(templateData);
   
     const source = fs.readFileSync("static/templates/devices/index.html", "utf8");
     const template = handlebars.compile(source);
@@ -1126,6 +1212,133 @@ async function devices(req, res) {
     res.send(resultT);
   }
 }
+
+async function getParameterByName(serial, fieldName) {
+  const requestPayload = {
+    FIELDS: [fieldName],
+  };
+
+  const requestResponse = await axios.get(`http://krbl.ru:8080/http/parameters/request?serial=${serial}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: JSON.stringify(requestPayload),
+  });
+  // console.log(requestResponse.data);
+
+  const getResponse = await axios.get(`http://krbl.ru:8080/http/parameters/get?serial=${serial}`);
+  // console.log(getResponse.data);
+
+  const fieldPath = findPathForField(fieldName);
+  if (fieldPath) {
+    const value = _.get(getResponse.data, fieldPath);
+    return { [fieldName]: value };
+  }
+  return null;
+}
+
+app.post('/device-parameters', async (req, res) => {
+  try {
+    const { serial, FIELDS } = req.body;
+    // console.log(serial, FIELDS);
+
+    const responseData = {};
+
+    // Используем асинхронный цикл для выполнения GET-запросов по очереди
+    for (const field of FIELDS) {
+      const parameter = await getParameterByName(serial, field);
+      if (parameter) {
+        Object.assign(responseData, parameter);
+      }
+    }
+
+    // console.log(responseData);
+
+    res.json(responseData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+function findPathForField(fieldName) {
+  const fieldPathMap = {
+    "VEHICLEID": "DATA.RIP.BN",
+    "DATEMOD": "DATA.TIMEP.DATEM",
+    "TIMEFORMAT": "DATA.TIMEP.TIMEM",
+    "LANGUAGE": "DATA.GSP.LANT",
+    "VIDEOFORMAT": "DATA.GSP.VGA",
+    "GEOMOD": "DATA.GSP.GM",
+    "SUBSTREAMMODE": "DATA.SUBSTRNET.SM",
+    "NETWORK": "DATA.SUBSTRNET.NEC",
+    "DISPLAYMENU": "DATA.DOSD",
+    "RECORDINGPARAMS": "DATA.RP.RCP",
+    "FUTURERECORDINGSTYLE": "DATA.MP.OT",
+    "FUTURERECORDING": "DATA.MP.OT",
+    "STREAMPARAMS": "DATA.AR.VEC",
+    "VIDEOIMAGEMOD": "DATA.SVIP",
+  };
+
+  return fieldPathMap[fieldName] || null;
+}
+
+app.put('/device-parameters', async (req, res) => {
+  // Получаем данные из PUT запроса
+  const requestData = req.body;
+  const { serial } = req.query;
+
+  // Извлекаем необходимые параметры
+  const {
+    DATEMOD,
+    TIMEFORMAT,
+    LANGUAGE,
+    VIDEOFORMAT,
+    GEOMOD,
+    SUBSTREAMMODE,
+    NE,
+    TE,
+    VE,
+    SE,
+    GE
+  } = requestData;
+
+  // Создаем JSON для GET запроса
+  const requestBody = {
+    TIMEP: {
+      DATEM: parseInt(DATEMOD, 10) || 1,
+      TIMEM: parseInt(TIMEFORMAT, 10) || 0
+    },
+    GSP: {
+      LANT: parseInt(LANGUAGE, 10) || 12,
+      VGA: parseInt(VIDEOFORMAT, 10) || 0,
+      GM: parseInt(GEOMOD, 10) || 0
+    },
+    SUBSTRNET: {
+      SM: parseInt(SUBSTREAMMODE, 10) || 1
+    },
+    DOSD: {
+      NE: parseInt(NE, 10) || 1,
+      TE: parseInt(TE, 10) || 1,
+      VE: parseInt(VE, 10) || 0,
+      SE: parseInt(SE, 10) || 0,
+      GE: parseInt(GE, 10) || 0
+    }
+  };
+
+  // Отправляем GET запрос с JSON BODY
+  try {
+    const response = await axios.get(`http://krbl.ru:8080/http/parameters/set?serial=${serial}`, {
+      data: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    res.status(response.status).send(response.data);
+  } catch (error) {
+    res.status(500).send('Произошла ошибка при отправке GET запроса.');
+  }
+});
+
 
 app.post("/devicedata", async (req, res) => {
   const id = req.body.id;
@@ -1556,6 +1769,7 @@ async function videos(req, res) {
     User: "Тестовое Имя",
     ifDBError: false,
     Registrars: [],
+    Groups: [],
   };
 
   try {
@@ -1580,6 +1794,43 @@ async function videos(req, res) {
       serial: row.serial,
       status: Date.now() - Date.parse(row.lastkeepalive) <= minuteInMillis,
     }));
+
+    // Выполняем запрос, чтобы получить все данные из таблицы registrars
+    const queryRegistrars = `
+      SELECT id, serial, channels, lastkeepalive, name, "group", plate, sim, ip, port 
+      FROM registrars
+      ORDER BY id
+    `;
+    const registrarsResult = await client.query(queryRegistrars);
+    const allRegistrars = registrarsResult.rows;
+
+    // Группируем устройства по группам и сохраняем данные каждого устройства
+    const groupedRegistrars = {};
+    allRegistrars.forEach((registrar) => {
+      if (!groupedRegistrars[registrar.group]) {
+        groupedRegistrars[registrar.group] = [];
+      }
+      groupedRegistrars[registrar.group].push({
+        id: registrar.id,
+        serial: registrar.serial,
+        channels: registrar.channels,
+        status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
+        name: registrar.name,
+        group: registrar.group,
+        plate: registrar.plate,
+        sim: registrar.sim,
+        ip: registrar.ip,
+        port: registrar.port,
+      });
+    });
+
+    // Заполняем массив групп данными устройств в каждой группе
+    for (const groupName in groupedRegistrars) {
+      templateData.Groups.push({
+        name: groupName,
+        devices: groupedRegistrars[groupName],
+      });
+    }
 
     // console.log(templateData);
 
@@ -1606,6 +1857,7 @@ async function videoExport(req, res) {
     User: "Тестовое Имя",
     ifDBError: false,
     Registrars: [],
+    Groups: [],
   };
 
   try {
@@ -1630,6 +1882,44 @@ async function videoExport(req, res) {
       serial: row.serial,
       status: Date.now() - Date.parse(row.lastkeepalive) <= minuteInMillis,
     }));
+
+    // Выполняем запрос, чтобы получить все данные из таблицы registrars
+    const queryRegistrars = `
+      SELECT id, serial, channels, lastkeepalive, name, "group", plate, sim, ip, port 
+      FROM registrars
+      ORDER BY id
+    `;
+    const registrarsResult = await client.query(queryRegistrars);
+    const allRegistrars = registrarsResult.rows;
+
+    // Группируем устройства по группам и сохраняем данные каждого устройства
+    const groupedRegistrars = {};
+    allRegistrars.forEach((registrar) => {
+      if (!groupedRegistrars[registrar.group]) {
+        groupedRegistrars[registrar.group] = [];
+      }
+      groupedRegistrars[registrar.group].push({
+        id: registrar.id,
+        serial: registrar.serial,
+        channels: registrar.channels,
+        status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
+        name: registrar.name,
+        group: registrar.group,
+        plate: registrar.plate,
+        sim: registrar.sim,
+        ip: registrar.ip,
+        port: registrar.port,
+      });
+    });
+
+    // Заполняем массив групп данными устройств в каждой группе
+    for (const groupName in groupedRegistrars) {
+      templateData.Groups.push({
+        name: groupName,
+        devices: groupedRegistrars[groupName],
+      });
+    }
+
 
     // console.log(templateData);
 

@@ -79,25 +79,15 @@
                         <h1>Организация</h1>
 
                         <ul class="area">
-                            <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-1" class="checkbox-input" hidden checked><label for="name-1" class="checkbox-label">Группа 1</label>
-                              <ul class="area-devices" id="devices-1">
-                                <li class="device"><img><input type="checkbox" id="1-device-1" class="checkbox-input device-filter" value="1-device-1" hidden checked><label for="1-device-1" class="checkbox-label"><div class="checkmark"></div>Автобусы</label></li>
-                                <!-- <li class="device"><img><input type="checkbox" id="1-device-2" class="checkbox-input device-filter" value="1-device-2" hidden checked><label for="1-device-2" class="checkbox-label"><div class="checkmark"></div>Маршрутки</label></li> -->
-                              </ul>
-                            </li>
-                            <!-- <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-2" class="checkbox-input" hidden checked><label for="name-2" class="checkbox-label">Группа 2</label>
-                              <ul class="area-devices" id="devices-2">
-                                <li class="device"><img><input type="checkbox" id="2-device-1" class="checkbox-input device-filter" value="2-device-1" hidden checked><label for="2-device-1" class="checkbox-label"><div class="checkmark"></div>Трамваи</label></li>
-                                <li class="device"><img><input type="checkbox" id="2-device-2" class="checkbox-input device-filter" value="2-device-2" hidden checked><label for="2-device-2" class="checkbox-label"><div class="checkmark"></div>Электробусы</label></li>
-                                <li class="device"><img><input type="checkbox" id="2-device-3" class="checkbox-input device-filter" value="2-device-3" hidden checked><label for="2-device-3" class="checkbox-label"><div class="checkmark"></div>Троллейбусы</label></li>
-                                <li class="device"><img><input type="checkbox" id="2-device-4" class="checkbox-input device-filter" value="2-device-4" hidden checked><label for="2-device-4" class="checkbox-label"><div class="checkmark"></div>Старые ТС</label></li>
-                              </ul>
-                            </li>
-                            <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-3" class="checkbox-input" hidden checked><label for="name-3" class="checkbox-label">Другое</label>
-                              <ul class="area-devices" id="devices-3">
-                                <li class="device"><img><input type="checkbox" id="3-device-1" class="checkbox-input device-filter" value="3-device-1" hidden checked><label for="3-device-1" class="checkbox-label"><div class="checkmark"></div>Маршрутки</label></li>
-                              </ul>
-                            </li> -->
+                          {{#each Groups}}
+                          <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="{{name}}" class="checkbox-input" hidden checked><label for="{{name}}" class="checkbox-label">{{name}}</label>
+                            <ul class="area-devices" id="devices-1">
+                              {{#each serials}}
+                              <li class="device"><img><input type="checkbox" id="{{this}}" class="checkbox-input device-filter" value="{{this}}" hidden checked><label for="{{this}}" class="checkbox-label"><div class="checkmark"></div>{{this}}</label></li>
+                                  {{/each}}
+                            </ul>
+                          </li>
+                          {{/each}}
                           </ul>
                           
                     </section>
@@ -161,6 +151,8 @@
           <input name="newStage" type="radio" value="ts" id="stage-ts"><label for="stage-ts">Транспортное средство</label>
           <div class="vertical-line"></div>
           <input name="newStage" type="radio" value="equipment" id="stage-equipment"><label for="stage-equipment">Оборудование</label>
+          <br>
+          <input name="newStage" type="radio" value="parameters" id="stage-parameters"><label style="margin-top: 115%;" for="stage-parameters">Системные настройки</label>
       </section>
     </section>
     <section id="add-new-container" class="add-new">
@@ -209,7 +201,7 @@
           </div>
           <div class="parameters-input">
               <label for="parameters-group">Группа<span style="color: rgba(255, 69, 58, 1);">*</span></label>
-              <input name="deviceGroup" type="text" id="parameters-group" placeholder="Название группы" required readonly>
+              <input name="deviceGroup" type="text" id="parameters-group" placeholder="Название группы" required>
           </div>
           <div class="parameters-input">
               <label for="parameters-port">Порт<span style="color: rgba(255, 69, 58, 1);">*</span></label>
@@ -417,6 +409,83 @@
 
       </form>
 
+      <div id="parameters" class="new-parameters">
+
+        <h1>Системные настройки</h1>
+        <h2>Параметры регистраторов</h2>
+
+        <div class="horizontal-line"></div>
+
+        <div class="parameters-inputs">
+        <div class="parameters-input">
+            <label for="system-date">Формат даты</label>
+            <select name="DATEMOD" id="system-date">
+              <option value="0">ММ-ДД-ГГГГ</option>
+              <option value="1">ГГГГ-ММ-ДД</option>
+              <option value="2">ДД-ММ-ГГГГ</option>
+          </select>
+        </div>
+        <div class="parameters-input">
+            <label for="system-time">Формат времени</label>
+            <select name="TIMEFORMAT" id="system-time">
+              <option value="0">24 ч</option>
+              <option value="1">12 ч</option>
+          </select>
+        </div>
+        <div class="parameters-input">
+            <label for="system-video">Формат видео</label>
+            <select name="VIDEOFORMAT" id="system-video">
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+          </select>
+        </div>
+        <div class="parameters-input">
+          <label for="system-stream">Формат трансляции</label>
+          <select name="SUBSTREAMMODE" id="system-stream">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+        </select>
+      </div>
+      <div class="parameters-input">
+        <label for="system-language">Язык системы</label>
+        <select name="LANGUAGE" id="system-language">
+          <option value="1">Английский</option>
+          <option value="12">Русский</option>
+      </select>
+    </div>
+        <div class="parameters-input">
+            <label for="system-geo">Определение геопозиции</label>
+            <select name="GEOMOD" id="system-geo">
+                <option value="0">GPS</option>
+                <option value="1">BEIDO</option>
+                <option value="2">GALILEO</option>
+                <option value="3">GLENAS</option>
+                <option value="4">Смешанное</option>
+            </select>
+        </div>
+
+        </div>
+
+        <div class="horizontal-line"></div>
+
+        <h2 style="margin-bottom: 5px;">Отметьте то, что должно отображаться на трансляции</h2>
+
+        <input type="checkbox" id="TE" class="checkbox-input" hidden><label for="TE" class="checkbox-label"><div class="checkmark"></div>Время</label>
+        <input type="checkbox" id="SE" class="checkbox-input" hidden><label for="SE" class="checkbox-label"><div class="checkmark"></div>Скорость</label>
+        <input type="checkbox" id="VE" class="checkbox-input" hidden><label for="VE" class="checkbox-label"><div class="checkmark"></div>Номер ТС</label>
+        <input type="checkbox" id="GE" class="checkbox-input" hidden><label for="GE" class="checkbox-label"><div class="checkmark"></div>Координаты</label>
+        <input type="checkbox" id="NE" class="checkbox-input" hidden><label for="NE" class="checkbox-label"><div class="checkmark"></div>Названия камер</label>
+
+        <div class="horizontal-line"></div>
+
+        <button id="continue-parameters" onclick="sendPutRequest();" type="button">Сохранить</button>
+
+    </div>
+
     </section>
   </section>
   </section>
@@ -448,6 +517,79 @@
           $('#parameters-sim').inputmask({"mask": "+7 (999) 999-9999"});
 
       });
+  </script>
+
+  <script>
+    // Функция для отправки PUT запроса
+    async function sendPutRequest() {
+      const dateModSelect = document.getElementById('system-date');
+      const timeFormatSelect = document.getElementById('system-time');
+      const videoFormatSelect = document.getElementById('system-video');
+      const streamFormatSelect = document.getElementById('system-stream');
+      const languageSelect = document.getElementById('system-language');
+      const geoModSelect = document.getElementById('system-geo');
+
+      // Извлекаем значения выбранных опций
+      const DATEMOD = dateModSelect.value;
+      const TIMEFORMAT = timeFormatSelect.value;
+      const VIDEOFORMAT = videoFormatSelect.value;
+      const SUBSTREAMMODE = streamFormatSelect.value;
+      const LANGUAGE = languageSelect.value;
+      const GEOMOD = geoModSelect.value;
+
+      // Извлекаем значения чекбоксов
+      const NE = document.getElementById('NE').checked ? 1 : 0;
+      const TE = document.getElementById('TE').checked ? 1 : 0;
+      const VE = document.getElementById('VE').checked ? 1 : 0;
+      const SE = document.getElementById('SE').checked ? 1 : 0;
+      const GE = document.getElementById('GE').checked ? 1 : 0;
+
+
+      const serial = $("#parameters-serial").val();
+
+      // Создаем объект данных для PUT запроса
+      const requestData = {
+        DATEMOD,
+        TIMEFORMAT,
+        VIDEOFORMAT,
+        SUBSTREAMMODE,
+        LANGUAGE,
+        GEOMOD,
+        NE,
+        TE,
+        VE,
+        SE,
+        GE,
+      };
+
+      // console.log(requestData);
+
+      try {
+        // Отправляем PUT запрос
+        const response = await fetch(`/device-parameters?serial=${serial}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestData),
+        });
+
+        if (response.ok) {
+          // PUT запрос выполнен успешно
+          var formContainer = $("#form-bg");
+          var form = $("#form");
+          formContainer.removeClass("active");
+          form.removeClass("form-animation");
+          $("body").css("overflow", "auto");
+          console.log('PUT запрос выполнен успешно');
+          // Здесь вы можете выполнить дополнительные действия, если необходимо
+        } else {
+          console.error('Ошибка при выполнении PUT запроса');
+        }
+      } catch (error) {
+        console.error('Произошла ошибка при отправке PUT запроса:', error);
+      }
+    }
   </script>
 
     <script>
@@ -554,6 +696,8 @@
           content3.style.display = "none";
           content4.style.opacity = 0;
           content4.style.display = "none";
+          content5.style.opacity = 0;
+          content5.style.display = "none";
 
           document.getElementById("stage-details").checked = true;
 
@@ -561,13 +705,56 @@
           formContainer.addClass("active");
           form.addClass("form-animation");
           $("body").css("overflow", "hidden");
+
+          const requestBody = {
+            "serial": $("#parameters-serial").val(),
+            "FIELDS": [
+              "DATEMOD",
+              "TIMEFORMAT",
+              "LANGUAGE",
+              "VIDEOFORMAT",
+              "GEOMOD",
+              "SUBSTREAMMODE",
+              "DISPLAYMENU"
+            ]
+          };
+
+          console.log(requestBody);
+
+          // Отправляем POST-запрос
+      fetch('/device-parameters', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+          })
+          .then(response => response.json())
+          .then(data => {
+            // Заполняем поля input данными из ответа
+            document.getElementById('system-date').value = data.DATEMOD;
+            document.getElementById('system-time').value = data.TIMEFORMAT;
+            document.getElementById('system-language').value = data.LANGUAGE;
+            document.getElementById('system-video').value = data.VIDEOFORMAT;
+            document.getElementById('system-geo').value = data.GEOMOD;
+            document.getElementById('system-stream').value = data.SUBSTREAMMODE;
+            document.getElementById('NE').checked = data.DISPLAYMENU.NE === 1;
+            document.getElementById('TE').checked = data.DISPLAYMENU.TE === 1;
+            document.getElementById('VE').checked = data.DISPLAYMENU.VE === 1;
+            document.getElementById('SE').checked = data.DISPLAYMENU.SE === 1;
+            document.getElementById('GE').checked = data.DISPLAYMENU.GE === 1;
+          })
+          .catch(error => console.error('Ошибка:', error));
         },
         error: function() {
           // Обработка ошибки при запросе к серверу
           alert("Произошла ошибка при запросе к серверу.");
         }
       });
+
       }
+
+
 
       $(document).ready(function() {
       var formContainer = $("#form-bg");

@@ -74,26 +74,16 @@
                         <h1>Организация</h1>
 
                         <ul class="area">
-                          <!-- <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-1" class="checkbox-input" hidden checked><label for="name-1" class="checkbox-label">Группа 1</label>
+                          {{#each Groups}}
+                          <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="{{name}}" class="checkbox-input" hidden checked><label for="{{name}}" class="checkbox-label">{{name}}</label>
                             <ul class="area-devices" id="devices-1">
-                              <li class="device"><img><input type="checkbox" id="0001" class="checkbox-input device-filter" value="0001" hidden checked><label for="0001" class="checkbox-label"><div class="checkmark"></div>0001</label></li>
-                              <li class="device"><img><input type="checkbox" id="0002" class="checkbox-input device-filter" value="0002" hidden checked><label for="0002" class="checkbox-label"><div class="checkmark"></div>0002</label></li>
+                              {{#each serials}}
+                              <li class="device"><img><input type="checkbox" id="{{this}}" class="checkbox-input device-filter" value="{{this}}" hidden checked><label for="{{this}}" class="checkbox-label"><div class="checkmark"></div>{{this}}</label></li>
+                                  {{/each}}
                             </ul>
                           </li>
-                          <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-2" class="checkbox-input" hidden checked><label for="name-2" class="checkbox-label">Группа 2</label>
-                            <ul class="area-devices" id="devices-2">
-                              <li class="device"><img><input type="checkbox" id="0003" class="checkbox-input device-filter" value="0003" hidden checked><label for="0003" class="checkbox-label"><div class="checkmark"></div>0003</label></li>
-                              <li class="device"><img><input type="checkbox" id="0004" class="checkbox-input device-filter" value="0004" hidden checked><label for="0004" class="checkbox-label"><div class="checkmark"></div>0004</label></li>
-                              <li class="device"><img><input type="checkbox" id="0005" class="checkbox-input device-filter" value="0005" hidden checked><label for="0005" class="checkbox-label"><div class="checkmark"></div>0005</label></li>
-                              <li class="device"><img><input type="checkbox" id="0006" class="checkbox-input device-filter" value="0006" hidden checked><label for="0006" class="checkbox-label"><div class="checkmark"></div>0006</label></li>
-                            </ul>
-                          </li>
-                          <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-3" class="checkbox-input" hidden checked><label for="name-3" class="checkbox-label">Другое</label>
-                            <ul class="area-devices" id="devices-3">
-                              <li class="device"><img><input type="checkbox" id="0007" class="checkbox-input device-filter" value="0007" hidden checked><label for="0007" class="checkbox-label"><div class="checkmark"></div>0007</label></li>
-                            </ul>
-                          </li> -->
-                        </ul>
+                          {{/each}}
+                          </ul>
 
                         <div class="area-time-range">
                           <div class="time-range"><label for="timeRangeStart">с</label><input id="timeRangeStart" name="timeRangeStart" type="datetime-local"></div>

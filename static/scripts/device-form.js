@@ -13,6 +13,7 @@ const content1 = document.getElementById("details");
 const content2 = document.getElementById("sim");
 const content3 = document.getElementById("ts");
 const content4 = document.getElementById("equipment");
+const content5 = document.getElementById("parameters");
 const btn1 = document.getElementById("continue-details");
 const btn2 = document.getElementById("continue-sim");
 const btn3 = document.getElementById("continue-ts");
@@ -103,6 +104,8 @@ for (let radioButton of radioButtons) {
       switchContent(content3);
     } else if (radioButton.value === "equipment") {
       switchContent(content4);
+    } else if (radioButton.value === "parameters") {
+      switchContent(content5);
     }
   });
 }

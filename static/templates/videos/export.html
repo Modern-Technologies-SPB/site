@@ -53,6 +53,23 @@
     </section>
 
     <section class="main">
+      <section style="display: none;" class="dberror" id="exportLoading" >
+        <div class="erorr-container">
+          <div id="loader" class="loader">
+            <div class="square" id="sq1"></div>
+            <div class="square" id="sq2"></div>
+            <div class="square" id="sq3"></div>
+            <div class="square" id="sq4"></div>
+            <div class="square" id="sq5"></div>
+            <div class="square" id="sq6"></div>
+            <div class="square" id="sq7"></div>
+            <div class="square" id="sq8"></div>
+            <div class="square" id="sq9"></div>
+          </div>
+                <h1>Подготовка видео</h1> <br>
+                <span id="status">Пожалуйста, подождите..</span>
+        </div>
+    </section>
       {{#if ifDBError}}
       <section class="dberror">
         <div class="erorr-container">
@@ -72,26 +89,28 @@
         </nav>
         <section class="bg">
             <section class="content">
-                <section class="for-table">
+                <section style="min-height: 800px;" class="for-table">
 
                     <section class="organisation">
                         <h1>Организация</h1>
 
                         <ul class="area">
-                          <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="name-1" class="checkbox-input" hidden checked><label for="name-1" class="checkbox-label">Группа 1</label>
+                          {{#each Groups}}
+                          <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="{{name}}" class="checkbox-input" hidden checked><label for="{{name}}" class="checkbox-label">{{name}}</label>
                             <ul class="area-devices" id="devices-1">
-                              {{#each Registrars}}
-                                <li class="device">
-                                  <img>
-                                  <input type="radio" name="camera-serial" id="radio-{{this.serial}}" class="radio-input" value="{{this.serial}}" hidden>
-                                  <label for="radio-{{this.serial}}" class="radio-label">
-                                    {{this.serial}}
-                                  </label>
-                                </li>
-                              {{/each}}
+                              {{#each devices}}
+                              <li class="device">
+                                <img>
+                                <input type="radio" name="camera-serial" id="radio-{{this.serial}}" class="radio-input" value="{{this.serial}}" hidden>
+                                <label for="radio-{{this.serial}}" class="radio-label">
+                                  {{this.serial}}
+                                </label>
+                              </li>
+                                  {{/each}}
                             </ul>
                           </li>
-                        </ul>
+                          {{/each}}
+                          </ul>
 
                           
                     </section>
@@ -101,16 +120,16 @@
                     <section class="table" style="position: relative;">
 
                       <div class="map">
-                        <div id="properties" class="properties" style="display: none;">
+                        <!-- <div id="properties" class="properties" style="display: none;">
                           <div class="propert"><h1>Группа</h1><br><h2 id="propert-group">Автобусы</h2></div>
                           <div class="propert"><h1>Скорость</h1><br><h2 id="propert-speed"> км/ч</h2></div>
                           <div class="propert"><h1>Номерной знак</h1><br><h2 id="propert-plate"></h2></div>
                           <div class="propert"><h1>Геопозиция</h1><br><h2 id="propert-geo"></h2></div>
-                        </div>
+                        </div> -->
                         <div id="map"></div>
                       </div>
 
-                      <div class="cameras">
+                      <div id="cameras" class="cameras">
                         <div class="video-container">
                           <div id="camera-1" onclick="playVideo(1);">
                             <img src="../../img/play-circle.svg">
@@ -255,6 +274,58 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const areaNames = document.querySelectorAll('.area-name');
+      
+        areaNames.forEach(function (areaName) {
+          const areaCheckbox = areaName.querySelector('.checkbox-input');
+          const deviceCheckboxes = areaName.querySelectorAll('.device .checkbox-input');
+          const deviceList = areaName.querySelector('.area-devices');
+      
+          // Функция для скрытия/показа дочерних элементов
+          function toggleChildDevices(show) {
+            if (show) {
+              deviceList.style.display = 'block';
+            } else {
+              deviceList.style.display = 'none';
+            }
+          }
+      
+          // Инициализация состояния чекбоксов и скрытия/показа дочерних элементов
+          toggleChildDevices(areaCheckbox.checked);
+          deviceCheckboxes.forEach(function (deviceCheckbox) {
+            deviceCheckbox.checked = areaCheckbox.checked;
+          });
+      
+          areaCheckbox.addEventListener('change', function () {
+            const isChecked = areaCheckbox.checked;
+            deviceCheckboxes.forEach(function (deviceCheckbox) {
+              deviceCheckbox.checked = isChecked;
+            });
+            toggleChildDevices(isChecked);
+          });
+      
+          deviceCheckboxes.forEach(function (deviceCheckbox) {
+            deviceCheckbox.addEventListener('change', function () {
+              const allUnchecked = Array.from(deviceCheckboxes).every(function (checkbox) {
+                return !checkbox.checked;
+              });
+      
+              if (allUnchecked) {
+                areaCheckbox.checked = false;
+                toggleChildDevices(false);
+              } else {
+                areaCheckbox.checked = true;
+                toggleChildDevices(true);
+              }
+            });
+          });
+        });
+      });
+      
+      </script>
+
+    <script>
 function combineDateTime(dateString, timeString) {
   const date = new Date(dateString);
   const year = date.getFullYear();
@@ -280,6 +351,7 @@ var selectedChannel = 1;
 
 
 async function sendPostRequest() {
+  document.getElementById("cameras").style.opacity = "30%";
   // Получение данных из полей ввода
   const selectedDate = document.getElementById("selectedDate").value;
   const videoTime = document.getElementById("video-time").value;
@@ -296,6 +368,8 @@ async function sendPostRequest() {
 
                 HasData = data.success;
 
+                
+
                 if (data.success) {
                   console.log(`Данные доступны. DATAID: ${data.dataId}`)
                   recordID = data.dataId;
@@ -303,6 +377,8 @@ async function sendPostRequest() {
                     serial: selectedSerial,
                     datetime: combinedDateTime, 
                   };
+
+                  
 
                   fetch("/getspeedarchive", {
                     method: "POST",
@@ -313,6 +389,8 @@ async function sendPostRequest() {
                   })
                     .then((response) => response.json())
                     .then((data) => {
+
+                      document.getElementById("cameras").style.opacity = "100%";
 
                       const existingChart = Chart.getChart("speed");
 
@@ -570,6 +648,7 @@ endVideoTimeInput.addEventListener("change", sendPostRequest);
 
 
   async function playVideo(channel) {
+    document.getElementById("exportLoading").style.display = 'flex';
     const selectedDevice = document.querySelector('input[name="camera-serial"]:checked');
     if (!selectedDevice) {
       alert('Пожалуйста, выберите устройство из списка.');
@@ -591,14 +670,12 @@ endVideoTimeInput.addEventListener("change", sendPostRequest);
     const endTime = formatTime(endTimeInput.value);
     const selectedDate = formatDate(selectedDateInput.value);
 
-    selectedChannel = channel;
-
     const reqDate = document.getElementById("selectedDate").value;
     const reqTime = document.getElementById("video-time").value;
     const reqSerial = document.querySelector('input[name="camera-serial"]:checked').value;
     
 
-    const finalResponse = await fetch(`/getData?serial=${reqSerial}&selectedDate=${formatDate(reqDate)}&selectedTime=${formatTime(reqTime)}&selectedChannel=${selectedChannel}`);
+    const finalResponse = await fetch(`/getData?serial=${reqSerial}&selectedDate=${formatDate(reqDate)}&selectedTime=${formatTime(reqTime)}&selectedChannel=${channel}`);
 
     const resData = await finalResponse.json();
 
@@ -606,6 +683,7 @@ endVideoTimeInput.addEventListener("change", sendPostRequest);
     const serial = selectedDevice.value;
 
     const url = `http://localhost:8081/export?url=http%3A%2F%2Fkrbl.ru%3A8080%2Fhttp%2Fdownload.flv%3Fserial%3D${serial}%26channel%3D${channel}%26queryTime%3D${selectedDate}%26startTime%3D${startTime}%26endTime%3D${endTime}%26recordID%3D${resData.dataId}`;
+    document.getElementById("exportLoading").style.display = 'none';
     window.open(url, '_blank'); 
   }
 </script>

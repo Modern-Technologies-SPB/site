@@ -1,172 +1,3 @@
-// const devices = [
-//   {
-//     id: "1",
-//     group: "2-device-1",
-//     name: "Трамваи",
-//     plate: "AB1234",
-//     serial: "008803559E",
-//     sim: "1234567890",
-//     channels: 12,
-//     ip: "192.168.0.1",
-//     port: 17891,
-//   },
-//   {
-//     id: "2",
-//     group: "2-device-2",
-//     name: "Электробусы",
-//     plate: "BC2345",
-//     serial: "008803559E",
-//     sim: "2345678901",
-//     channels: 12,
-//     ip: "192.168.0.2",
-//     port: 17891,
-//   },
-//   {
-//     id: "3",
-//     group: "2-device-1",
-//     name: "Трамваи",
-//     plate: "CD3456",
-//     serial: "009800852A",
-//     sim: "3456789012",
-//     channels: 16,
-//     ip: "192.168.0.3",
-//     port: 17891,
-//   },
-//   {
-//     id: "4",
-//     group: "2-device-3",
-//     name: "Троллейбусы",
-//     plate: "DE4567",
-//     serial: "009800858D",
-//     sim: "4567890123",
-//     channels: 12,
-//     ip: "192.168.0.4",
-//     port: 17891,
-//   },
-//   {
-//     id: "5",
-//     group: "2-device-2",
-//     name: "Электробусы",
-//     plate: "EF5678",
-//     serial: "00980084FD",
-//     sim: "5678901234",
-//     channels: 16,
-//     ip: "192.168.0.5",
-//     port: 17891,
-//   },
-//   {
-//     id: "6",
-//     group: "2-device-1",
-//     name: "Трамваи",
-//     plate: "FG6789",
-//     serial: "0088036B7F",
-//     sim: "6789012345",
-//     channels: 16,
-//     ip: "192.168.0.6",
-//     port: 17891,
-//   },
-//   {
-//     id: "7",
-//     group: "2-device-4",
-//     name: "Старые ТС",
-//     plate: "GH7890",
-//     serial: "00880302CD",
-//     sim: "7890123456",
-//     channels: 12,
-//     ip: "192.168.0.7",
-//     port: 17891,
-//   },
-//   {
-//     id: "8",
-//     group: "2-device-4",
-//     name: "Старые ТС",
-//     plate: "HI8901",
-//     serial: "008802A035",
-//     sim: "8901234567",
-//     channels: 12,
-//     ip: "192.168.0.8",
-//     port: 17891,
-//   },
-//   {
-//     id: "9",
-//     group: "1-device-1",
-//     name: "Трамваи",
-//     plate: "IJ9012",
-//     serial: "008802A96A",
-//     sim: "9012345678",
-//     channels: 16,
-//     ip: "192.168.0.9",
-//     port: 17891,
-//   },
-//   {
-//     id: "10",
-//     group: "2-device-4",
-//     name: "Старые ТС",
-//     plate: "КТ32376",
-//     serial: "00880302C7",
-//     sim: "7012345678",
-//     channels: 14,
-//     ip: "192.168.0.10",
-//     port: 17891,
-//   },
-//   {
-//     id: "11",
-//     group: "2-device-3",
-//     name: "Троллейбусы",
-//     plate: "ОА33277",
-//     serial: "008802A035",
-//     sim: "9034234348",
-//     channels: 12,
-//     ip: "192.168.0.11",
-//     port: 17891,
-//   },
-//   {
-//     id: "12",
-//     group: "1-device-2",
-//     name: "Маршрутки",
-//     plate: "КЛ987102",
-//     serial: "009800852A",
-//     sim: "9023345678",
-//     channels: 10,
-//     ip: "192.168.0.12",
-//     port: 17891,
-//   },
-//   {
-//     id: "13",
-//     group: "3-device-1",
-//     name: "Троллейбусы",
-//     plate: "КЛ987102",
-//     serial: "0088036B78",
-//     sim: "9023345678",
-//     channels: 8,
-//     ip: "192.168.0.13",
-//     port: 17891,
-//   },
-//   {
-//     id: "14",
-//     group: "3-device-1",
-//     name: "Маршрутки",
-//     plate: "КЛ987102",
-//     serial: "0088036B7F",
-//     sim: "9023345678",
-//     channels: 8,
-//     ip: "192.168.0.14",
-//     port: 17891,
-//   },
-//   {
-//     id: "15",
-//     group: "1-device-1",
-//     name: "Трамваи",
-//     plate: "КЛ987102",
-//     serial: "008802A96A",
-//     sim: "9023345678",
-//     channels: 16,
-//     ip: "192.168.0.15",
-//     port: 17891,
-//   },
-// ];
-
-console.log(devices);
 
 // Получаем высоту таблицы и определяем, сколько строк помещается на странице
 let currentPage = 1;
@@ -208,7 +39,7 @@ const createTable = () => {
 
     // Добавляем ячейки с данными
     const name = document.createElement("td");
-    name.textContent = device.name;
+    name.textContent = device.group;
     row.appendChild(name);
     const plate = document.createElement("td");
     plate.textContent = device.plate;
@@ -326,7 +157,7 @@ const applyFilterAndSearch = () => {
     const searchString =
       `${device.group} ${device.name} ${device.plate} ${device.number} ${device.serial} ${device.sim} ${device.channels} ${device.ip} ${device.port}`.toLowerCase();
     const matchGroup =
-      groupFilters.length === 0 || groupFilters.includes(device.group);
+      groupFilters.length === 0 || groupFilters.includes(device.group) || groupFilters.includes(device.serial);
     const matchSearch = !searchValue || searchString.includes(searchValue);
     return matchGroup && matchSearch;
   });

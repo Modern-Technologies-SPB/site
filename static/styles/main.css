@@ -430,20 +430,24 @@ header h2 span {
   width: fit-content;
 }
 
-.organisation label {
+.organisation label,
+#parameters label {
   color: rgba(0, 0, 0, 0.5);
-  cursor: pointer;
+  cursor: pointer !important;
 }
 
-.organisation .checkbox-label:hover {
-  color: rgba(0, 0, 0, 0.7);
+.organisation .checkbox-label:hover,
+.add-new .checkbox-label:hover {
+  color: rgba(0, 0, 0, 0.7) !important;
 }
 
-.organisation .checkbox-input:checked + .checkbox-label {
-  color: rgba(0, 0, 0, 0.9);
+.organisation .checkbox-input:checked + .checkbox-label,
+.add-new .checkbox-input:checked + .checkbox-label {
+  color: rgba(0, 0, 0, 0.9) !important;
 }
 
-.organisation .checkmark {
+.organisation .checkmark,
+.add-new .checkmark {
   display: inline-block;
   width: 18px;
   height: 18px;
@@ -453,11 +457,13 @@ header h2 span {
   transition: 0.2s;
 }
 
-.organisation .checkbox-input:hover + .checkbox-label .checkmark {
-  filter: brightness(0.95);
+.organisation .checkbox-input:hover + .checkbox-label .checkmark,
+.add-new .checkbox-input:hover + .checkbox-label .checkmar {
+  filter: brightness(0.95) !important;
 }
 
-.organisation .checkbox-input:checked + .checkbox-label .checkmark {
+.organisation .checkbox-input:checked + .checkbox-label .checkmark, 
+.add-new .checkbox-input:checked + .checkbox-label .checkmark {
   background: url(../img/checkbox-check.svg);
 }
 
@@ -648,8 +654,13 @@ td {
   color: rgba(0, 0, 0, 0.75);
 }
 
-.table input[type="checkbox"] {
+.table input[type="checkbox"],
+#parameters input[type="checkbox"] {
   display: none;
+}
+
+#parameters .checkbox-label {
+  margin-top: 10px;
 }
 
 .table .checkmark {
