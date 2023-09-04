@@ -1225,6 +1225,7 @@ async function getParameterByName(serial, fieldName) {
     data: JSON.stringify(requestPayload),
   });
   // console.log(requestResponse.data);
+  await new Promise(resolve => setTimeout(resolve, 300));
 
   const getResponse = await axios.get(`http://krbl.ru:8080/http/parameters/get?serial=${serial}`);
   // console.log(getResponse.data);
