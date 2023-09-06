@@ -878,8 +878,10 @@ app.get("/api/devices", async (req, res) => {
 });
 
 async function generatePDF(data) {
-  const browser = await puppeteer.launch({ headless: "new" });
-  const page = await browser.newPage();
+  const browser = await puppeteer.launch({
+    headless: true, 
+    ignoreDefaultArgs: ['--disable-extensions']
+  });  const page = await browser.newPage();
 
   const htmlTemplate = fs.readFileSync('static/templates/reports/pdf.html', 'utf-8');
 
