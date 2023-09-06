@@ -12,6 +12,7 @@ const axios = require('axios');
 const moment = require('moment');
 const bodyParser = require('body-parser');
 const _ = require('lodash');
+const puppeteer = require('puppeteer');
 
 
 const storage = multer.diskStorage({
@@ -103,17 +104,17 @@ conn.on('error', function(err) {
 });
 
 
-// const DB_User = process.env.DB_USER;
-// const DB_Password = process.env.DB_PASSWORD;
-// const DB_Host = process.env.DB_HOST;
-// const DB_Port = process.env.DB_PORT;
-// const DB_Name = process.env.DB_NAME;
+const DB_User = process.env.DB_USER;
+const DB_Password = process.env.DB_PASSWORD;
+const DB_Host = process.env.DB_HOST;
+const DB_Port = process.env.DB_PORT;
+const DB_Name = process.env.DB_NAME;
 
-const DB_User = "postgres";
-const DB_Password = process.env.POSTGRES_PASSWORD;
-const DB_Host = "postgres";
-const DB_Port = "5432";
-const DB_Name = "postgres";
+// const DB_User = "postgres";
+// const DB_Password = process.env.POSTGRES_PASSWORD;
+// const DB_Host = "postgres";
+// const DB_Port = "5432";
+// const DB_Name = "postgres";
 
 async function index(req, res) {
   var templateData = {
@@ -876,6 +877,37 @@ app.get("/api/devices", async (req, res) => {
   }
 });
 
+async function generatePDF(data) {
+  const browser = await puppeteer.launch({ headless: "new" });
+  const page = await browser.newPage();
+
+  const htmlTemplate = fs.readFileSync('static/templates/reports/pdf.html', 'utf-8');
+
+  const filledTemplate = htmlTemplate
+  .replace(/{{Id}}/g, data.Id)
+                                    .replace(/{{Organisation}}/g, data.Organisation)
+                                    .replace(/{{Type}}/g, data.Type)
+                                    .replace(/{{Speed}}/g, data.Speed)
+                                    .replace(/{{Date}}/g, data.Date)
+                                    .replace(/{{Serial}}/g, data.Serial)
+                                    .replace(/{{Geo}}/g, data.Geo)
+                                    .replace(/{{PrevLongitude}}/g, data.PrevLongitude)
+                                    .replace(/{{PrevLatitude}}/g, data.PrevLatitude)
+                                    .replace(/{{NextLongitude}}/g, data.NextLongitude)
+                                    .replace(/{{NextLatitude}}/g, data.NextLatitude)
+                                    .replace(/{{Speeds}}/g, data.Speeds);
+
+  await page.setContent(filledTemplate);
+
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  await page.pdf({ path: 'report.pdf', format: 'A4' });
+
+  await browser.close();
+}
+
+
+
 app.get('/reports/:id', async (req, res) => {
   const id = req.params.id;
 
@@ -1108,6 +1140,30 @@ app.get('/reports/:id', async (req, res) => {
           return speed;
         }
       });
+
+
+let data = {
+  Id: templateData.Id,
+  Organisation: templateData.Organisation,
+  Type: templateData.Type,
+  Speed: templateData.Speed,
+  Date: templateData.Date,
+  Serial: templateData.Serial,
+  Geo: templateData.Geo,
+  PrevLongitude: templateData.PrevLongitude,
+  PrevLatitude: templateData.PrevLatitude,
+  NextLongitude: templateData.NextLongitude,
+  NextLatitude: templateData.NextLatitude,
+  Speeds: templateData.Speeds,
+};
+
+      generatePDF(data)
+  .then(() => {
+    console.log('PDF создан успешно.');
+  })
+  .catch((error) => {
+    console.error('Ошибка при создании PDF:', error);
+  });
       
     // console.log(templateData);
   
@@ -1129,6 +1185,270 @@ app.get('/reports/:id', async (req, res) => {
     const resultT = template(templateData);
     res.send(resultT);
   }
+});
+
+app.get('/generate-pdf/:id', async (req, res) => {
+  const id = req.params.id;
+
+  let templateData = {
+    Organisation: "Название организации",
+    User: "Тестовое Имя",
+    ifDBError: false,
+    Id: id,
+    Type: "",
+    Speed: "",
+    Date: "",
+    Serial: "",
+    Geo: "",
+    Latitude: "",
+    Longitude: "",
+    
+    DriverName: "",
+    DriverPhone: "",
+    DriverEmail: "",
+    DriverLicense: "",
+
+    PrevLatitude: "",
+    PrevLongitude: "",
+    NextLatitude: "",
+    NextLongitude: "",
+    Speeds: "",
+  };
+
+  try {
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+    const client = await pool.connect();
+  
+    const minuteInMillis = 90 * 1000; 
+  
+    const query = `
+    WITH PrevNextGeo AS (
+      SELECT
+        a.serial,
+        a.st,
+        a.time,
+        a.geoid,
+        (SELECT g1.latitude FROM alarms a1 LEFT JOIN geo g1 ON a1.geoid = g1.id WHERE a1.evtuuid = a.evtuuid ORDER BY a1.time ASC LIMIT 1) AS prev_latitude,
+        (SELECT g2.longitude FROM alarms a2 LEFT JOIN geo g2 ON a2.geoid = g2.id WHERE a2.evtuuid = a.evtuuid ORDER BY a2.time ASC LIMIT 1) AS prev_longitude,
+        (SELECT g3.latitude FROM alarms a3 LEFT JOIN geo g3 ON a3.geoid = g3.id WHERE a3.evtuuid = a.evtuuid ORDER BY a3.time DESC LIMIT 1) AS next_latitude,
+        (SELECT g4.longitude FROM alarms a4 LEFT JOIN geo g4 ON a4.geoid = g4.id WHERE a4.evtuuid = a.evtuuid ORDER BY a4.time DESC LIMIT 1) AS next_longitude,
+        g.longitude,
+        g.latitude,
+        g.speed,
+        d.name,
+        d.surname,
+        d.card,
+        d.phone,
+        d.email
+      FROM alarms a
+      LEFT JOIN geo g ON a.geoid = g.id
+      LEFT JOIN drivers d ON a.serial = d.transport
+      WHERE a.id = ${id}
+      LIMIT 1
+    ),
+    Speeds AS (
+      SELECT
+        g.speed,
+        ROW_NUMBER() OVER (ORDER BY ABS(EXTRACT(EPOCH FROM (a.time - (SELECT time FROM PrevNextGeo)))) ASC) AS row_number
+      FROM alarms a
+      LEFT JOIN geo g ON a.geoid = g.id
+      WHERE g.serial = (SELECT serial FROM PrevNextGeo) -- Ограничиваем результаты только записями с тем же serial
+    )
+    SELECT
+      *,
+      (
+        SELECT array_agg(speed) FROM Speeds
+        WHERE row_number <= 11
+      ) AS nearest_speeds
+    FROM PrevNextGeo;
+    `;
+
+    const alarm = (await client.query(query)).rows[0];
+    // console.log(alarm);
+
+    function formatDate(date) {
+      const options = {
+        year: "2-digit",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      };
+      const adjustedDate = new Date(date);
+      adjustedDate.setHours(adjustedDate.getHours() - 3); 
+    
+      const formattedDate = adjustedDate.toLocaleString("ru-RU", options);
+      return formattedDate.replace(",", "");
+    }
+
+      let type;
+      switch (alarm.st) {
+        case "0":
+          type = "Усталость";
+          break;
+        case "1":
+          type = "Водитель пропал";
+          break;
+        case "2":
+          type = "Разговор по телефону";
+          break;
+        case "3":
+          type = "Курение за рулём";
+          break;
+        case "4":
+          type = "Водитель отвлекся";
+          break;
+        case "5":
+          type = "Выезд с полосы движения";
+          break;
+        case "6":
+          type = "!!! Лобовое столкновение";
+          break;
+        case "7":
+          type = "Скорость превышена";
+          break;
+        case "8":
+          type = "Распознавание номерных знаков";
+          break;
+        case "9":
+          type = "!! Маленькое расстояние спереди";
+          break;
+        case "10":
+          type = "Водитель зевает";
+          break;
+        case "11":
+          type = "!!! Столкновение с пешеходом";
+          break;
+        case "12":
+          type = "Проходы переполнены";
+          break;
+        case "13":
+          type = "!! Посадка/высадка вне остановки";
+          break;
+        case "14":
+          type = "!! Смена полосы с нарушением ПДД";
+          break;
+        case "15":
+          type = "! Включенный телефон у водителя";
+          break;
+        case "16":
+          type = "!!! Ремень безопасности";
+          break;
+        case "17":
+          type = "Проверка не удалась";
+          break;
+        case "18":
+          type = "Слепые зоны справа";
+          break;
+        case "19":
+          type = "!!! Заднее столкновение";
+          break;
+        case "20":
+          type = "!!! Управление без рук";
+          break;
+        case "21":
+          type = "!! Управление одной рукой";
+          break;
+        case "22":
+          type = "Очки, блокирующие инфракрасное излучение";
+          break;
+        case "23":
+          type = "Слепые зоны слева";
+          break;
+        case "24":
+          type = "Помехи для пассажиров";
+          break;
+        case "25":
+          type = "На перекрестке ограничена скорость";
+          break;
+        case "26":
+          type = "Обнаружен перекресток";
+          break;
+        case "27":
+          type = "Пешеходы на переходе";
+          break;
+        case "28":
+          type = "! Неучтивое отношение к пешеходам";
+          break;
+        case "29":
+          type = "Обнаружен пешеходный переход";
+          break;
+        case "30":
+          type = "Водитель матерится";
+          break;
+        default:
+          type = "Неизвестный тип";
+      }
+
+      var actualSpeed;
+      if (alarm.speed > 150) {
+        actualSpeed = alarm.speed / 100
+      } else {
+        actualSpeed = alarm.speed
+      }
+
+      templateData.Type = type;
+      templateData.Speed = actualSpeed;
+      templateData.Date = formatDate(alarm.time);
+      templateData.Serial = alarm.serial;
+      templateData.Geo = alarm.latitude + "," + alarm.longitude;
+      templateData.Latitude = alarm.latitude
+      templateData.Longitude = alarm.longitude
+
+      templateData.DriverName = alarm.name + " " + alarm.surname;
+      templateData.DriverPhone = alarm.phone;
+      templateData.DriverEmail = alarm.email;
+      templateData.DriverLicense = alarm.card;
+
+      templateData.PrevLatitude = alarm.prev_latitude;   
+      templateData.PrevLongitude = alarm.prev_longitude; 
+      templateData.NextLatitude = alarm.next_latitude;   
+      templateData.NextLongitude = alarm.next_longitude; 
+
+      templateData.Speeds = alarm.nearest_speeds
+      templateData.Speeds = templateData.Speeds.map(speed => {
+        if (speed > 150) {
+          return speed / 100;
+        } else {
+          return speed;
+        }
+      });
+
+let data = {
+  Id: templateData.Id,
+  Organisation: templateData.Organisation,
+  Type: templateData.Type,
+  Speed: templateData.Speed,
+  Date: templateData.Date,
+  Serial: templateData.Serial,
+  Geo: templateData.Geo,
+  PrevLongitude: templateData.PrevLongitude,
+  PrevLatitude: templateData.PrevLatitude,
+  NextLongitude: templateData.NextLongitude,
+  NextLatitude: templateData.NextLatitude,
+  Speeds: templateData.Speeds,
+};
+
+      generatePDF(data)
+  .then(() => {
+    console.log('PDF создан успешно.');
+    res.sendFile(`${__dirname}/report.pdf`);
+  })
+  .catch((error) => {
+    console.error('Ошибка при создании PDF:', error);
+    res.status(500).send('Ошибка при создании PDF');
+  });
+} catch (error) {
+  console.error(error);
+  res.status(500).send('Ошибка при получении данных');
+}
+
 });
 
 async function devices(req, res) {

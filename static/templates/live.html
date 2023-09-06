@@ -301,7 +301,7 @@
             type: 'flv',
             isLive: true,
             cors: true,
-            url: `${baseURL}?serial=${serial}&channel=${i}&quality=1`,
+            url: `${baseURL}?serial=${serial}&channel=${i}&quality=0`,
           }, {
             enableWorker: true,
             enableStashBuffer: false,
@@ -492,6 +492,7 @@ var markerObj = L.marker([latitude, longitude], { icon: marker });
 
           propertiesDiv.style.display = 'inline-flex';
         } else {
+          propertiesDiv.style.display = 'none';
           console.log('Устройство с выбранным серийным номером не найдено.');
         }
       })
