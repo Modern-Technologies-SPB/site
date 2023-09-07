@@ -7,7 +7,7 @@ COPY package*.json ./
 
 RUN npm install
 
-RUN apt-get update && apt-get install -y libnss3 libatk1.0-0
+RUN apt-get update && apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0
 
 # Bundle app source
 COPY . .
