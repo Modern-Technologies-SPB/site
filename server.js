@@ -104,17 +104,17 @@ conn.on('error', function(err) {
 });
 
 
-// const DB_User = process.env.DB_USER;
-// const DB_Password = process.env.DB_PASSWORD;
-// const DB_Host = process.env.DB_HOST;
-// const DB_Port = process.env.DB_PORT;
-// const DB_Name = process.env.DB_NAME;
+const DB_User = process.env.DB_USER;
+const DB_Password = process.env.DB_PASSWORD;
+const DB_Host = process.env.DB_HOST;
+const DB_Port = process.env.DB_PORT;
+const DB_Name = process.env.DB_NAME;
 
-const DB_User = "postgres";
-const DB_Password = process.env.POSTGRES_PASSWORD;
-const DB_Host = "postgres";
-const DB_Port = "5432";
-const DB_Name = "postgres";
+// const DB_User = "postgres";
+// const DB_Password = process.env.POSTGRES_PASSWORD;
+// const DB_Host = "postgres";
+// const DB_Port = "5432";
+// const DB_Name = "postgres";
 
 async function index(req, res) {
   var templateData = {
@@ -925,6 +925,9 @@ app.get('/reports/:id', async (req, res) => {
     Geo: "",
     Latitude: "",
     Longitude: "",
+    QueryTime: "",
+    StartTime: "",
+    EndTime: "",
     
     DriverName: "",
     DriverPhone: "",
@@ -1008,6 +1011,32 @@ app.get('/reports/:id', async (req, res) => {
     
       const formattedDate = adjustedDate.toLocaleString("ru-RU", options);
       return formattedDate.replace(",", "");
+    }
+
+    function formatDateToYYYYMMDD(sqlDate) {
+      const date = new Date(sqlDate);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}${month}${day}`;
+    }
+
+    function formatTimeToHHMMSSBefore(sqlDate) {
+      const date = new Date(sqlDate);
+      date.setSeconds(date.getSeconds() - 10); 
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${hours}${minutes}${seconds}`;
+    }
+
+    function formatTimeToHHMMSSAfter(sqlDate) {
+      const date = new Date(sqlDate);
+      date.setSeconds(date.getSeconds() + 10); 
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${hours}${minutes}${seconds}`;
     }
 
       let type;
@@ -1123,6 +1152,9 @@ app.get('/reports/:id', async (req, res) => {
       templateData.Geo = alarm.latitude + "," + alarm.longitude;
       templateData.Latitude = alarm.latitude
       templateData.Longitude = alarm.longitude
+      templateData.QueryTime = formatDateToYYYYMMDD(alarm.time);
+      templateData.StartTime = formatTimeToHHMMSSBefore(alarm.time);
+      templateData.EndTime = formatTimeToHHMMSSAfter(alarm.time);
 
       templateData.DriverName = alarm.name + " " + alarm.surname;
       templateData.DriverPhone = alarm.phone;
@@ -1142,30 +1174,6 @@ app.get('/reports/:id', async (req, res) => {
           return speed;
         }
       });
-
-
-let data = {
-  Id: templateData.Id,
-  Organisation: templateData.Organisation,
-  Type: templateData.Type,
-  Speed: templateData.Speed,
-  Date: templateData.Date,
-  Serial: templateData.Serial,
-  Geo: templateData.Geo,
-  PrevLongitude: templateData.PrevLongitude,
-  PrevLatitude: templateData.PrevLatitude,
-  NextLongitude: templateData.NextLongitude,
-  NextLatitude: templateData.NextLatitude,
-  Speeds: templateData.Speeds,
-};
-
-      generatePDF(data)
-  .then(() => {
-    console.log('PDF создан успешно.');
-  })
-  .catch((error) => {
-    console.error('Ошибка при создании PDF:', error);
-  });
       
     // console.log(templateData);
   

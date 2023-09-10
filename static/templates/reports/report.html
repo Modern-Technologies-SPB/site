@@ -145,7 +145,7 @@
                         </div>
                       </div>
 
-                      <div class="video-controls">
+                      <!-- <div class="video-controls">
                         <div class="controls">
                           <span id="current-time">00:00</span>
                           <button id="play-pause-btn">
@@ -161,11 +161,22 @@
                           <div id="progress-bar">
                             <div id="progress"></div>
                           </div>
-                      </div>
+                      </div> -->
 
                     </div>
 
-                      <video id="my-video" src="../test_video.MP4"></video>
+                      <!-- <video id="my-video" src="../test_video.MP4"></video> -->
+
+                      <div class="report-video-container">
+                        <div id="camera-1" onclick="playVideo(10);">
+                          <img src="../../img/play-circle.svg">
+                          <span>Запустить камеру водителя</span>
+                        </div>
+                        <div id="camera-2" onclick="playVideo(3);">
+                          <img src="../../img/play-circle.svg">
+                          <span>Запустить камеру из салона</span>
+                        </div>
+                      </div>
 
                       <div class="stream-map">
                         <div id="map"></div>
@@ -177,7 +188,7 @@
 
   <style>
     .stream-map {
-      width: calc(100% - 450px - 514px);
+      width: calc(100% - 512px);
       height: calc(100% - 62px);
       float: right;
     }
@@ -225,21 +236,10 @@
 
 
 <script>
-
-  function sizeMap() {
-    var mapContainer = document.querySelector('.map');
-    var mapArea = document.getElementById('map');
-    mapArea.style.height = (mapContainer.clientHeight) + 'px';
-    mapArea.style.width = (mapContainer.clientWidth) + 'px';
+  function playVideo(channel) {
+    const url = `http://localhost:8081/playback?url=http%3A%2F%2Fkrbl.ru%3A8080%2Fhttp%2Fplayback.flv%3Fserial%3D{{Serial}}%26channel%3D${channel}%26quality%3D1%26queryTime%3D{{QueryTime}}%26startTime%3D{{StartTime}}%26endTime%3D{{EndTime}}`;
+    window.open(url, '_blank');
   }
-
-  // window.addEventListener('DOMContentLoaded', function() {
-  //   sizeMap();
-  // });
-
-  window.addEventListener("resize", function (event) {
-    sizeMap();
-  });
 </script>
 
 

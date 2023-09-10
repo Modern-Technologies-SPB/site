@@ -301,7 +301,7 @@
             type: 'flv',
             isLive: true,
             cors: true,
-            url: `${baseURL}?serial=${serial}&channel=${i}&quality=0`,
+            url: `${baseURL}?serial=${serial}&channel=${i}&quality=1`,
           }, {
             enableWorker: true,
             enableStashBuffer: false,
@@ -358,24 +358,6 @@
         list.style.height = (signalsList.clientHeight - 50 - 75) + 'px';
       });
     </script>
-
-<script>
-  window.addEventListener('DOMContentLoaded', function() {
-    var mapContainer = document.querySelector('.map');
-    var mapArea = document.getElementById('map');
-
-    mapArea.style.height = (mapContainer.clientHeight) + 'px';
-    mapArea.style.width = (mapContainer.clientWidth) + 'px';
-  });
-
-  window.addEventListener("resize", function (event) {
-        var mapContainer = document.querySelector('.map');
-        var mapArea = document.getElementById('map');
-
-        mapArea.style.height = (mapContainer.clientHeight) + 'px';
-        mapArea.style.width = (mapContainer.clientWidth) + 'px';
-      });
-</script>
 
     <script>
 
