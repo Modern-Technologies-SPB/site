@@ -173,6 +173,11 @@ header h2 span {
   bottom: 27px;
 }
 
+.admin-panel {
+  position: absolute;
+  bottom: 79px;
+}
+
 .main {
   /* position: absolute; */
   position: relative;
@@ -430,24 +435,54 @@ header h2 span {
   width: fit-content;
 }
 
+.permissions {
+  display: flex;
+}
+
+.permission-group:first-child {
+  margin-left: 44px;
+}
+
+.permission-group {
+  display: inline-block;
+  height: fit-content;
+  width: 160px;
+}
+
+.permission-group h2 {
+  margin: 20px 0 5px 0;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.permission-group .checkbox-label {
+  margin-top: 10px;
+  float: left;
+  font-size: 15px;
+}
+
 .organisation label,
-#parameters label {
+#parameters label,
+.permission-group label {
   color: rgba(0, 0, 0, 0.5);
   cursor: pointer !important;
 }
 
 .organisation .checkbox-label:hover,
-.add-new .checkbox-label:hover {
+.add-new .checkbox-label:hover,
+.permission-group .chart-label:hover {
   color: rgba(0, 0, 0, 0.7) !important;
 }
 
 .organisation .checkbox-input:checked + .checkbox-label,
-.add-new .checkbox-input:checked + .checkbox-label {
+.add-new .checkbox-input:checked + .checkbox-label,
+.permission-group .checkbox-input:checked + .checkbox-label {
   color: rgba(0, 0, 0, 0.9) !important;
 }
 
 .organisation .checkmark,
-.add-new .checkmark {
+.add-new .checkmark,
+.permission-group .checkmark {
   display: inline-block;
   width: 18px;
   height: 18px;
@@ -458,12 +493,14 @@ header h2 span {
 }
 
 .organisation .checkbox-input:hover + .checkbox-label .checkmark,
-.add-new .checkbox-input:hover + .checkbox-label .checkmar {
+.add-new .checkbox-input:hover + .checkbox-label .checkmar,
+.permission-group .checkbox-input:hover + .checkbox-label .checkmark {
   filter: brightness(0.95) !important;
 }
 
 .organisation .checkbox-input:checked + .checkbox-label .checkmark, 
-.add-new .checkbox-input:checked + .checkbox-label .checkmark {
+.add-new .checkbox-input:checked + .checkbox-label .checkmark,
+.permission-group .checkbox-input:checked + .checkbox-label .checkmark {
   background: url(../img/checkbox-check.svg);
 }
 
@@ -596,7 +633,8 @@ header h2 span {
   width: fit-content;
 }
 
-.table .search {
+.table .search,
+.admin-search {
   display: inline-block;
   float: right;
   margin: 12px 42px 12px 0;
@@ -617,6 +655,20 @@ header h2 span {
   transition: 0.2s;
 }
 
+.admin-search {
+  float: left;
+  margin: 32px 0 33px 0;
+  display: block;
+  border-radius: 7px;
+  width: 550px;
+  height: 40px;
+  background-size: 18px 18px;
+  background-position: 12px 12px;
+  padding-left: 40px;
+  font-size: 18px;
+  background-image: url("../img/magnifyingglass.svg");
+}
+
 .search:focus,
 .search:hover {
   border: 1px solid rgba(0, 0, 0, 0.3);
@@ -625,6 +677,42 @@ header h2 span {
 .search::placeholder {
   color: rgba(0, 0, 0, 0.25);
   opacity: 100%;
+}
+
+.add-user {
+  background-image: url("../img/plus.svg") !important;
+  background-size: 16px 16px !important;
+  background-position: 10px 13px !important;
+  background-repeat: no-repeat !important;
+  padding-left: 36px !important;
+  height: 44px !important;
+  outline: none !important;
+  float: right !important;
+  border-radius: 7px !important;
+  margin: 32px 0 33px 0 !important;
+  font-size: 16px !important;
+}
+
+.add-user-form {
+  position: relative;
+  background-color: white;
+  border-radius: 20px;
+  width: 565px !important;
+  padding: 33px !important;
+}
+
+.add-user-form h1 {
+  margin: 0;
+  font-size: 30px;
+  color: rgba(0, 0, 0, 0.70);
+  margin-bottom: 10px;
+}
+
+.add-user-form #close-form-btn {
+  top: 37px !important;
+  right: 33px !important;
+  width: 25px !important;
+  height: 25px !important;
 }
 
 table {
@@ -679,7 +767,8 @@ td {
   background: url(../img/checkbox-table-check.svg);
 }
 
-.table .trash {
+.table .trash,
+#adminTable .trash {
   height: 22px;
   width: 19px;
   background: no-repeat url(../img/trash.svg);
@@ -689,7 +778,8 @@ td {
   float: right;
 }
 
-.table .options {
+.table .options,
+#adminTable .options {
   height: 19px;
   width: 22px;
   margin-top: 3px;
@@ -1066,9 +1156,17 @@ tr:nth-child(even) {
   background-color: #0000000a;
 }
 
+#edit-user-form {
+  width: 550px;
+  /* float: right; */
+  margin: 30px 0 0 44px;
+}
+
 .new-parameters label,
 .update-info label,
-.input-name {
+.input-name,
+.add-user-form label,
+#edit-user-form label {
   display: inline-block;
   width: 100%;
   font-weight: 400;
@@ -1080,9 +1178,16 @@ tr:nth-child(even) {
   cursor: default;
 }
 
+.add-user-form label {
+  margin-top: 16px;
+  color: rgba(0, 0, 0, 0.75);
+}
+
 .new-parameters input,
 .new-parameters select,
-.update-info input {
+.update-info input,
+.add-user-form input,
+#edit-user-form input {
   margin-top: 6px;
   margin-bottom: 10px;
   display: inline-block;
@@ -1101,9 +1206,22 @@ tr:nth-child(even) {
   transition: 0.2s;
 }
 
+.add-user-form input {
+  width: 540px;
+  height: 25px;
+}
+
+#edit-user-form input {
+  width: 500px;
+}
+
 .new-parameters input:hover,
 .new-parameters select:hover,
 .new-parameters input:focus,
+.add-user-form input:focus,
+.add-user-form input:hover,
+#edit-user-form input:hover,
+#edit-user-form input:focus,
 .update-info input:hover,
 .update-info input:focus {
   border: 1px solid rgba(0, 0, 0, 0.3);
@@ -1119,11 +1237,14 @@ tr:nth-child(even) {
   background-position-x: calc(100% - 14px);
 }
 
-.new-parameters input::placeholder {
+.new-parameters input::placeholder,
+.add-user-form input::placeholder,
+#edit-user-form input::placeholder {
   color: rgba(0, 0, 0, 0.25);
 }
 
 .new-parameters button,
+.add-user-form button,
 .update-info button,
 .button-purple {
   padding: 10px 16px;
@@ -1140,9 +1261,13 @@ tr:nth-child(even) {
 }
 
 .new-parameters button,
+.add-user-form button,
 .update-info button {
   float: right;
   margin-bottom: 50px;
+}
+.add-user-form button {
+  margin: 0;
 }
 
 .update-info button {
@@ -1152,6 +1277,7 @@ tr:nth-child(even) {
 
 .new-parameters button:hover,
 .update-info button:hover,
+.add-user-form button:hover,
 .button-purple:hover {
   filter: brightness(0.9);
 }
@@ -2235,6 +2361,44 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 input[type="time"]:hover,
 input[type="time"]:focus {
   border: 1px solid rgba(0, 0, 0, 0.30);
+}
+
+#adminTable {
+  border-collapse: collapse;
+  overflow: hidden;
+  box-shadow: 0 0 0 2px #F5F5FA;
+  border-radius: 20px;
+  background-color: white;
+  -moz-border-radius: 20px;
+  -webkit-border-radius: 20px;
+}
+
+#adminTable th {
+  background-color: white !important;
+  color: rgba(0, 0, 0, 0.80);
+  font-size: 24px;
+  font-weight: 600;
+  padding: 18px 18px 12px 28px;
+  border: 0;
+}
+
+#adminTable td {
+  color: rgba(0, 0, 0, 0.60);
+  font-size: 18px;
+  padding: 14px 18px 14px 28px;
+  border-bottom: 0;
+}
+
+.name .user-id {
+  padding: 0 11px;
+  color: rgba(0, 0, 0, 0.60);
+  font-size: 15px !important;
+  font-weight: 500;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  background: rgba(0, 0, 0, 0.05);
+  margin-left: 15px;
+  height: 30px !important;
 }
 
 @media (max-width: 1950px) {

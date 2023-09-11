@@ -41,6 +41,7 @@ app.get("/devices/update", update);
 app.get("/videos", videos);
 app.get("/videos/export",videoExport);
 app.get("/settings", settings);
+app.get("/admin", adminPanel);
 
 const connectionProperties = {
   host: process.env.SSH_HOST,
@@ -1989,6 +1990,31 @@ app.post("/driverdata", async (req, res) => {
   }
 });
 
+app.post("/userdata", async (req, res) => {
+  const id = req.body.id;
+
+  const pool = new Pool({
+    user: DB_User,
+    host: DB_Host,
+    database: DB_Name,
+    password: DB_Password,
+    port: DB_Port,
+  });
+  const client = await pool.connect();
+
+  try {
+    // Выполняем запрос и получаем результат
+    const query = "SELECT * FROM users WHERE id = $1;";
+    const userdata = await client.query(query, [id]);
+
+    // Формирование и отправка ответа
+    const response = userdata.rows[0];
+    res.json(response);
+  } finally {
+    client.release();
+  }
+});
+
 app.post("/deletedriver", async (req, res) => {
   const id = req.body.id;
 
@@ -2005,6 +2031,30 @@ app.post("/deletedriver", async (req, res) => {
     // Выполняем запрос и получаем результат
     const query = "DELETE FROM drivers WHERE id = $1;";
     const driverdata = await client.query(query, [id]);
+
+    // Формирование и отправка ответа
+    res.send("Data deleted successfully");
+  } finally {
+    client.release();
+  }
+});
+
+app.post("/deleteuser", async (req, res) => {
+  const id = req.body.id;
+
+  const pool = new Pool({
+    user: DB_User,
+    host: DB_Host,
+    database: DB_Name,
+    password: DB_Password,
+    port: DB_Port,
+  });
+  const client = await pool.connect();
+
+  try {
+    // Выполняем запрос и получаем результат
+    const query = "DELETE FROM users WHERE id = $1;";
+    const userdata = await client.query(query, [id]);
 
     // Формирование и отправка ответа
     res.send("Data deleted successfully");
@@ -2093,6 +2143,274 @@ function update(req, res) {
 function settings(req, res) {
   res.sendFile(path.join(__dirname, "static/templates/settings.html"));
 }
+
+async function adminPanel(req, res) {
+  let templateData = {
+    Organisation: "Название организации",
+    User: "Тестовое Имя",
+    ifDBError: false,
+    Users: [],
+  };
+
+  try {
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+    const client = await pool.connect();
+    const queryUsers = `
+      SELECT id, name, surname, email, phone, added
+      FROM users
+      ORDER BY id
+    `;
+    const usersResult = await client.query(queryUsers);
+    const allUsers = usersResult.rows;
+
+    templateData.Users = allUsers.map((user) => ({
+        id: user.id,
+        name: user.name,
+        surname: user.surname,
+        email: user.email,
+        phone: user.phone,
+        added: new Date(user.added).toLocaleDateString('ru-RU', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+      }));
+  
+    // console.log(templateData);
+  
+    const source = fs.readFileSync("static/templates/admin/index.html", "utf8");
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  
+    client.release();
+  } catch (error) {
+    console.error(error);
+    templateData.ifDBError = true;
+
+    const source = fs.readFileSync(
+      "static/templates/admin/index.html",
+      "utf8"
+    );
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  }
+}
+
+// Обработка POST-запроса для добавления пользователя
+app.post("/add-user", async (req, res) => {
+  const { name, surname, email, phone, password } = req.body;
+
+  console.log(name, surname, email, phone, password)
+
+  try {
+
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+
+    const client = await pool.connect();
+
+    const query = `
+      INSERT INTO users (name, surname, email, phone, password, added)
+      VALUES ($1, $2, $3, $4, $5, NOW()) 
+      RETURNING id
+    `;
+
+    const result = await client.query(query, [name, surname, email, phone, password]);
+
+    // Освобождение клиента
+    client.release();
+
+    console.log("Пользователь успешно добавлен");
+    res.json({ message: "Пользователь успешно добавлен" });
+  } catch (err) {
+    console.error("Ошибка при вставке данных в базу данных:", err);
+    res.status(500).json({ error: "Ошибка при добавлении пользователя" });
+  }
+});
+
+app.get('/admin/user/:id', async (req, res) => {
+  const id = req.params.id;
+
+  let templateData = {
+    Organisation: "Название организации",
+    User: "Тестовое Имя",
+    ifDBError: false,
+    Id: id,
+    Name: "",
+    Surname: "",
+    Email: "",
+    Phone: "",
+    Password: "",
+    Devices: [],
+    EditTransport: false,
+    DeleteTransport: false,
+    Update: false,
+
+    Groups: [],
+  };
+
+  try {
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+    const client = await pool.connect();
+
+    const queryRegistrars = `
+      SELECT id, serial, lastkeepalive, name, "group", plate, sim, ip, port 
+      FROM registrars
+      ORDER BY id
+    `;
+    const registrarsResult = await client.query(queryRegistrars);
+    const allRegistrars = registrarsResult.rows;
+
+    const groupedRegistrars = {};
+    allRegistrars.forEach((registrar) => {
+      if (!groupedRegistrars[registrar.group]) {
+        groupedRegistrars[registrar.group] = [];
+      }
+      groupedRegistrars[registrar.group].push({ serial: registrar.serial, checked: false });
+    });
+
+    for (const groupName in groupedRegistrars) {
+      templateData.Groups.push({
+        name: groupName,
+        serials: groupedRegistrars[groupName],
+      });
+    }
+
+   const query = "SELECT * FROM users WHERE id = $1;";
+    const userdata = await client.query(query, [id]);
+
+    // Формирование и отправка ответа
+    const response = userdata.rows[0];
+
+    if (response.devices && response.devices.length > 0) {
+      templateData.Groups.forEach((group) => {
+        group.serials.forEach((serial) => {
+          serial.checked = response.devices.includes(serial.serial);
+        });
+      });
+    }
+
+    templateData.Name = response.name;
+    templateData.Surname = response.surname;
+    templateData.Email = response.email;
+    templateData.Phone = response.phone;
+    templateData.Password = response.password;
+    templateData.Devices = response.devices;
+    templateData.DeleteTransport = response.deletetransport;
+    templateData.EditTransport = response.edittransport;
+    templateData.Update = response.update;
+      
+    // console.log(templateData);
+  
+    const source = fs.readFileSync("static/templates/admin/user.html", "utf8");
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  
+    client.release();
+  } catch (error) {
+    console.error(error);
+    templateData.ifDBError = true;
+
+    const source = fs.readFileSync(
+      "static/templates/admin/user.html",
+      "utf8"
+    );
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  }
+});
+
+app.post("/updateuser/:id", async (req, res) => {
+  const id = req.params.id;
+  const pool = new Pool({
+    user: DB_User,
+    host: DB_Host,
+    database: DB_Name,
+    password: DB_Password,
+    port: DB_Port,
+  });
+  const client = await pool.connect();
+
+  var {
+    name,
+    surname,
+    email,
+    phone,
+    password,
+    EditTransport,
+    DeleteTransport,
+    Update,
+  } = req.body.formData;
+
+  var devices = req.body.devices
+
+  try {
+
+    const query = `
+      UPDATE users
+      SET
+        name = $2,
+        surname = $3,
+        email = $4,
+        phone = $5,
+        password = $6,
+        editTransport = $7,
+        deleteTransport = $8,
+        update = $9,
+        devices = $10
+      WHERE id = $1
+      RETURNING *;
+    `;
+
+    const values = [
+      id,
+      name,
+      surname,
+      email,
+      phone,
+      password,
+      EditTransport,
+      DeleteTransport,
+      Update,
+      devices,
+    ];
+
+    const result = await client.query(query, values);
+
+    const updatedRow = result.rows[0];
+    // console.log("Updated row:", updatedRow);
+
+    res.send("Data updated successfully");
+  } catch (error) {
+    console.error("Error updating data:", error);
+    res.status(500).send("An error occurred while updating data");
+  } finally {
+    client.release();
+  }
+});
 
 async function videos(req, res) {
   let templateData = {

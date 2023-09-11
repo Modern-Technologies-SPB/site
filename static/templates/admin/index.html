@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель управления</title>
+    <link rel="stylesheet" href="../styles/main.css" />
+</head>
+<body>
+
+    <header>
+        <h1>Аргус</h1>
+        <h2><span>/</span> {{Organisation}}</h2>
+    </header>
+
+    <section class="account-info">
+      <div id="account-main">
+          <img id="person" src="../img/person.svg">
+          <span>{{User}}</span>
+          <img id="down" src="../img/down.svg">
+          <img id="up" src="../img/up.svg">
+      </div>
+      <a href="/login"><div id="account-additional" class="additional">Выйти</div></a>
+  </section>
+
+    
+
+
+    <section class="navigation">
+        <a href="/">
+            <div><img src="../img/chart.svg">Главная</div>
+        </a>
+        <a href="/devices">
+            <div><img src="../img/cloud.svg">Устройства</div>
+        </a>
+        <a href="/reports">
+            <div><img src="../img/bubble.svg">Отчёты</div>
+        </a>
+        <a href="/live">
+            <div><img src="../img/waves.svg">Трансляция</div>
+        </a>
+        <a href="/videos">
+            <div><img src="../img/play.svg">Записи</div>
+        </a>
+        <a class="admin-panel" href="/admin">
+          <div class="selected"><img src="../img/keyboard.svg">Админка</div>
+        </a>
+        <a class="settings" href="/settings">
+            <div><img src="../img/gear.svg">Настройки</div>
+        </a>
+    </section>
+
+    <section class="main">
+      {{#if ifDBError}}
+      <section class="dberror">
+        <div class="erorr-container">
+          <img src="../img/warning.svg"> <br>
+          <h1>Ошибка </h1> <br>
+          <span>Не удалось получить данные из БД</span>
+          <button type="button" onclick="location.reload();">Повторить попытку</button>
+        </div>
+      </section>
+      {{/if}}
+
+      <section style="display: none;" class="dberror" id="addInformation" >
+        <div class="erorr-container">
+          <div id="loader" class="loader">
+            <div class="square" id="sq1"></div>
+            <div class="square" id="sq2"></div>
+            <div class="square" id="sq3"></div>
+            <div class="square" id="sq4"></div>
+            <div class="square" id="sq5"></div>
+            <div class="square" id="sq6"></div>
+            <div class="square" id="sq7"></div>
+            <div class="square" id="sq8"></div>
+            <div class="square" id="sq9"></div>
+          </div>
+          <svg id="success-mark" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="108" height="108" fill="none" viewBox="0 0 108 108">
+            <g clip-path="url(#a)">
+              <path fill="#8086F9" fill-opacity=".85" d="M54 107.947c29.541 0 54-24.5 54-53.973C108 24.447 83.488 0 53.947 0 24.459 0 0 24.447 0 53.974c0 29.474 24.512 53.973 54 53.973Zm0-8.995c-24.988 0-44.947-20.002-44.947-44.978 0-24.976 19.906-44.978 44.894-44.978S99 28.998 99 53.974c0 24.976-20.012 44.978-45 44.978Zm-5.824-19.844c1.747 0 3.23-.846 4.289-2.487l24.194-38.046c.582-1.058 1.27-2.222 1.27-3.386 0-2.382-2.117-3.916-4.341-3.916-1.323 0-2.647.847-3.653 2.381l-21.97 35.241-10.43-13.493c-1.27-1.693-2.435-2.116-3.917-2.116-2.277 0-4.077 1.852-4.077 4.18 0 1.164.477 2.276 1.218 3.28l12.917 15.875c1.324 1.747 2.753 2.487 4.5 2.487Z"/>
+            </g>
+            <defs>
+              <clipPath id="a">
+                <path fill="#fff" d="M0 0h108v108H0z"/>
+              </clipPath>
+            </defs>
+          </svg>
+          
+                <h1>Добавление пользователя</h1> <br>
+                <span id="status">Пожалуйста, подождите</span>
+                <button id="closeButton" style="display: none;" onclick="hideMessage()">Закрыть</button>
+        </div>
+    </section>
+  
+  
+        <div class="name">
+            <span>Панель управления</span>
+        </div>
+        
+        <nav>
+            <a class="selected" href="/admin">Пользователи</a>
+        </nav>
+        <section class="bg">
+            <section id="content" class="content">
+
+              <input id="table-search" class="search admin-search" type="text" placeholder="Поиск по имени, почте, номеру телефона или ID">
+              <button class="button-purple add-user" onclick="addUser();">Добавить пользователя</button>
+
+              <table id="adminTable">
+                <thead>
+                  <tr>
+                    <th>Имя</th>
+                    <th>ID</th>
+                    <th>Почта</th>
+                    <th>Номер телефона</th>
+                    <th>Дата добавления</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Сюда будут добавляться строки таблицы -->
+                </tbody>
+              </table>
+
+              <div id="count">
+                <!-- Сюда добавится итоговое количество результатов -->
+            </div>
+            <div id="pagination">
+                <!-- Сюда будут добавляться ссылки для переключения между страницами -->
+              </div>
+
+            </section>
+        </section>
+    </section>
+    <section id="form-bg" class="edit-container">
+
+      <section class="add-user-form" id="form">
+        <h1>Добавить пользователя</h1>
+        <img src="../img/xmark.svg" id="close-form-btn">
+
+
+        <form id="add-user-form">
+        <div class="parameters-input">
+          <label for="user-name">Имя<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+          <input name="name" type="text" id="user-name" placeholder="Имя пользователя" required>
+        </div>
+        <div class="parameters-input">
+          <label for="user-surname">Фамилия<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+          <input name="surname" type="text" id="user-surname" placeholder="Фамилия пользователя" required>
+        </div>
+        <div class="parameters-input">
+          <label for="user-email">Email<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+          <input name="email" type="text" id="user-email" placeholder="Email пользователя" required>
+        </div>
+        <div class="parameters-input">
+          <label for="user-phone">Номер телефона<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+          <input name="phone" type="text" id="user-phone" placeholder="Номер телефона пользователя" required>
+        </div>
+        <div class="parameters-input">
+          <label for="user-password">Пароль<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+          <input name="password" type="text" id="user-password" placeholder="Пароль пользователя" required>
+        </div>
+        <div class="horizontal-line"></div>
+
+        <button id="user-add" type="submit">Добавить</button>
+      </form>
+      </section>
+
+    </section>
+
+    <section style="display: none;" class="dberror" id="deleteConfirmation">
+      <div class="erorr-container">
+        <img src="../img/warning.svg"> <br>
+        <h1>Удаление водителя </h1> <br>
+        <span>Вы уверены что хотите удалить <span id="driverDeleteInfo"></span>?</span>
+        <div class="buttons">
+        <button id="deleteCancel" onclick="closeDeletion();" style="display: inline-block; background-color: white; color: rgba(0, 0, 0, 0.7); margin-right: 5px;" type="button" onclick="deleteDriver()">Отменить</button>
+        <button id="deleteDriver" style="display: inline-block;" type="button">Подтвердить</button>
+      </div>
+      </div>
+    </section>
+
+
+
+    <script>
+      const users = [
+  {{#each Users}}
+  {
+    id: "{{this.id}}",
+    name: "{{this.name}}",
+    surname: "{{this.surname}}",
+    phone: "{{this.phone}}",
+    email: "{{this.email}}",
+    date: "{{this.added}}",
+  },
+  {{/each}}
+];
+    </script>
+
+    <script src="../scripts/jquery.min.js"></script>
+    <script src="../scripts/table-admin.js"></script>
+    <script src="https://rawgit.com/RobinHerbots/Inputmask/5.x/dist/jquery.inputmask.js"></script>
+    <script>
+      $(document).ready(function(){
+
+          $('#user-phone').inputmask({"mask": "+7 (999) 999-9999"});
+
+      });
+  </script>
+
+    <script>
+      var formContainer = $("#form-bg");
+      var fform = $("#form");
+
+      function closeForm() {
+        formContainer.removeClass("active");
+        fform.removeClass("form-animation");
+        $("body").css("overflow", "auto");
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("add-user-form");
+    
+        form.addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          const deleteConfirmation = document.getElementById("addInformation");
+        const loader = document.getElementById("loader");
+        const status = document.getElementById("status");
+        const closeButton = document.getElementById("closeButton");
+        const mark = document.getElementById("success-mark");
+
+        loader.style.display = "block";
+        closeButton.style.display = "none";
+        deleteConfirmation.style.display = "flex";
+        mark.style.display = "none";
+    
+          const formData = new FormData(form);
+
+                const jsonObject = {};
+                formData.forEach((value, key) => {
+                    jsonObject[key] = value;
+                });
+                const jsonData = JSON.stringify(jsonObject);
+
+                closeForm();
+                form.reset();
+
+                fetch("/add-user", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: jsonData,
+                })
+            .then((response) => response.json())
+            .then((data) => {
+              showMessage("Пользователь успешно добавлен", true);
+            })
+            .catch((error) => {
+              showMessage("Не удалось добавить пользователя", false);
+              console.error("Ошибка:", error);
+            });
+        });
+      });
+    </script>
+
+    <script>
+      
+      function addUser() {
+        var formContainer = $("#form-bg");
+        var form = $("#form");
+        formContainer.addClass("active");
+        form.addClass("form-animation");
+        $("body").css("overflow", "hidden");
+      }
+
+      $(document).ready(function() {
+      var formContainer = $("#form-bg");
+      var form = $("#form");
+
+      
+
+      // Закрывает popup форму
+      $("#close-form-btn").click(function() {
+        closeForm();
+      });
+
+      // Закрывает popup форму при клике вне её области
+      $(document).click(function(event) {
+        if (
+    !formContainer.is(event.target) &&
+    formContainer.has(event.target).length === 0 &&
+    formContainer.hasClass("active") &&
+    !openButton.is(event.target)
+  ) {
+          closeForm();
+        }
+      });
+
+      // Функция для закрытия формы
+      function closeForm() {
+        formContainer.removeClass("active");
+        form.removeClass("form-animation");
+        $("body").css("overflow", "auto");
+      }
+    });
+  
+
+    function hideMessage() {
+      location.reload();
+        const deleteConfirmation = document.getElementById("addInformation");
+        deleteConfirmation.style.display = "none";
+    }
+
+    function showMessage(messageText, isSuccess) {
+        const loader = document.getElementById("loader");
+        const status = document.getElementById("status");
+        const closeButton = document.getElementById("closeButton");
+        const mark = document.getElementById("success-mark");
+
+        loader.style.display = "none";
+        status.textContent = messageText;
+        if (isSuccess) {
+            mark.style.display = "block";
+            status.style.color = "green"; 
+        } else {
+            status.style.color = "red"; 
+        }
+        closeButton.style.display = "block";
+    }
+
+
+
+    </script>
+
+<script>
+  function deleteUser(id) {
+
+  var deleteConfirmation = $("#deleteConfirmation");
+
+  $.ajax({
+    url: "/userdata", 
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify({ id: id }),
+    success: function(response) {
+      // Установка значений полей формы
+      $("#driverDeleteInfo").html(response.name + " " + response.surname);
+      document.getElementById('deleteDriver').setAttribute("onclick", `confirmDelete(${response.id})`);
+
+
+      document.getElementById('deleteConfirmation').style.display = "flex";
+
+      $("body").css("overflow", "hidden");
+      },
+      error: function() {
+        // Обработка ошибки при запросе к серверу
+        alert("Произошла ошибка при запросе к серверу.");
+      }
+  });
+    
+  }
+
+  function closeDeletion() {
+      document.getElementById('deleteConfirmation').style.display = "none";
+    }
+
+  function confirmDelete(id) {
+  $.ajax({
+    url: "/deleteuser", 
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify({ id: id }),
+    success: function(response) {
+      location.reload();
+      },
+      error: function() {
+        // Обработка ошибки при запросе к серверу
+        alert("Произошла ошибка при запросе к серверу.");
+      }
+  });
+    
+  }
+</script>
+    <script>
+        // Скрытие/Показ дополнительных меню аккаунта
+        const accountMain = document.getElementById('account-main');
+        const accountAdditional = document.getElementById('account-additional');
+        const accountUp = document.getElementById('up');
+        const accountDown = document.getElementById('down');
+        accountAdditional.style.display = 'none';
+        accountUp.style.display = 'none';
+        
+        accountMain.addEventListener('click', () => {
+          if (accountAdditional.style.display === 'none') {
+            accountAdditional.style.display = 'flex';
+            accountUp.style.display = 'unset';
+            accountDown.style.display = 'none';
+          } else {
+            accountAdditional.style.display = 'none';
+            accountUp.style.display = 'none';
+            accountDown.style.display = 'unset';
+          }
+        });
+      </script>
+      
+    
+</body>
+</html>
