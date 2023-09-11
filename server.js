@@ -28,7 +28,7 @@ const upload = multer({ storage: storage });
 
 app.use(
   session({
-    secret: process.env.SSH_PORT,
+    secret: process.env.SEKRET,
     resave: false,
     saveUninitialized: true,
     cookie: { maxAge: 24 * 60 * 60 * 1000 }, 
