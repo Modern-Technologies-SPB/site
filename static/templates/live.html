@@ -25,7 +25,7 @@
           <img id="down" src="../img/down.svg">
           <img id="up" src="../img/up.svg">
       </div>
-      <a href="/login"><div id="account-additional" class="additional">Выйти</div></a>
+      <a href="/logout"><div id="account-additional" class="additional">Выйти</div></a>
   </section>
 
     
@@ -47,9 +47,11 @@
         <a href="/videos">
             <div><img src="../img/play.svg">Записи</div>
         </a>
+        {{#if isAdmin}}
         <a class="admin-panel" href="/admin">
-          <div><img src="../img/keyboard.svg">Админка</div>
-       </a>
+            <div><img src="../img/keyboard.svg">Админка</div>
+        </a>
+        {{/if}}
         <a class="settings" href="/settings">
             <div><img src="../img/gear.svg">Настройки</div>
         </a>

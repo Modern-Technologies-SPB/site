@@ -13,6 +13,7 @@ const moment = require('moment');
 const bodyParser = require('body-parser');
 const _ = require('lodash');
 const puppeteer = require('puppeteer');
+const session = require('express-session');
 
 
 const storage = multer.diskStorage({
@@ -25,13 +26,22 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+app.use(
+  session({
+    secret: process.env.SSH_PORT,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 24 * 60 * 60 * 1000 }, 
+  })
+);
+
 app.use(express.static(path.join(__dirname, "static")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.get("/", index);
-app.get("/login", login);
+app.get("/signin", signin);
 app.get("/register", register);
 app.get("/live", live);
 app.get("/reports", reports);
@@ -54,7 +64,62 @@ const commandToExecute = 'docker ps | grep connectionserver-video-server';
 
 const conn = new Client();
 
+async function getUserInfo(userId) {
+  const pool = new Pool({
+    user: DB_User,
+    host: DB_Host,
+    database: DB_Name,
+    password: DB_Password,
+    port: DB_Port,
+  });
+  const client = await pool.connect();
+
+  try {
+    let userInfo = {
+      Organisation: "",
+      User: '',
+      Users: [],
+    };
+
+    if (userId != "admin") {
+      const queryUsers = `
+        SELECT name, surname, devices, edittransport, deletetransport, update
+        FROM users
+        WHERE id = $1
+      `;
+      const usersResult = await client.query(queryUsers, [userId]);
+      const user = usersResult.rows[0];
+      userInfo.Users.push({
+        name: user.name,
+        surname: user.surname,
+        devices: user.devices,
+        edittransport: user.edittransport,
+        deletetransport: user.deletetransport,
+        update: user.update,
+      });
+      userInfo.User = user.name + " " + user.surname;
+    } else {
+      userInfo.User = "Администратор"
+    }
+
+    const queryMain = `SELECT organisation FROM main`;
+    const mainResult = await client.query(queryMain);
+    userInfo.Organisation = mainResult.rows[0].organisation;
+
+    return userInfo;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+
 app.post("/videos/restart", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
 conn.on('ready', function() {
   
   console.log('Подключение по SSH успешно');
@@ -118,9 +183,15 @@ const DB_Port = "5432";
 const DB_Name = "postgres";
 
 async function index(req, res) {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
   var templateData = {
-    Organisation: "Название организации",
-    User: "Тестовое Имя",
+    Organisation: userInfo.Organisation,
+    User: userInfo.User,
+    UserInfo: userInfo.Users,
+    isAdmin: req.session.userId === 'admin',
     ifDBError: false,
     Count: "",
     AlarmsLast11Days: new Array(11).fill(0),
@@ -264,17 +335,163 @@ for (let i = 0; i < dates.length; i++) {
   }
 }
 
-function login(req, res) {
-  res.sendFile(path.join(__dirname, "static/templates/login.html"));
-}
-function register(req, res) {
-  res.sendFile(path.join(__dirname, "static/templates/register.html"));
+function signin(req, res) {
+  if (req.session.userId != undefined) {
+    return res.redirect("/");
+  }
+  const pool = new Pool({
+    user: DB_User,
+    host: DB_Host,
+    database: DB_Name,
+    password: DB_Password,
+    port: DB_Port,
+  });
+  pool.query('SELECT COUNT(*) FROM main', (error, result) => {
+    if (error) {
+      console.error('Ошибка при выполнении запроса к базе данных:', error);
+      res.status(500).send('Ошибка сервера');
+      return;
+    }
+
+    const rowCount = parseInt(result.rows[0].count, 10);
+
+    if (rowCount === 0) {
+      res.redirect('/register');
+    } else {
+      res.sendFile(path.join(__dirname, 'static/templates/signin.html'));
+    }
+  });
 }
 
+function register(req, res) {
+  if (req.session.userId != undefined) {
+    return res.redirect("/");
+  }
+  const pool = new Pool({
+    user: DB_User,
+    host: DB_Host,
+    database: DB_Name,
+    password: DB_Password,
+    port: DB_Port,
+  });
+  pool.query('SELECT COUNT(*) FROM main', (err, result) => {
+    if (err) {
+      console.error('Ошибка выполнения SQL-запроса:', err);
+      res.status(500).send('Внутренняя ошибка сервера');
+      return;
+    }
+
+    if (result.rows[0].count > 0) {
+      res.redirect('/signin');
+    } else {
+      res.sendFile(path.join(__dirname, 'static/templates/register.html'));
+    }
+  });
+}
+
+app.post('/setup', async (req, res) => {
+  if (req.session.userId != undefined) {
+    return res.redirect("/");
+  }
+  try {
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+    const { name, login, password } = req.body;
+
+    const checkQuery = 'SELECT * FROM main LIMIT 1';
+    const checkResult = await pool.query(checkQuery);
+
+    if (checkResult.rows.length > 0) {
+      res.redirect('/signin');
+    }
+
+    const insertQuery = 'INSERT INTO main (organisation, login, password) VALUES ($1, $2, $3)';
+    await pool.query(insertQuery, [name, login, password]);
+
+    res.status(200).json({ message: 'Данные успешно добавлены' });
+  } catch (error) {
+    console.error('Ошибка при обработке запроса:', error);
+    res.status(500).json({ error: 'Произошла ошибка при обработке запроса' });
+  }
+});
+
+app.post('/login', async (req, res) => {
+  if (req.session.userId != undefined) {
+    return res.redirect("/");
+  }
+  const { email, password } = req.body;
+
+  try {
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+
+    const mainQuery = await pool.query(
+      'SELECT * FROM main WHERE login = $1 AND password = $2',
+      [email, password]
+    );
+
+    const mainUser = mainQuery.rows[0];
+
+    if (mainUser) {
+      req.session.userId = "admin";
+
+      console.log("Авторизация успешна (из таблицы main)");
+      return res.status(200).json({ message: 'Авторизация успешна' });
+    }
+
+    const userQuery = await pool.query(
+      'SELECT id, name, surname FROM users WHERE email = $1 AND password = $2',
+      [email, password]
+    );
+
+    const user = userQuery.rows[0];
+
+    if (!user) {
+      return res.status(401).json({ message: 'Неправильное имя пользователя или пароль' });
+    }
+
+    req.session.userId = user.id;
+
+    console.log("Авторизация успешна (из таблицы users)");
+    res.status(200).json({ message: 'Авторизация успешна' });
+  } catch (error) {
+    console.error('Ошибка при выполнении запроса к базе данных:', error);
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
+});
+
+app.get('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Ошибка при выходе из системы:', err);
+      res.status(500).json({ message: 'Ошибка сервера' });
+    } else {
+      res.redirect('/signin'); 
+    }
+  });
+});
+
+
 async function live(req, res) {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
-    Organisation: "Название организации",
-    User: "Тестовое Имя",
+    Organisation: userInfo.Organisation,
+    User: userInfo.User,
+    UserInfo: userInfo.Users,
+    isAdmin: req.session.userId === 'admin',
     ifDBError: false,
     Registrars: [],
     Alarms: [],
@@ -512,6 +729,9 @@ async function live(req, res) {
 }
 
 app.post("/devices-geo", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
   const selectedDevices = req.body.devices;
 
   const pool = new Pool({
@@ -575,9 +795,15 @@ pool.query(subquery, selectedDevices, (err, result) => {
 
 
 async function reports(req, res) {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
-    Organisation: "Название организации",
-    User: "Тестовое Имя",
+    Organisation: userInfo.Organisation,
+    User: userInfo.User,
+    UserInfo: userInfo.Users,
+    isAdmin: req.session.userId === 'admin',
     ifDBError: false,
     Registrars: [],
     Groups: [],
@@ -790,6 +1016,9 @@ async function reports(req, res) {
 }
 
 app.get("/api/devices", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
   try {
     const pool = new Pool({
       user: DB_User,
@@ -912,11 +1141,17 @@ async function generatePDF(data) {
 
 
 app.get('/reports/:id', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
   const id = req.params.id;
 
   let templateData = {
-    Organisation: "Название организации",
-    User: "Тестовое Имя",
+    Organisation: userInfo.Organisation,
+    User: userInfo.User,
+    UserInfo: userInfo.Users,
+    isAdmin: req.session.userId === 'admin',
     ifDBError: false,
     Id: id,
     Type: "",
@@ -1199,11 +1434,17 @@ app.get('/reports/:id', async (req, res) => {
 });
 
 app.get('/generate-pdf/:id', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
   const id = req.params.id;
 
   let templateData = {
-    Organisation: "Название организации",
-    User: "Тестовое Имя",
+    Organisation: userInfo.Organisation,
+    User: userInfo.User,
+    UserInfo: userInfo.Users,
+    isAdmin: req.session.userId === 'admin',
     ifDBError: false,
     Id: id,
     Type: "",
@@ -1463,9 +1704,15 @@ let data = {
 });
 
 async function devices(req, res) {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
-    Organisation: "Название организации",
-    User: "Тестовое Имя",
+    Organisation: userInfo.Organisation,
+    User: userInfo.User,
+    UserInfo: userInfo.Users,
+    isAdmin: req.session.userId === 'admin',
     ifDBError: false,
     Registrars: [],
     Groups: [],
@@ -1570,6 +1817,9 @@ async function getParameterByName(serial, fieldName) {
 }
 
 app.post('/device-parameters', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
   try {
     const { serial, FIELDS } = req.body;
     // console.log(serial, FIELDS);
@@ -1615,6 +1865,9 @@ function findPathForField(fieldName) {
 }
 
 app.put('/device-parameters', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
   // Получаем данные из PUT запроса
   const requestData = req.body;
   const { serial } = req.query;
@@ -1673,6 +1926,9 @@ app.put('/device-parameters', async (req, res) => {
 
 
 app.post("/devicedata", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
   const id = req.body.id;
 
   const pool = new Pool({
@@ -1696,6 +1952,9 @@ app.post("/devicedata", async (req, res) => {
 });
 
 app.post("/updatedevice", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
   const pool = new Pool({
     user: DB_User,
     host: DB_Host,
@@ -1827,6 +2086,9 @@ app.post("/updatedevice", async (req, res) => {
 });
 
 app.post("/updatedriver", upload.single("upload-file"), async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
   const pool = new Pool({
     user: DB_User,
     host: DB_Host,
@@ -1897,6 +2159,9 @@ app.post("/updatedriver", upload.single("upload-file"), async (req, res) => {
 });
 
 app.post("/adddriver", upload.single("upload-file"), async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
   const pool = new Pool({
     user: DB_User,
     host: DB_Host,
@@ -1966,6 +2231,9 @@ app.post("/adddriver", upload.single("upload-file"), async (req, res) => {
 });
 
 app.post("/driverdata", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
   const id = req.body.id;
 
   const pool = new Pool({
@@ -1991,6 +2259,9 @@ app.post("/driverdata", async (req, res) => {
 });
 
 app.post("/userdata", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
   const id = req.body.id;
 
   const pool = new Pool({
@@ -2016,6 +2287,9 @@ app.post("/userdata", async (req, res) => {
 });
 
 app.post("/deletedriver", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
   const id = req.body.id;
 
   const pool = new Pool({
@@ -2040,6 +2314,9 @@ app.post("/deletedriver", async (req, res) => {
 });
 
 app.post("/deleteuser", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
   const id = req.body.id;
 
   const pool = new Pool({
@@ -2064,9 +2341,15 @@ app.post("/deleteuser", async (req, res) => {
 });
 
 async function drivers(req, res) {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
-    Organisation: "Название организации",
-    User: "Тестовое Имя",
+    Organisation: userInfo.Organisation,
+    User: userInfo.User,
+    UserInfo: userInfo.Users,
+    isAdmin: req.session.userId === 'admin',
     ifDBError: false,
     Drivers: [],
     Registrars: [],
@@ -2136,20 +2419,85 @@ async function drivers(req, res) {
   }
 }
 
-function update(req, res) {
-  res.sendFile(path.join(__dirname, "static/templates/devices/update.html"));
+async function update(req, res) {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  let templateData = {
+    Organisation: userInfo.Organisation,
+    User: userInfo.User,
+    ifDBError: false,
+    UserInfo: userInfo.Users,
+    isAdmin: req.session.userId === 'admin',
+  };
+
+  try {
+    const source = fs.readFileSync("static/templates/devices/update.html", "utf8");
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  } catch (error) {
+    console.error(error);
+    templateData.ifDBError = true;
+
+    const source = fs.readFileSync(
+      "static/templates/devices/update.html",
+      "utf8"
+    );
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  }
 }
 
-function settings(req, res) {
-  res.sendFile(path.join(__dirname, "static/templates/settings.html"));
+async function settings(req, res) {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  let templateData = {
+    Organisation: userInfo.Organisation,
+    User: userInfo.User,
+    ifDBError: false,
+    UserInfo: userInfo.Users,
+    isAdmin: req.session.userId === 'admin',
+  };
+
+  try {
+    const source = fs.readFileSync("static/templates/settings.html", "utf8");
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  } catch (error) {
+    console.error(error);
+    templateData.ifDBError = true;
+
+    const source = fs.readFileSync(
+      "static/templates/settings.html",
+      "utf8"
+    );
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  }
 }
 
 async function adminPanel(req, res) {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  if (req.session.userId != "admin") {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
-    Organisation: "Название организации",
-    User: "Тестовое Имя",
+    Organisation: userInfo.Organisation,
+    User: userInfo.User,
     ifDBError: false,
     Users: [],
+    UserInfo: userInfo.Users,
+    isAdmin: req.session.userId === 'admin',
   };
 
   try {
@@ -2208,6 +2556,12 @@ async function adminPanel(req, res) {
 
 // Обработка POST-запроса для добавления пользователя
 app.post("/add-user", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  if (req.session.userId != "admin") {
+    return res.redirect("/signin");
+  }
   const { name, surname, email, phone, password } = req.body;
 
   console.log(name, surname, email, phone, password)
@@ -2244,11 +2598,20 @@ app.post("/add-user", async (req, res) => {
 });
 
 app.get('/admin/user/:id', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  if (req.session.userId != "admin") {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
   const id = req.params.id;
 
   let templateData = {
-    Organisation: "Название организации",
-    User: "Тестовое Имя",
+    Organisation: userInfo.Organisation,
+    User: userInfo.User,
+    UserInfo: userInfo.Users,
+    isAdmin: req.session.userId === 'admin',
     ifDBError: false,
     Id: id,
     Name: "",
@@ -2344,6 +2707,12 @@ app.get('/admin/user/:id', async (req, res) => {
 });
 
 app.post("/updateuser/:id", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  if (req.session.userId != "admin") {
+    return res.redirect("/signin");
+  }
   const id = req.params.id;
   const pool = new Pool({
     user: DB_User,
@@ -2413,9 +2782,15 @@ app.post("/updateuser/:id", async (req, res) => {
 });
 
 async function videos(req, res) {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
-    Organisation: "Название организации",
-    User: "Тестовое Имя",
+    Organisation: userInfo.Organisation,
+    User: userInfo.User,
+    UserInfo: userInfo.Users,
+    isAdmin: req.session.userId === 'admin',
     ifDBError: false,
     Registrars: [],
     Groups: [],
@@ -2501,9 +2876,15 @@ async function videos(req, res) {
 }
 
 async function videoExport(req, res) {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
-    Organisation: "Название организации",
-    User: "Тестовое Имя",
+    Organisation: userInfo.Organisation,
+    User: userInfo.User,
+    UserInfo: userInfo.Users,
+    isAdmin: req.session.userId === 'admin',
     ifDBError: false,
     Registrars: [],
     Groups: [],
@@ -2590,6 +2971,9 @@ async function videoExport(req, res) {
 }
 
 app.get('/getData', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
   const selectedSerial = req.query.serial;
   const selectedDate = req.query.selectedDate;
   const selectedTime = req.query.selectedTime;
@@ -2657,6 +3041,9 @@ app.get('/getData', async (req, res) => {
 });
 
 app.post("/getspeedarchive", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
   const { serial, datetime } = req.body;
 
   const formattedDateTime = new Date(datetime).toISOString();
@@ -2709,6 +3096,9 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-// app.use((req, res, next) => {
-//   res.sendFile(path.join(__dirname, "static/templates/404.html"));
-// });
+app.use((req, res, next) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  res.sendFile(path.join(__dirname, "static/templates/404.html"));
+});

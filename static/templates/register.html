@@ -10,7 +10,7 @@
 <body>
 
     <section class="form left">
-        <form enctype="multipart/form-data" method="post" action="/postsignin">
+        <form enctype="multipart/form-data" method="post" action="/setup" id="setupForm">
             <h1>Добро пожаловать в Аргус</h1>
             <h2>Приступим к созданию организации</h2>
 
@@ -26,7 +26,7 @@
             <label for="repassword">Подтверждение<span>*</span></label>
             <input title="Повторите пароль" placeholder="Повторите пароль" name="repassword" type="password" required>
 
-            <button onclick="window.location.href='/'" type="button">Установить</button>
+            <button type="submit">Установить</button>
         </form>
     </section>
 
@@ -34,7 +34,55 @@
     <video class="animation right" autoplay muted loop>
         <source src="../img/traffic.mp4" type="video/mp4">
     </video>
-    <span class="copyright right"><a href="https://dribbble.com/shots/15608015-Traffic">Видеоматериал создан Igor Kozak на Dribbble</a></span>
+    <span class="copyright right"><a href="https://dribbble.com/shots/15608015-Traffic">Видеоматериал создан Igor Kozak для 10Clouds</a></span>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const passwordInput = document.querySelector('input[name="password"]');
+            const repasswordInput = document.querySelector('input[name="repassword"]');
+
+            // Обработка отправки формы в формате JSON
+            const setupForm = document.getElementById('setupForm');
+            setupForm.addEventListener('submit', function(event) {
+                const password = passwordInput.value;
+                const repassword = repasswordInput.value;
+
+                if (password !== repassword) {
+                    alert('Пароли не совпадают');
+                    event.preventDefault(); 
+                    return;
+                }
+
+                event.preventDefault(); 
+                const formData = new FormData(setupForm);
+                const jsonData = {};
+
+                formData.forEach((value, key) => {
+                    jsonData[key] = value;
+                });
+
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '/setup');
+                xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        location.href = '/';
+                    } else {
+                        alert('Произошла ошибка при отправке данных');
+                        window.location.reload();
+                    }
+                };
+
+                xhr.onerror = function() {
+                    // Ошибка сети
+                    alert('Произошла ошибка сети');
+                };
+
+                xhr.send(JSON.stringify(jsonData));
+            });
+        });
+    </script>
 
     
     

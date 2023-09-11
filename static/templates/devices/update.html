@@ -11,17 +11,17 @@
 
     <header>
         <h1>Аргус</h1>
-        <h2><span>/</span> Название организации</h2>
+        <h2><span>/</span> {{Organisation}}</h2>
     </header>
 
     <section class="account-info">
       <div id="account-main">
           <img id="person" src="../img/person.svg">
-          <span>Тестовое Имя</span>
+          <span>{{User}}</span>
           <img id="down" src="../img/down.svg">
           <img id="up" src="../img/up.svg">
       </div>
-      <a href="/login"><div id="account-additional" class="additional">Выйти</div></a>
+      <a href="/logout"><div id="account-additional" class="additional">Выйти</div></a>
   </section>
 
     
@@ -43,6 +43,11 @@
         <a href="/videos">
             <div><img src="../img/play.svg">Записи</div>
         </a>
+        {{#if isAdmin}}
+        <a class="admin-panel" href="/admin">
+            <div><img src="../img/keyboard.svg">Админка</div>
+        </a>
+        {{/if}}
         <a class="settings" href="/settings">
             <div><img src="../img/gear.svg">Настройки</div>
         </a>
