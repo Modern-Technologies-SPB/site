@@ -69,6 +69,7 @@
         </div>
         <nav>
             <a class="selected" href="/devices">Список устройств</a>
+            <a href="/devices/groups">Группы</a>
             <!-- <a href="/devices/drivers">Водители</a> -->
             <!-- <a href="/devices/newdevice">Добавить устройство</a> -->
             <!-- <a href="/devices/newdriver">Добавить водителя</a> -->
@@ -206,7 +207,12 @@
           </div>
           <div class="parameters-input">
               <label for="parameters-group">Группа<span style="color: rgba(255, 69, 58, 1);">*</span></label>
-              <input name="deviceGroup" type="text" id="parameters-group" placeholder="Название группы" required>
+              <select name="deviceGroup" id="parameters-group">
+                <option value="0">Другое</option>
+                {{#each GroupsList}}
+                  <option value="{{this.id}}">{{this.name}}</option>
+                {{/each}}
+            </select>
           </div>
           <div class="parameters-input">
               <label for="parameters-port">Порт<span style="color: rgba(255, 69, 58, 1);">*</span></label>
@@ -440,19 +446,25 @@
         <div class="parameters-input">
             <label for="system-video">Формат видео</label>
             <select name="VIDEOFORMAT" id="system-video">
-              <option value="0">0</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
+              <option value="0">800 x 600 px</option>
+              <option value="1">1024 x 768 px</option>
+              <option value="2">1280 x 1024 px</option>
+              <option value="3">1366 x 768 px</option>
+              <option value="4">1440 x 900 px</option>
+              <option value="5">720p</option>
+              <option value="6">1080I</option>
+              <option value="7">1080p</option>
+              <option value="8">480p</option>
+              <option value="9">576p</option>
           </select>
         </div>
         <div class="parameters-input">
           <label for="system-stream">Формат трансляции</label>
           <select name="SUBSTREAMMODE" id="system-stream">
-            <option value="0">0</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
+            <option value="0">Плавно</option>
+            <option value="1">Менее качественно, но более плавно</option>
+            <option value="2">Менее плавно, но более качественно</option>
+            <option value="3">Качество</option>
         </select>
       </div>
       <div class="parameters-input">

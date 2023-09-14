@@ -26,7 +26,22 @@
     <video class="animation left" autoplay muted loop>
         <source src="../img/traffic.mp4" type="video/mp4">
     </video>
-    <span class="copyright left"><a href="https://dribbble.com/shots/15608015-Traffic">Видеоматериал создан Igor Kozak для 10Clouds</a></span>
+    <span class="copyright left" id="copyright"><a href="https://dribbble.com/shots/15608015-Traffic" target="_blank">Видеоматериал создан Igor Kozak для 10Clouds</a></span>
+
+    <span id="info-icon"><a href="https://dribbble.com/shots/15608015-Traffic" target="_blank">i</a></span>
+    
+
+    <script>
+        document.getElementById('info-icon').addEventListener('mouseenter', function () {
+            document.getElementById('copyright').style.opacity = '1';
+        });
+    
+        document.getElementById('info-icon').addEventListener('mouseleave', function () {
+            document.getElementById('copyright').style.opacity = '0';
+        });
+    </script>
+
+    
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {

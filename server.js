@@ -46,12 +46,14 @@ app.get("/register", register);
 app.get("/live", live);
 app.get("/reports", reports);
 app.get("/devices", devices);
-app.get("/devices/drivers", drivers);
+// app.get("/devices/drivers", drivers);
 app.get("/devices/update", update);
+app.get("/devices/groups", groups)
 app.get("/videos", videos);
 app.get("/videos/export",videoExport);
 app.get("/settings", settings);
 app.get("/admin", adminPanel);
+app.get("/admin/organisation", organisation);
 
 const connectionProperties = {
   host: process.env.SSH_HOST,
@@ -673,28 +675,37 @@ async function live(req, res) {
 
     templateData.Count = templateData.Alarms.length;
 
+    // Получаем список групп и их идентификаторов из таблицы groups
+    const groupsQuery = "SELECT id, name FROM groups";
+    const groupsResult = await client.query(groupsQuery);
+    const groupsMap = {};
+    groupsResult.rows.forEach((group) => {
+      groupsMap[group.id] = group.name;
+    });
+
+
     // Выполняем запрос, чтобы получить все данные из таблицы registrars
     const queryRegistrars = `
-      SELECT id, serial, channels, lastkeepalive, name, "group", plate, sim, ip, port 
+      SELECT id, serial, channels, lastkeepalive, "group", name, plate, sim, ip, port
       FROM registrars
       ORDER BY id
     `;
     const registrarsResult = await client.query(queryRegistrars);
     const allRegistrars = registrarsResult.rows;
 
-    // Группируем устройства по группам и сохраняем данные каждого устройства
     const groupedRegistrars = {};
     allRegistrars.forEach((registrar) => {
-      if (!groupedRegistrars[registrar.group]) {
-        groupedRegistrars[registrar.group] = [];
+      const groupName = groupsMap[registrar.group] || "Другое"; // Используем "Другое", если группа неизвестна
+      if (!groupedRegistrars[groupName]) {
+        groupedRegistrars[groupName] = [];
       }
-      groupedRegistrars[registrar.group].push({
+      groupedRegistrars[groupName].push({
         id: registrar.id,
         serial: registrar.serial,
         channels: registrar.channels,
         status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
         name: registrar.name,
-        group: registrar.group,
+        group: groupsMap[registrar.group] || "Другое",
         plate: registrar.plate,
         sim: registrar.sim,
         ip: registrar.ip,
@@ -702,13 +713,23 @@ async function live(req, res) {
       });
     });
 
-    // Заполняем массив групп данными устройств в каждой группе
-    for (const groupName in groupedRegistrars) {
-      templateData.Groups.push({
+    templateData.Registrars = allRegistrars.map((registrar) => ({
+        id: registrar.id,
+        serial: registrar.serial,
+        channels: registrar.channels,
+        status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
+        name: registrar.name,
+        group: groupsMap[registrar.group] || "Другое",
+        plate: registrar.plate,
+        sim: registrar.sim,
+        ip: registrar.ip,
+        port: registrar.port,
+      }));
+
+      templateData.Groups = Object.keys(groupedRegistrars).map((groupName) => ({
         name: groupName,
         devices: groupedRegistrars[groupName],
-      });
-    }
+      }));
 
 
     const source = fs.readFileSync("static/templates/live.html", "utf8");
@@ -966,31 +987,37 @@ async function reports(req, res) {
       };
     }))
 
-     // Выполняем запрос, чтобы получить все данные из таблицы registrars
-     const queryRegistrars = `
-     SELECT id, serial, lastkeepalive, name, "group", plate, sim, ip, port 
-     FROM registrars
-     ORDER BY id
-   `;
-   const registrarsResult = await client.query(queryRegistrars);
-   const allRegistrars = registrarsResult.rows;
-     
-    // Группируем устройства по группам
-    const groupedRegistrars = {};
-    allRegistrars.forEach((registrar) => {
-      if (!groupedRegistrars[registrar.group]) {
-        groupedRegistrars[registrar.group] = [];
-      }
-      groupedRegistrars[registrar.group].push(registrar.serial);
+    const groupsQuery = "SELECT id, name FROM groups";
+    const groupsResult = await client.query(groupsQuery);
+    const groupsMap = {};
+    groupsResult.rows.forEach((group) => {
+      groupsMap[group.id] = group.name;
     });
 
-    // Заполняем массив групп и серийными номерами устройств в каждой группе
-    for (const groupName in groupedRegistrars) {
-      templateData.Groups.push({
+    const minuteInMillis = 90 * 1000;
+
+    // Выполняем запрос, чтобы получить все данные из таблицы registrars
+    const queryRegistrars = `
+      SELECT id, serial, lastkeepalive, "group", name, plate, sim, ip, port
+      FROM registrars
+      ORDER BY id
+    `;
+    const registrarsResult = await client.query(queryRegistrars);
+    const allRegistrars = registrarsResult.rows;
+
+    const groupedRegistrars = {};
+    allRegistrars.forEach((registrar) => {
+      const groupName = groupsMap[registrar.group] || "Другое"; // Используем "Другое", если группа неизвестна
+      if (!groupedRegistrars[groupName]) {
+        groupedRegistrars[groupName] = [];
+      }
+      groupedRegistrars[groupName].push(registrar.serial);
+    });
+
+    templateData.Groups = Object.keys(groupedRegistrars).map((groupName) => ({
         name: groupName,
         serials: groupedRegistrars[groupName],
-      });
-    }
+      }));
 
     const source = fs.readFileSync(
       "static/templates/reports/index.html",
@@ -1707,15 +1734,17 @@ async function devices(req, res) {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
-  const userInfo = await getUserInfo(req.session.userId);
+
+  let userInfo;
   let templateData = {
-    Organisation: userInfo.Organisation,
-    User: userInfo.User,
-    UserInfo: userInfo.Users,
+    Organisation: '',
+    User: '',
+    UserInfo: '',
     isAdmin: req.session.userId === 'admin',
     ifDBError: false,
     Registrars: [],
     Groups: [],
+    GroupsList: [],
   };
 
   try {
@@ -1727,62 +1756,125 @@ async function devices(req, res) {
       port: DB_Port,
     });
     const client = await pool.connect();
-  
-    const minuteInMillis = 90 * 1000; 
-  
-    // Выполняем запрос, чтобы получить все данные из таблицы registrars
+
+    const groupsQuery = "SELECT id, name FROM groups";
+    const groupsResult = await client.query(groupsQuery);
+    const groupsMap = {};
+    groupsResult.rows.forEach((group) => {
+      groupsMap[group.id] = group.name;
+    });
+
+    const minuteInMillis = 90 * 1000;
+
     const queryRegistrars = `
-      SELECT id, serial, lastkeepalive, name, "group", plate, sim, ip, port 
+      SELECT id, serial, lastkeepalive, "group", name, plate, sim, ip, port
       FROM registrars
       ORDER BY id
     `;
     const registrarsResult = await client.query(queryRegistrars);
     const allRegistrars = registrarsResult.rows;
-  
-    // Определяем статус connected на основе lastkeepalive
-    templateData.Registrars = allRegistrars.map((registrar) => ({
+
+    const groupedRegistrars = {};
+    allRegistrars.forEach((registrar) => {
+      const groupName = groupsMap[registrar.group] || "Другое"; // Используем "Другое", если группа неизвестна
+      if (!groupedRegistrars[groupName]) {
+        groupedRegistrars[groupName] = [];
+      }
+      groupedRegistrars[groupName].push(registrar.serial);
+    });
+
+    userInfo = await getUserInfo(req.session.userId);
+
+    templateData = {
+      Organisation: userInfo.Organisation,
+      User: userInfo.User,
+      UserInfo: userInfo.Users,
+      isAdmin: req.session.userId === 'admin',
+      ifDBError: false,
+      Registrars: allRegistrars.map((registrar) => ({
         id: registrar.id,
         serial: registrar.serial,
         status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
         name: registrar.name,
-        group: registrar.group,
+        group: groupsMap[registrar.group] || "Другое",
         plate: registrar.plate,
         sim: registrar.sim,
         ip: registrar.ip,
         port: registrar.port,
-      }));
+      })),
+      Groups: Object.keys(groupedRegistrars).map((groupName) => ({
+        name: groupName,
+        serials: groupedRegistrars[groupName],
+      })),
+      GroupsList: groupsResult.rows,
+    };
 
- // Группируем устройства по группам
- const groupedRegistrars = {};
- allRegistrars.forEach((registrar) => {
-   if (!groupedRegistrars[registrar.group]) {
-     groupedRegistrars[registrar.group] = [];
-   }
-   groupedRegistrars[registrar.group].push(registrar.serial);
- });
+    console.log(templateData);
 
- // Заполняем массив групп и серийными номерами устройств в каждой группе
- for (const groupName in groupedRegistrars) {
-   templateData.Groups.push({
-     name: groupName,
-     serials: groupedRegistrars[groupName],
-   });
- }
-  
-    // console.log(templateData);
-  
     const source = fs.readFileSync("static/templates/devices/index.html", "utf8");
     const template = handlebars.compile(source);
     const resultT = template(templateData);
     res.send(resultT);
-  
+
     client.release();
+  } catch (error) {
+    console.error(error);
+    if (templateData) {
+      templateData.ifDBError = true;
+
+      const source = fs.readFileSync(
+        "static/templates/devices/index.html",
+        "utf8"
+      );
+      const template = handlebars.compile(source);
+      const resultT = template(templateData);
+      res.send(resultT);
+    }
+  }
+}
+
+
+
+async function groups(req, res) {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  let templateData = {
+    Organisation: userInfo.Organisation,
+    User: userInfo.User,
+    ifDBError: false,
+    UserInfo: userInfo.Users,
+    isAdmin: req.session.userId === 'admin',
+    Groups: [],
+  };
+
+  try {
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+
+    const client = await pool.connect();
+    const result = await client.query('SELECT id, name FROM groups');
+    const groups = result.rows;
+    client.release(); 
+
+    templateData.Groups = groups; 
+
+    const source = fs.readFileSync("static/templates/devices/groups.html", "utf8");
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
   } catch (error) {
     console.error(error);
     templateData.ifDBError = true;
 
     const source = fs.readFileSync(
-      "static/templates/devices/index.html",
+      "static/templates/devices/groups.html",
       "utf8"
     );
     const template = handlebars.compile(source);
@@ -1790,6 +1882,33 @@ async function devices(req, res) {
     res.send(resultT);
   }
 }
+
+app.post('/update-group', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  try {
+    const { groupId, newName } = req.body;
+
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+
+    const query = 'UPDATE groups SET name = $1 WHERE id = $2';
+    const values = [newName, groupId];
+
+    await pool.query(query, values);
+
+    res.status(200).json({ message: 'Данные группы обновлены успешно' });
+  } catch (error) {
+    console.error('Ошибка при обновлении данных группы:', error);
+    res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+  }
+});
 
 async function getParameterByName(serial, fieldName) {
   const requestPayload = {
@@ -2286,6 +2405,34 @@ app.post("/userdata", async (req, res) => {
   }
 });
 
+app.post("/groupdata", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const id = req.body.id;
+
+  const pool = new Pool({
+    user: DB_User,
+    host: DB_Host,
+    database: DB_Name,
+    password: DB_Password,
+    port: DB_Port,
+  });
+  const client = await pool.connect();
+
+  try {
+    // Выполняем запрос и получаем результат
+    const query = "SELECT * FROM groups WHERE id = $1;";
+    const userdata = await client.query(query, [id]);
+
+    // Формирование и отправка ответа
+    const response = userdata.rows[0];
+    res.json(response);
+  } finally {
+    client.release();
+  }
+});
+
 app.post("/deletedriver", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
@@ -2337,6 +2484,70 @@ app.post("/deleteuser", async (req, res) => {
     res.send("Data deleted successfully");
   } finally {
     client.release();
+  }
+});
+
+app.post("/deletegroup", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const id = req.body.id;
+
+  const pool = new Pool({
+    user: DB_User,
+    host: DB_Host,
+    database: DB_Name,
+    password: DB_Password,
+    port: DB_Port,
+  });
+  const client = await pool.connect();
+
+  try {
+    // Выполняем запрос и получаем результат
+    const query = "DELETE FROM groups WHERE id = $1;";
+    const userdata = await client.query(query, [id]);
+
+    // Формирование и отправка ответа
+    res.send("Data deleted successfully");
+  } finally {
+    client.release();
+  }
+});
+
+app.post("/add-group", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const { name } = req.body;
+
+  try {
+
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+
+    const client = await pool.connect();
+
+    const query = `
+      INSERT INTO groups (name)
+      VALUES ($1) 
+      RETURNING id
+    `;
+
+    const result = await client.query(query, [name]);
+
+    // Освобождение клиента
+    client.release();
+
+    console.log("Группа успешно добавлена");
+    res.json({ message: "Группа успешно добавлена" });
+  } catch (err) {
+    console.error("Ошибка при вставке данных в базу данных:", err);
+    res.status(500).json({ error: "Ошибка при добавлении пользователя" });
   }
 });
 
@@ -2482,6 +2693,72 @@ async function settings(req, res) {
     res.send(resultT);
   }
 }
+
+async function organisation(req, res) {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  if (req.session.userId != "admin") {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  let templateData = {
+    Organisation: userInfo.Organisation,
+    User: userInfo.User,
+    ifDBError: false,
+    UserInfo: userInfo.Users,
+    isAdmin: req.session.userId === 'admin',
+  };
+
+  try {
+    const source = fs.readFileSync("static/templates/admin/organisation.html", "utf8");
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  } catch (error) {
+    console.error(error);
+    templateData.ifDBError = true;
+
+    const source = fs.readFileSync(
+      "static/templates/admin/organisation.html",
+      "utf8"
+    );
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  }
+}
+
+app.post('/update-organisation', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  if (req.session.userId != "admin") {
+    return res.redirect("/signin");
+  }
+  try {
+    const { name } = req.body;
+
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+    
+    const client = await pool.connect();
+
+    await client.query('UPDATE main SET organisation = $1 WHERE id = 1', [name]);
+
+    client.release();
+
+    res.status(200).json({ message: 'Значение успешно обновлено' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Произошла ошибка при обновлении значения' });
+  }
+});
 
 async function adminPanel(req, res) {
   if (req.session.userId === undefined) {
@@ -2637,52 +2914,62 @@ app.get('/admin/user/:id', async (req, res) => {
     });
     const client = await pool.connect();
 
-    const queryRegistrars = `
-      SELECT id, serial, lastkeepalive, name, "group", plate, sim, ip, port 
-      FROM registrars
-      ORDER BY id
-    `;
-    const registrarsResult = await client.query(queryRegistrars);
-    const allRegistrars = registrarsResult.rows;
+const groupsQuery = "SELECT id, name FROM groups";
+const groupsResult = await client.query(groupsQuery);
+const groupsMap = {};
+groupsResult.rows.forEach((group) => {
+  groupsMap[group.id] = group.name;
+});
 
-    const groupedRegistrars = {};
-    allRegistrars.forEach((registrar) => {
-      if (!groupedRegistrars[registrar.group]) {
-        groupedRegistrars[registrar.group] = [];
-      }
-      groupedRegistrars[registrar.group].push({ serial: registrar.serial, checked: false });
+const minuteInMillis = 90 * 1000;
+
+const queryRegistrars = `
+  SELECT id, serial, lastkeepalive, "group", name, plate, sim, ip, port
+  FROM registrars
+  ORDER BY id
+`;
+const registrarsResult = await client.query(queryRegistrars);
+const allRegistrars = registrarsResult.rows;
+
+const groupedRegistrars = {};
+allRegistrars.forEach((registrar) => {
+  const groupName = groupsMap[registrar.group] || "Другое"; // Используем "Другое", если группа неизвестна
+  if (!groupedRegistrars[groupName]) {
+    groupedRegistrars[groupName] = [];
+  }
+  groupedRegistrars[groupName].push({
+    serial: registrar.serial,
+    checked: false, 
+  });
+});
+
+
+const query = "SELECT * FROM users WHERE id = $1;";
+const userdata = await client.query(query, [id]);
+const response = userdata.rows[0];
+
+if (response.devices && response.devices.length > 0) {
+  for (const groupName in groupedRegistrars) {
+    groupedRegistrars[groupName].forEach((serialObj) => {
+      serialObj.checked = response.devices.includes(serialObj.serial);
     });
+  }
+}
 
-    for (const groupName in groupedRegistrars) {
-      templateData.Groups.push({
-        name: groupName,
-        serials: groupedRegistrars[groupName],
-      });
-    }
+templateData.Name = response.name;
+templateData.Surname = response.surname;
+templateData.Email = response.email;
+templateData.Phone = response.phone;
+templateData.Password = response.password;
+templateData.Devices = response.devices;
+templateData.DeleteTransport = response.deletetransport;
+templateData.EditTransport = response.edittransport;
+templateData.Update = response.update;
 
-   const query = "SELECT * FROM users WHERE id = $1;";
-    const userdata = await client.query(query, [id]);
-
-    // Формирование и отправка ответа
-    const response = userdata.rows[0];
-
-    if (response.devices && response.devices.length > 0) {
-      templateData.Groups.forEach((group) => {
-        group.serials.forEach((serial) => {
-          serial.checked = response.devices.includes(serial.serial);
-        });
-      });
-    }
-
-    templateData.Name = response.name;
-    templateData.Surname = response.surname;
-    templateData.Email = response.email;
-    templateData.Phone = response.phone;
-    templateData.Password = response.password;
-    templateData.Devices = response.devices;
-    templateData.DeleteTransport = response.deletetransport;
-    templateData.EditTransport = response.edittransport;
-    templateData.Update = response.update;
+templateData.Groups = Object.keys(groupedRegistrars).map((groupName) => ({
+  name: groupName,
+  serials: groupedRegistrars[groupName],
+}));
       
     // console.log(templateData);
   
@@ -2808,39 +3095,37 @@ async function videos(req, res) {
 
     const minuteInMillis = 60 * 1000;
 
-    const query = `
-    SELECT id, serial, lastkeepalive FROM registrars ORDER BY id ASC
-    `;
-    const registrars = await client.query(query);
+    // Получаем список групп и их идентификаторов из таблицы groups
+    const groupsQuery = "SELECT id, name FROM groups";
+    const groupsResult = await client.query(groupsQuery);
+    const groupsMap = {};
+    groupsResult.rows.forEach((group) => {
+      groupsMap[group.id] = group.name;
+    });
 
-    templateData.Registrars = registrars.rows.map((row) => ({
-      id: row.id,
-      serial: row.serial,
-      status: Date.now() - Date.parse(row.lastkeepalive) <= minuteInMillis,
-    }));
 
     // Выполняем запрос, чтобы получить все данные из таблицы registrars
     const queryRegistrars = `
-      SELECT id, serial, channels, lastkeepalive, name, "group", plate, sim, ip, port 
+      SELECT id, serial, channels, lastkeepalive, "group", name, plate, sim, ip, port
       FROM registrars
       ORDER BY id
     `;
     const registrarsResult = await client.query(queryRegistrars);
     const allRegistrars = registrarsResult.rows;
 
-    // Группируем устройства по группам и сохраняем данные каждого устройства
     const groupedRegistrars = {};
     allRegistrars.forEach((registrar) => {
-      if (!groupedRegistrars[registrar.group]) {
-        groupedRegistrars[registrar.group] = [];
+      const groupName = groupsMap[registrar.group] || "Другое"; // Используем "Другое", если группа неизвестна
+      if (!groupedRegistrars[groupName]) {
+        groupedRegistrars[groupName] = [];
       }
-      groupedRegistrars[registrar.group].push({
+      groupedRegistrars[groupName].push({
         id: registrar.id,
         serial: registrar.serial,
         channels: registrar.channels,
         status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
         name: registrar.name,
-        group: registrar.group,
+        group: groupsMap[registrar.group] || "Другое",
         plate: registrar.plate,
         sim: registrar.sim,
         ip: registrar.ip,
@@ -2848,13 +3133,23 @@ async function videos(req, res) {
       });
     });
 
-    // Заполняем массив групп данными устройств в каждой группе
-    for (const groupName in groupedRegistrars) {
-      templateData.Groups.push({
+    templateData.Registrars = allRegistrars.map((registrar) => ({
+        id: registrar.id,
+        serial: registrar.serial,
+        channels: registrar.channels,
+        status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
+        name: registrar.name,
+        group: groupsMap[registrar.group] || "Другое",
+        plate: registrar.plate,
+        sim: registrar.sim,
+        ip: registrar.ip,
+        port: registrar.port,
+      }));
+
+      templateData.Groups = Object.keys(groupedRegistrars).map((groupName) => ({
         name: groupName,
         devices: groupedRegistrars[groupName],
-      });
-    }
+      }));
 
     // console.log(templateData);
 
@@ -2902,55 +3197,61 @@ async function videoExport(req, res) {
 
     const minuteInMillis = 60 * 1000;
 
-    const query = `
-    SELECT id, serial, lastkeepalive FROM registrars ORDER BY id ASC
-    `;
-    const registrars = await client.query(query);
-
-    templateData.Registrars = registrars.rows.map((row) => ({
-      id: row.id,
-      serial: row.serial,
-      status: Date.now() - Date.parse(row.lastkeepalive) <= minuteInMillis,
-    }));
-
-    // Выполняем запрос, чтобы получить все данные из таблицы registrars
-    const queryRegistrars = `
-      SELECT id, serial, channels, lastkeepalive, name, "group", plate, sim, ip, port 
-      FROM registrars
-      ORDER BY id
-    `;
-    const registrarsResult = await client.query(queryRegistrars);
-    const allRegistrars = registrarsResult.rows;
-
-    // Группируем устройства по группам и сохраняем данные каждого устройства
-    const groupedRegistrars = {};
-    allRegistrars.forEach((registrar) => {
-      if (!groupedRegistrars[registrar.group]) {
-        groupedRegistrars[registrar.group] = [];
-      }
-      groupedRegistrars[registrar.group].push({
-        id: registrar.id,
-        serial: registrar.serial,
-        channels: registrar.channels,
-        status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
-        name: registrar.name,
-        group: registrar.group,
-        plate: registrar.plate,
-        sim: registrar.sim,
-        ip: registrar.ip,
-        port: registrar.port,
-      });
-    });
-
-    // Заполняем массив групп данными устройств в каждой группе
-    for (const groupName in groupedRegistrars) {
-      templateData.Groups.push({
-        name: groupName,
-        devices: groupedRegistrars[groupName],
-      });
-    }
-
-
+     // Получаем список групп и их идентификаторов из таблицы groups
+     const groupsQuery = "SELECT id, name FROM groups";
+     const groupsResult = await client.query(groupsQuery);
+     const groupsMap = {};
+     groupsResult.rows.forEach((group) => {
+       groupsMap[group.id] = group.name;
+     });
+ 
+ 
+     // Выполняем запрос, чтобы получить все данные из таблицы registrars
+     const queryRegistrars = `
+       SELECT id, serial, channels, lastkeepalive, "group", name, plate, sim, ip, port
+       FROM registrars
+       ORDER BY id
+     `;
+     const registrarsResult = await client.query(queryRegistrars);
+     const allRegistrars = registrarsResult.rows;
+ 
+     const groupedRegistrars = {};
+     allRegistrars.forEach((registrar) => {
+       const groupName = groupsMap[registrar.group] || "Другое"; // Используем "Другое", если группа неизвестна
+       if (!groupedRegistrars[groupName]) {
+         groupedRegistrars[groupName] = [];
+       }
+       groupedRegistrars[groupName].push({
+         id: registrar.id,
+         serial: registrar.serial,
+         channels: registrar.channels,
+         status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
+         name: registrar.name,
+         group: groupsMap[registrar.group] || "Другое",
+         plate: registrar.plate,
+         sim: registrar.sim,
+         ip: registrar.ip,
+         port: registrar.port,
+       });
+     });
+ 
+     templateData.Registrars = allRegistrars.map((registrar) => ({
+         id: registrar.id,
+         serial: registrar.serial,
+         channels: registrar.channels,
+         status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
+         name: registrar.name,
+         group: groupsMap[registrar.group] || "Другое",
+         plate: registrar.plate,
+         sim: registrar.sim,
+         ip: registrar.ip,
+         port: registrar.port,
+       }));
+ 
+       templateData.Groups = Object.keys(groupedRegistrars).map((groupName) => ({
+         name: groupName,
+         devices: groupedRegistrars[groupName],
+       }));
     // console.log(templateData);
 
     const source = fs.readFileSync("static/templates/videos/export.html", "utf8");

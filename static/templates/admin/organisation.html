@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{Name}} {{Surname}}</title>
+    <link rel="stylesheet" href="../../styles/main.css" />
+</head>
+<body>
+
+    <header>
+        <h1>Аргус</h1>
+        <h2><span>/</span> {{Organisation}}</h2>
+    </header>
+
+    <section class="account-info">
+      <div id="account-main">
+          <img id="person" src="../../img/person.svg">
+          <span>{{User}}</span>
+          <img id="down" src="../../img/down.svg">
+          <img id="up" src="../../img/up.svg">
+      </div>
+      <a href="/logout"><div id="account-additional" class="additional">Выйти</div></a>
+  </section>
+
+    
+
+
+    <section class="navigation">
+        <a href="/">
+            <div><img src="../../img/chart.svg">Главная</div>
+        </a>
+        <a href="/devices">
+            <div><img src="../../img/cloud.svg">Устройства</div>
+        </a>
+        <a href="/reports">
+            <div><img src="../../img/bubble.svg">Отчёты</div>
+        </a>
+        <a href="/live">
+            <div><img src="../../img/waves.svg">Трансляция</div>
+        </a>
+        <a href="/videos">
+            <div><img src="../../img/play.svg">Записи</div>
+        </a>
+        <a class="admin-panel" href="/admin">
+          <div class="selected"><img src="../../img/keyboard.svg">Админка</div>
+        </a>
+        <a class="settings" href="/settings">
+            <div><img src="../../img/gear.svg">Настройки</div>
+        </a>
+    </section>
+
+    <section class="main">
+      {{#if ifDBError}}
+      <section class="dberror">
+        <div class="erorr-container">
+          <img src="../../img/warning.svg"> <br>
+          <h1>Ошибка </h1> <br>
+          <span>Не удалось получить данные из БД</span>
+          <button type="button" onclick="location.reload();">Повторить попытку</button>
+        </div>
+      </section>
+      {{/if}}
+
+      <section style="display: none;" class="dberror" id="addInformation" >
+        <div class="erorr-container">
+          <div id="loader" class="loader">
+            <div class="square" id="sq1"></div>
+            <div class="square" id="sq2"></div>
+            <div class="square" id="sq3"></div>
+            <div class="square" id="sq4"></div>
+            <div class="square" id="sq5"></div>
+            <div class="square" id="sq6"></div>
+            <div class="square" id="sq7"></div>
+            <div class="square" id="sq8"></div>
+            <div class="square" id="sq9"></div>
+          </div>
+          <svg id="success-mark" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="108" height="108" fill="none" viewBox="0 0 108 108">
+            <g clip-path="url(#a)">
+              <path fill="#8086F9" fill-opacity=".85" d="M54 107.947c29.541 0 54-24.5 54-53.973C108 24.447 83.488 0 53.947 0 24.459 0 0 24.447 0 53.974c0 29.474 24.512 53.973 54 53.973Zm0-8.995c-24.988 0-44.947-20.002-44.947-44.978 0-24.976 19.906-44.978 44.894-44.978S99 28.998 99 53.974c0 24.976-20.012 44.978-45 44.978Zm-5.824-19.844c1.747 0 3.23-.846 4.289-2.487l24.194-38.046c.582-1.058 1.27-2.222 1.27-3.386 0-2.382-2.117-3.916-4.341-3.916-1.323 0-2.647.847-3.653 2.381l-21.97 35.241-10.43-13.493c-1.27-1.693-2.435-2.116-3.917-2.116-2.277 0-4.077 1.852-4.077 4.18 0 1.164.477 2.276 1.218 3.28l12.917 15.875c1.324 1.747 2.753 2.487 4.5 2.487Z"/>
+            </g>
+            <defs>
+              <clipPath id="a">
+                <path fill="#fff" d="M0 0h108v108H0z"/>
+              </clipPath>
+            </defs>
+          </svg>
+          
+                <h1>Обновление организации</h1> <br>
+                <span id="status">Пожалуйста, подождите</span>
+                <button id="closeButton" style="display: none;" onclick="hideMessage()">Закрыть</button>
+        </div>
+    </section>
+    <div class="name">
+      <span>Панель управления</span>
+  </div>
+  
+  <nav>
+      <a href="/admin">Пользователи</a>
+      <a class="selected" href="/admin/organisation">Организация</a>
+  </nav>
+        <section class="bg">
+            <section class="content">
+
+                <section class="for-table">
+
+                    <section class="whole-width">
+                      <h1>Данные организации</h1>
+                      <h3>Здесь вы можете управлять данными вашей организации.</h3>
+                      <form id="edit-user-form">
+                        <div class="parameters-input">
+                          <label for="user-name">Название<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                          <input name="name" type="text" id="user-name" placeholder="Название организации" value="{{Organisation}}" required>
+                        </div>
+                      </form>
+
+                        <div style="margin-left: 44px; margin-right: 72px; width: calc(100% - 44px - 72px);" class="horizontal-line"></div>
+                
+                        <button style="margin-top: 15px;" id="user-edit" class="button-purple" type="button">Обновить</button>
+                      
+                    </section>
+
+                </section>
+
+            </section>
+        </section>
+    </section>
+
+    <script src="../../scripts/jquery.min.js"></script>
+    <script src="https://rawgit.com/RobinHerbots/Inputmask/5.x/dist/jquery.inputmask.js"></script>
+    <script>
+      $(document).ready(function(){
+
+          $('#user-phone').inputmask({"mask": "+7 (999) 999-9999"});
+
+      });
+  </script>
+
+    <script>
+      document.getElementById('user-edit').addEventListener('click', () => {
+        const name = document.getElementById('user-name').value;
+        
+        // Создаем объект с данными для отправки
+        const data = { name };
+
+        const deleteConfirmation = document.getElementById("addInformation");
+        const loader = document.getElementById("loader");
+        const status = document.getElementById("status");
+        const closeButton = document.getElementById("closeButton");
+        const mark = document.getElementById("success-mark");
+
+        loader.style.display = "block";
+        closeButton.style.display = "none";
+        deleteConfirmation.style.display = "flex";
+        mark.style.display = "none";
+
+        fetch('/update-organisation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        })
+          .then(response => response.json())
+          .then(data => {
+            showMessage("Данные успешно обновлены", true);
+          })
+          .catch(error => {
+            showMessage("Не удалось обновить данные", false);
+                    console.error("Ошибка:", error);
+          });
+      });
+
+        function hideMessage() {
+      location.reload();
+        const deleteConfirmation = document.getElementById("addInformation");
+        deleteConfirmation.style.display = "none";
+    }
+
+    function showMessage(messageText, isSuccess) {
+        const loader = document.getElementById("loader");
+        const status = document.getElementById("status");
+        const closeButton = document.getElementById("closeButton");
+        const mark = document.getElementById("success-mark");
+
+        loader.style.display = "none";
+        status.textContent = messageText;
+        if (isSuccess) {
+            mark.style.display = "block";
+            status.style.color = "green"; 
+        } else {
+            status.style.color = "red"; 
+        }
+        closeButton.style.display = "block";
+    }
+    </script>
+    <script>
+        // Скрытие/Показ дополнительных меню аккаунта
+        const accountMain = document.getElementById('account-main');
+        const accountAdditional = document.getElementById('account-additional');
+        const accountUp = document.getElementById('up');
+        const accountDown = document.getElementById('down');
+        accountAdditional.style.display = 'none';
+        accountUp.style.display = 'none';
+        
+        accountMain.addEventListener('click', () => {
+          if (accountAdditional.style.display === 'none') {
+            accountAdditional.style.display = 'flex';
+            accountUp.style.display = 'unset';
+            accountDown.style.display = 'none';
+          } else {
+            accountAdditional.style.display = 'none';
+            accountUp.style.display = 'none';
+            accountDown.style.display = 'unset';
+          }
+        });
+      </script>
+
+      <script>
+        const checkboxes = document.querySelectorAll('.organisation .checkbox-input');
+
+checkboxes.forEach((checkbox) => {
+  checkbox.addEventListener('change', function() {
+    const devices = this.parentNode.querySelector('.area-devices');
+    if (this.checked) {
+      devices.style.display = 'block';
+
+      // Активируем дочерние чекбоксы
+      const childCheckboxes = devices.querySelectorAll('.device-filter');
+      childCheckboxes.forEach((childCheckbox) => {
+        childCheckbox.checked = true;
+      });
+    } else {
+      devices.style.display = 'none';
+
+      // Деактивируем дочерние чекбоксы
+      const childCheckboxes = devices.querySelectorAll('.device-filter');
+      childCheckboxes.forEach((childCheckbox) => {
+        childCheckbox.checked = false;
+      });
+    }
+
+    // Деактивируем дочерние чекбоксы, если родительский чекбокс не выбран
+    if (!this.checked) {
+      const childCheckboxes = devices.querySelectorAll('.device-filter');
+      childCheckboxes.forEach((childCheckbox) => {
+        childCheckbox.checked = false;
+      });
+      devices.style.display = 'none';
+    }
+  });
+});
+
+      </script>
+      
+    
+</body>
+</html>

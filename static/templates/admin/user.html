@@ -244,11 +244,9 @@
         closeButton.style.display = "none";
         deleteConfirmation.style.display = "flex";
         mark.style.display = "none";
-            // Собираем данные из инпутов с классом "device" в массив
             const deviceInputs = document.querySelectorAll('.device-serial:checked');
             const devices = Array.from(deviceInputs).map(input => input.value);
 
-            // Собираем остальные данные из формы
             const formData = {
                 name: document.getElementById('user-name').value,
                 surname: document.getElementById('user-surname').value,
@@ -258,7 +256,6 @@
                 EditTransport: document.getElementById('device-edit').checked,
                 DeleteTransport: document.getElementById('device-delete').checked,
                 Update: document.getElementById('update-do').checked,
-                // Другие данные, которые необходимо включить
             };
 
             // Объединяем все данные в один объект
