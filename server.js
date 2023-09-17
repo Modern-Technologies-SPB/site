@@ -172,17 +172,17 @@ conn.on('error', function(err) {
 });
 
 
-// const DB_User = process.env.DB_USER;
-// const DB_Password = process.env.DB_PASSWORD;
-// const DB_Host = process.env.DB_HOST;
-// const DB_Port = process.env.DB_PORT;
-// const DB_Name = process.env.DB_NAME;
+const DB_User = process.env.DB_USER;
+const DB_Password = process.env.DB_PASSWORD;
+const DB_Host = process.env.DB_HOST;
+const DB_Port = process.env.DB_PORT;
+const DB_Name = process.env.DB_NAME;
 
-const DB_User = "postgres";
-const DB_Password = process.env.POSTGRES_PASSWORD;
-const DB_Host = "postgres";
-const DB_Port = "5432";
-const DB_Name = "postgres";
+// const DB_User = "postgres";
+// const DB_Password = process.env.POSTGRES_PASSWORD;
+// const DB_Host = "postgres";
+// const DB_Port = "5432";
+// const DB_Name = "postgres";
 
 async function index(req, res) {
   if (req.session.userId === undefined) {
@@ -3283,7 +3283,7 @@ app.get('/getData', async (req, res) => {
   try {
     const successResponse = await axios.get(`http://krbl.ru:8080/http/filelist/request?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`);
     if (successResponse.data.SUCCESS) {
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise(resolve => setTimeout(resolve, 7000));
       const dataResponse = await axios.get(`http://krbl.ru:8080/http/filelist/get?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`);
       if (successResponse.data.SUCCESS) {
       const dataId = dataResponse.data.DATAID;
@@ -3356,12 +3356,14 @@ app.post("/getspeedarchive", async (req, res) => {
     port: DB_Port,
   });
   const client = await pool.connect();
-  const sqlQuery = `
-    SELECT speed, latitude, longitude
+
+  // Запрос для получения первой и последней временных отметок
+  const timeRangeQuery = `
+    SELECT MIN(time) as min_time, MAX(time) as max_time
     FROM geo
     WHERE serial = $1
     AND time >= $2
-    AND time < $3;
+    AND time <= $3;
   `;
 
   const startTime = new Date(formattedDateTime);
@@ -3369,28 +3371,63 @@ app.post("/getspeedarchive", async (req, res) => {
   const endTime = new Date(startTime);
   endTime.setHours(endTime.getHours() + 1);
 
-  pool.query(sqlQuery, [serial, startTime, endTime], (error, results) => {
+  // Первый запрос для получения временных отметок
+  pool.query(timeRangeQuery, [serial, startTime, endTime], (error, timeResults) => {
     if (error) {
       console.error("Ошибка при выполнении SQL-запроса:", error);
       res.status(500).json({ error: "Ошибка на сервере" });
     } else {
-      const speeds = results.rows.map((row) => row.speed);
-      const transformedSpeeds = speeds.map((speed) => {
-        if (speed > 150) {
-          return speed / 100;
+      const { min_time, max_time } = timeResults.rows[0];
+
+      // Запрос для получения данных скорости и геолокации
+      const sqlQuery = `
+        SELECT speed, latitude, longitude, time
+        FROM geo
+        WHERE serial = $1
+        AND time >= $2
+        AND time <= $3;
+      `;
+
+      pool.query(sqlQuery, [serial, startTime, endTime], (error, results) => {
+        if (error) {
+          console.error("Ошибка при выполнении SQL-запроса:", error);
+          res.status(500).json({ error: "Ошибка на сервере" });
         } else {
-          return speed;
+          const data = results.rows.map((row) => ({
+            speed: row.speed > 150 ? row.speed / 100 : row.speed,
+            geo: {
+              latitude: row.latitude,
+              longitude: row.longitude,
+            },
+            time: row.time.toLocaleTimeString("ru-RU", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            }),
+          }));
+
+          // Функция для сравнения времени в формате "час:минута"
+          function compareTime(a, b) {
+            return new Date('1970-01-01 ' + a.time) - new Date('1970-01-01 ' + b.time);
+          }
+
+          // Сортируем массив данных
+          data.sort(compareTime);
+
+          // Разделяем отсортированный массив обратно на отдельные массивы
+          const transformedSpeeds = data.map((item) => item.speed);
+          const geoData = data.map((item) => item.geo);
+          const names = data.map((item) => item.time);
+
+          res.json({ speeds: transformedSpeeds, geo: geoData, names });
         }
       });
-
-      const geoData = results.rows.map((row) => ({
-        latitude: row.latitude,
-        longitude: row.longitude,
-      }));
-      res.json({ speeds: transformedSpeeds, geo: geoData });
     }
   });
 });
+
+
+
 
 const port = 8081;
 app.listen(port, () => {

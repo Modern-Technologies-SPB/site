@@ -325,9 +325,9 @@ header h2 span {
 }
 
 .whole-width h1 {
-    font-weight: 500;
-    font-size: 30px;
-    margin: 35px 0 0 44px;
+    font-weight: 500 !important;
+    font-size: 30px !important;
+    margin: 35px 0 0 44px !important;
 }
 
 .whole-width h3 {
@@ -353,6 +353,15 @@ header h2 span {
 
 .loader {
   margin-bottom: 25px;
+}
+
+.loader-container {
+  width: fit-content;
+  height: fit-content;
+  padding: 50px;
+  padding-bottom: 25px;
+  border-radius: 10px;
+  background: white;
 }
 
 .square {
@@ -410,6 +419,54 @@ header h2 span {
 }
 
 #sq9 {
+  margin-top: 15px;
+  margin-left: 15px;
+  animation: loader_5191 675ms ease-in-out 600ms infinite;
+}
+
+#sq11 {
+  margin-top: -25px;
+  margin-left: -25px;
+  animation: loader_5191 675ms ease-in-out 0s infinite alternate;
+}
+
+#sq12 {
+  margin-top: -25px;
+  animation: loader_5191 675ms ease-in-out 75ms infinite alternate;
+}
+
+#sq13 {
+  margin-top: -25px;
+  margin-left: 15px;
+  animation: loader_5191 675ms ease-in-out 150ms infinite;
+}
+
+#sq14 {
+  margin-left: -25px;
+  animation: loader_5191 675ms ease-in-out 225ms infinite;
+}
+
+#sq15 {
+  animation: loader_5191 675ms ease-in-out 300ms infinite;
+}
+
+#sq16 {
+  margin-left: 15px;
+  animation: loader_5191 675ms ease-in-out 375ms infinite;
+}
+
+#sq17 {
+  margin-top: 15px;
+  margin-left: -25px;
+  animation: loader_5191 675ms ease-in-out 450ms infinite;
+}
+
+#sq18 {
+  margin-top: 15px;
+  animation: loader_5191 675ms ease-in-out 525ms infinite;
+}
+
+#sq19 {
   margin-top: 15px;
   margin-left: 15px;
   animation: loader_5191 675ms ease-in-out 600ms infinite;

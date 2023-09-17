@@ -60,6 +60,7 @@
     <section class="main">
       <section style="display: none;" class="dberror" id="exportLoading" >
         <div class="erorr-container">
+        <div class="loader-container">
           <div id="loader" class="loader">
             <div class="square" id="sq1"></div>
             <div class="square" id="sq2"></div>
@@ -71,10 +72,27 @@
             <div class="square" id="sq8"></div>
             <div class="square" id="sq9"></div>
           </div>
+        </div>
                 <h1>Подготовка видео</h1> <br>
                 <span id="status">Пожалуйста, подождите..</span>
         </div>
     </section>
+
+    <section style="display: none;" class="dberror" id="dataLoading" >
+      <div class="loader-container">
+        <div class="loader">
+          <div class="square" id="sq11"></div>
+          <div class="square" id="sq12"></div>
+          <div class="square" id="sq13"></div>
+          <div class="square" id="sq14"></div>
+          <div class="square" id="sq15"></div>
+          <div class="square" id="sq16"></div>
+          <div class="square" id="sq17"></div>
+          <div class="square" id="sq18"></div>
+          <div class="square" id="sq19"></div>
+        </div>
+      </div>
+  </section>
       {{#if ifDBError}}
       <section class="dberror">
         <div class="erorr-container">
@@ -106,6 +124,7 @@
                               {{#each devices}}
                               <li class="device">
                                 <img>
+                                <input type="number" id="channels-{{this.serial}}" value="{{this.channels}}" hidden>
                                 <input type="radio" name="camera-serial" id="radio-{{this.serial}}" class="radio-input" value="{{this.serial}}" hidden>
                                 <label for="radio-{{this.serial}}" class="radio-label active-{{this.status}}">
                                   {{this.serial}}
@@ -125,84 +144,39 @@
                     <section class="table" style="position: relative;">
 
                       <div class="map">
-                        <!-- <div id="properties" class="properties" style="display: none;">
-                          <div class="propert"><h1>Группа</h1><br><h2 id="propert-group">Автобусы</h2></div>
-                          <div class="propert"><h1>Скорость</h1><br><h2 id="propert-speed"> км/ч</h2></div>
-                          <div class="propert"><h1>Номерной знак</h1><br><h2 id="propert-plate"></h2></div>
-                          <div class="propert"><h1>Геопозиция</h1><br><h2 id="propert-geo"></h2></div>
-                        </div> -->
                         <div id="map"></div>
                       </div>
 
-                      <div id="cameras" class="cameras">
-                        <div class="video-container">
-                          <div id="camera-1" onclick="playVideo(1);">
-                            <img src="../../img/play-circle.svg">
-                            <span>Экспортировать 1 камеру</span>
-                          </div>
-                          <div id="camera-2" onclick="playVideo(2);">
-                            <img src="../../img/play-circle.svg">
-                            <span>Экспортировать 2 камеру</span>
-                          </div>
-                          <div id="camera-3" onclick="playVideo(3);">
-                            <img src="../../img/play-circle.svg">
-                            <span>Экспортировать 3 камеру</span>
-                          </div>
-                          <div id="camera-4" onclick="playVideo(4);">
-                            <img src="../../img/play-circle.svg">
-                            <span>Экспортировать 4 камеру</span>
-                          </div>
-                          <div id="camera-5" onclick="playVideo(5);">
-                            <img src="../../img/play-circle.svg">
-                            <span>Экспортировать 5 камеру</span>
-                          </div>
-                          <div id="camera-6" onclick="playVideo(6);">
-                            <img src="../../img/play-circle.svg">
-                            <span>Экспортировать 6 камеру</span>
-                          </div>
-                          <div id="camera-7" onclick="playVideo(7);">
-                            <img src="../../img/play-circle.svg">
-                            <span>Экспортировать 7 камеру</span>
-                          </div>
-                          <div id="camera-8" onclick="playVideo(8);">
-                            <img src="../../img/play-circle.svg">
-                            <span>Экспортировать 8 камеру</span>
-                          </div>
-                          <div id="camera-9" onclick="playVideo(9);">
-                            <img src="../../img/play-circle.svg">
-                            <span>Экспортировать 9 камеру</span>
-                          </div>
-                          <div id="camera-10" onclick="playVideo(10);">
-                            <img src="../../img/play-circle.svg">
-                            <span>Экспортировать 10 камеру</span>
-                          </div>
-                          <div id="camera-11" onclick="playVideo(11);">
-                            <img src="../../img/play-circle.svg">
-                            <span>Экспортировать 11 камеру</span>
-                          </div>
-                          <div id="camera-12" onclick="playVideo(12);">
-                            <img src="../../img/play-circle.svg">
-                            <span>Экспортировать 12 камеру</span>
-                          </div>
+                      <div style="background: white;" class="cameras">
+                        <section style="border: 0;" class="whole-width">
+                        <h1>Экспортировать запись с камеры</h1>
+                      <h3>Выберите камеру, время и нажмите кнопку "Скачать запись"</h3>
+                      <form id="edit-group-form">
+                        <div class="parameters-input">
+                          <label for="group-id">Камера</label>
+                          <select name="group-id" id="group-id">
+                            <option value="">Выберите номер камеры</option>
+                            <option value="1">Камера 1</option>
+                            <option value="2">Камера 2</option>
+                            <option value="3">Камера 3</option>
+                            <option value="4">Камера 4</option>
+                            <option value="5">Камера 5</option>
+                            <option value="6">Камера 6</option>
+                            <option value="7">Камера 7</option>
+                            <option value="8">Камера 8</option>
+                            <option value="9">Камера 9</option>
+                            <option value="10">Камера 10</option>
+                            <option value="11">Камера 11</option>
+                            <option value="12">Камера 12</option>
+                            <option value="13">Камера 13</option>
+                        </select>
                         </div>
-                        <div class="video-container-right">
-                          <div id="camera-13" onclick="playVideo(13);">
-                            <img src="../../img/play-circle.svg">
-                            <span>Экспортировать 13 камеру</span>
-                          </div>
-                          <div id="camera-14" onclick="playVideo(14);">
-                            <img src="../../img/play-circle.svg">
-                            <span>Экспортировать 14 камеру</span>
-                          </div>
-                          <div id="camera-15" onclick="playVideo(15);">
-                            <img src="../../img/play-circle.svg">
-                            <span>Экспортировать 15 камеру</span>
-                          </div>
-                          <div id="camera-16" onclick="playVideo(16);">
-                            <img src="../../img/play-circle.svg">
-                            <span>Экспортировать 16 камеру</span>
-                          </div>
-                        </div>
+                      </form>
+
+                        <div style="margin-left: 44px; margin-right: 72px; width: calc(100% - 44px - 72px);" class="horizontal-line"></div>
+                
+                        <button style="margin-top: 15px;" id="group-edit" class="button-purple" type="button" onclick="playVideo();">Скачать запись</button>
+                      </section>
                       </div>
 
                       <div class="calendar">
@@ -271,12 +245,38 @@
       }
 
       .speedometr div {
-        height: 200px;
+        height: 190px;
       }
     </style>
 
     <script src="../scripts/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+      function updateCameraOptions() {
+        var selectedSerial = document.querySelector('input[name="camera-serial"]:checked').value;
+
+        var channelsInput = document.querySelector('#channels-' + selectedSerial);
+
+        var numChannels = parseInt(channelsInput.value, 10);
+
+        var select = document.querySelector('#group-id');
+
+        select.innerHTML = '';
+
+        var defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Выберите номер камеры';
+        select.appendChild(defaultOption);
+
+        for (var i = 1; i <= numChannels; i++) {
+          var option = document.createElement('option');
+          option.value = i;
+          option.textContent = 'Камера ' + i;
+          select.appendChild(option);
+        }
+      }
+    </script>
 
     <script>
       document.addEventListener('DOMContentLoaded', function () {
@@ -356,7 +356,8 @@ var selectedChannel = 1;
 
 
 async function sendPostRequest() {
-  document.getElementById("cameras").style.opacity = "30%";
+  updateCameraOptions();
+  document.getElementById("dataLoading").style.display = 'flex';
   // Получение данных из полей ввода
   const selectedDate = document.getElementById("selectedDate").value;
   const videoTime = document.getElementById("video-time").value;
@@ -395,8 +396,6 @@ async function sendPostRequest() {
                     .then((response) => response.json())
                     .then((data) => {
 
-                      document.getElementById("cameras").style.opacity = "100%";
-
                       const existingChart = Chart.getChart("speed");
 
                       if (existingChart) {
@@ -404,13 +403,13 @@ async function sendPostRequest() {
                       }
 
                       const numberOfLabels = data.speeds.length;
-                      const labels = Array.from({ length: numberOfLabels }, () => "");
+                      // const labels = Array.from({ length: numberOfLabels }, () => "");
 
                       // Обновление данных графика
                       const chart = new Chart("speed", {
                         type: "line",
                         data: {
-                          labels: labels,
+                          labels: data.names,
                           datasets: [
                             {
                               label: "Скорость",
@@ -445,6 +444,19 @@ async function sendPostRequest() {
                               },
                             },
                             x: {
+                              ticks: {
+                                autoSkip: false,
+                                callback: function(value, index, values) {
+                                  const data = this.chart.data.labels;
+                                  if (index === 0 || index === values.length - 1) {
+                                    return data[index];
+                                  } else {
+                                    return ''; 
+                                  }
+                                },
+                                position: 'bottom',
+                                maxRotation: 0,
+                              },
                               grid: {
                                 display: false,
                               },
@@ -482,19 +494,72 @@ async function sendPostRequest() {
 
                     })
                     .catch((error) => {
+                      document.getElementById("dataLoading").style.display = 'none';
+                      var h1Element = document.querySelector('.speedometr h1');
+                        h1Element.textContent = 'Ошибка отправки запроса.';
                       console.error("Ошибка при отправке запроса:", error);
                     });
 
                     const endResponse = await fetch(`/getData?serial=${selectedSerial}&selectedDate=${formatDate(selectedDate)}&selectedTime=${formatTime(videoEndTime)}&selectedChannel=${selectedChannel}`);
-
                     const endData = await endResponse.json();
 
                     if (endData.success) {
+                      document.getElementById("dataLoading").style.display = 'none';
                       console.log(`Конечные данные доступны. DATAID: ${endData.dataId}`)
                       const speedBG = document.getElementById("speed-bg");
                       speedBG.style.display = 'none';
                       HasData = true;
                       if (data.dataId != endData.dataId) {
+                        const existingChart = Chart.getChart("speed");
+
+                      if (existingChart) {
+                        existingChart.destroy();
+                      }
+                        const chart = new Chart("speed", {
+                        type: "line",
+                        data: {
+                          labels: "",
+                          datasets: [
+                            {
+                              label: "Скорость",
+                              borderColor: "#8086F9",
+                              fill: false,
+                              data: "",
+                              pointStyle: false,
+                              pointRadius: 25,
+                              pointHoverRadius: 25,
+                              tension: 0.1,
+                            },
+                          ],
+                        },
+                        options: {
+                          plugins: {
+                            legend: {
+                              display: false,
+                            },
+                          },
+                          labelStep: "3",
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          scales: {
+                            y: {
+                              stacked: true,
+                              grid: {
+                                display: true,
+                                color: "#D9D9D9",
+                              },
+                              ticks: {
+                                stepSize: 10,
+                              },
+                            },
+                            x: {
+                              grid: {
+                                display: false,
+                              },
+                            },
+                          },
+                        },
+                      });
                         HasData = false;
                         var h1Element = document.querySelector('.speedometr h1');
                         h1Element.textContent = 'Временной диапазон находится в разных видео сессиях. Измените время.';
@@ -502,6 +567,57 @@ async function sendPostRequest() {
                         speedBG.style.display = 'flex';
                       } 
                     } else {
+                      document.getElementById("dataLoading").style.display = 'none';
+                      const existingChart = Chart.getChart("speed");
+
+                      if (existingChart) {
+                        existingChart.destroy();
+                      }
+                      const chart = new Chart("speed", {
+                        type: "line",
+                        data: {
+                          labels: "",
+                          datasets: [
+                            {
+                              label: "Скорость",
+                              borderColor: "#8086F9",
+                              fill: false,
+                              data: "",
+                              pointStyle: false,
+                              pointRadius: 25,
+                              pointHoverRadius: 25,
+                              tension: 0.1,
+                            },
+                          ],
+                        },
+                        options: {
+                          plugins: {
+                            legend: {
+                              display: false,
+                            },
+                          },
+                          labelStep: "3",
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          scales: {
+                            y: {
+                              stacked: true,
+                              grid: {
+                                display: true,
+                                color: "#D9D9D9",
+                              },
+                              ticks: {
+                                stepSize: 10,
+                              },
+                            },
+                            x: {
+                              grid: {
+                                display: false,
+                              },
+                            },
+                          },
+                        },
+                      });
                         HasData = false;
                         const speedBG = document.getElementById("speed-bg");
                         speedBG.style.display = 'flex';
@@ -511,6 +627,56 @@ async function sendPostRequest() {
                       
                       
                 } else {
+                  const existingChart = Chart.getChart("speed");
+
+                      if (existingChart) {
+                        existingChart.destroy();
+                      }
+                  const chart = new Chart("speed", {
+                        type: "line",
+                        data: {
+                          labels: "",
+                          datasets: [
+                            {
+                              label: "Скорость",
+                              borderColor: "#8086F9",
+                              fill: false,
+                              data: "",
+                              pointStyle: false,
+                              pointRadius: 25,
+                              pointHoverRadius: 25,
+                              tension: 0.1,
+                            },
+                          ],
+                        },
+                        options: {
+                          plugins: {
+                            legend: {
+                              display: false,
+                            },
+                          },
+                          labelStep: "3",
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          scales: {
+                            y: {
+                              stacked: true,
+                              grid: {
+                                display: true,
+                                color: "#D9D9D9",
+                              },
+                              ticks: {
+                                stepSize: 10,
+                              },
+                            },
+                            x: {
+                              grid: {
+                                display: false,
+                              },
+                            },
+                          },
+                        },
+                      });
                   var h1Element = document.querySelector('.speedometr h1');
                   h1Element.textContent = 'Данных для выбранного периода нет.';
                   const speedBG = document.getElementById("speed-bg");
@@ -530,10 +696,10 @@ const selectedDateInput = document.getElementById("selectedDate");
 selectedDateInput.addEventListener("change", sendPostRequest);
 
 const videoTimeInput = document.getElementById("video-time");
-videoTimeInput.addEventListener("change", sendPostRequest);
+videoTimeInput.addEventListener("blur", sendPostRequest);
 
 const endVideoTimeInput = document.getElementById("video-end-time");
-endVideoTimeInput.addEventListener("change", sendPostRequest);
+endVideoTimeInput.addEventListener("blur", sendPostRequest);
 
     </script>
 
@@ -652,11 +818,15 @@ endVideoTimeInput.addEventListener("change", sendPostRequest);
   }
 
 
-  async function playVideo(channel) {
-    document.getElementById("exportLoading").style.display = 'flex';
+  async function playVideo() {
+    const channel = document.getElementById("group-id").value;
     const selectedDevice = document.querySelector('input[name="camera-serial"]:checked');
     if (!selectedDevice) {
       alert('Пожалуйста, выберите устройство из списка.');
+      return;
+    }
+    if (channel === "") {
+      alert('Пожалуйста, выберите камеру из списка.');
       return;
     }
     if (!HasData) {
@@ -667,6 +837,7 @@ endVideoTimeInput.addEventListener("change", sendPostRequest);
       alert('Конечное время не может быть больше начального.');
       return;
     }
+    document.getElementById("exportLoading").style.display = 'flex';
 
     const startTimeInput = document.getElementById('video-time');
     const endTimeInput = document.getElementById('video-end-time');
@@ -794,9 +965,7 @@ datasets: [
 label: "Скорость",
 borderColor: "#8086F9",
 fill: false,
-data: [
-  {{Speeds}}
-],
+data: "",
 pointStyle: false,
 pointRadius: 25,
 pointHoverRadius: 25,
