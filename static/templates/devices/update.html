@@ -10,6 +10,7 @@
 <body>
 
     <header>
+        <img src="../img/argus.png">
         <h1>Аргус</h1>
         <h2><span>/</span> {{Organisation}}</h2>
     </header>
@@ -59,7 +60,9 @@
         </div>
         <nav>
             <a href="/devices">Список устройств</a>
+            {{#if EditTransport}}
             <a href="/devices/groups">Группы</a>
+            {{/if}}
             <!-- <a href="/devices/drivers">Водители</a> -->
             <!-- <a href="/devices/newdevice">Добавить устройство</a> -->
             <!-- <a href="/devices/newdriver">Добавить водителя</a> -->

@@ -54,6 +54,7 @@ var positionsOptions = {
       ticks: {
         stepSize: 10000,
       },
+      beginAtZero: true,
     },
     x: {
       grid: {

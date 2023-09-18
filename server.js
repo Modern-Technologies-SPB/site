@@ -81,6 +81,9 @@ async function getUserInfo(userId) {
       Organisation: "",
       User: '',
       Users: [],
+      EditTransport: false,
+      DeleteTransport: false,
+      Update: false,
     };
 
     if (userId != "admin") {
@@ -100,8 +103,14 @@ async function getUserInfo(userId) {
         update: user.update,
       });
       userInfo.User = user.name + " " + user.surname;
+      userInfo.EditTransport = user.edittransport;
+      userInfo.DeleteTransport = user.deletetransport;
+      userInfo.Update = user.update;
     } else {
       userInfo.User = "Администратор"
+      userInfo.EditTransport = true;
+      userInfo.DeleteTransport = true;
+      userInfo.Update = true;
     }
 
     const queryMain = `SELECT organisation FROM main`;
@@ -219,6 +228,21 @@ async function index(req, res) {
 
     templateData.Count = registrars.rows[0].count;
 
+    let serialValues = [];
+    if (!templateData.isAdmin) {
+      const userDevicesQuery = `
+        SELECT devices
+        FROM users
+        WHERE id = $1
+      `;
+      const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
+      
+      if (userDevicesResult.rows.length > 0) {
+        serialValues = userDevicesResult.rows[0].devices;
+      } 
+      templateData.Count = serialValues.length;
+    } 
+
     const last11DaysQuery = `
     WITH date_sequence AS (
       SELECT DATE_TRUNC('day', NOW() - INTERVAL '10 days' - INTERVAL '3 hours') + (generate_series(0, 10) || ' days')::interval AS day
@@ -233,14 +257,14 @@ async function index(req, res) {
       WHERE alarmtype = 56
       AND time >= NOW() - INTERVAL '11 days' + INTERVAL '3 hours'
       AND time <= NOW() + INTERVAL '1 day' + INTERVAL '3 hours'
+      ${!templateData.isAdmin ? 'AND serial = ANY($1)' : ''}
       ORDER BY evtuuid, time DESC 
       LIMIT 100
     ) AS a ON DATE_TRUNC('day', a.time) = date_sequence.day
     GROUP BY date_sequence.day
     ORDER BY date_sequence.day DESC;
-    
     `;
-    const last11DaysAlarms = await client.query(last11DaysQuery);
+    const last11DaysAlarms = await client.query(last11DaysQuery, templateData.isAdmin ? [] : [serialValues]);
 
     const daysBeforeQuery = `
     WITH date_sequence AS (
@@ -256,15 +280,15 @@ async function index(req, res) {
       WHERE alarmtype = 56
       AND time >= NOW() - INTERVAL '21 days' + INTERVAL '3 hours'
       AND time <= NOW() + INTERVAL '10 day' + INTERVAL '3 hours'
+      ${!templateData.isAdmin ? 'AND serial = ANY($1)' : ''}
       ORDER BY evtuuid, time DESC 
       LIMIT 100
     ) AS a ON DATE_TRUNC('day', a.time) = date_sequence.day
     GROUP BY date_sequence.day
     ORDER BY date_sequence.day DESC;
-          
-`;
+    `;
 
-    const daysBeforeAlarms = await client.query(daysBeforeQuery);
+    const daysBeforeAlarms = await client.query(daysBeforeQuery, templateData.isAdmin ? [] : [serialValues]);
 
     const currentDate = new Date();
     const dates = [];
@@ -282,17 +306,20 @@ async function index(req, res) {
     dates11DaysAgo.reverse();
 
     const positionsLast11DaysQuery = `
-    SELECT
+  SELECT
     COUNT(*) AS count,
     DATE_TRUNC('day', time) AS day,
     CASE WHEN COUNT(*) = 0 THEN 0 ELSE 1 END AS sort_value
   FROM geo
   WHERE time >= NOW() - INTERVAL '10 days' + INTERVAL '3 hours'
     AND time <= NOW() + INTERVAL '1 day' + INTERVAL '3 hours'
+    ${!templateData.isAdmin ? 'AND serial = ANY($1)' : ''}
   GROUP BY DATE_TRUNC('day', time)
-  ORDER BY sort_value DESC, day DESC
-    `;
-    const positionsLast11Days = await client.query(positionsLast11DaysQuery);
+  ORDER BY sort_value DESC, day DESC;
+`;
+
+const positionsLast11Days = await client.query(positionsLast11DaysQuery, templateData.isAdmin ? [] : [serialValues]);
+
 
     templateData.Dates.reverse();
 
@@ -513,10 +540,25 @@ async function live(req, res) {
 
     const minuteInMillis = 90 * 1000;
 
+    let serialValues = [];
+    if (!templateData.isAdmin) {
+      
+      const userDevicesQuery = `
+        SELECT devices
+        FROM users
+        WHERE id = $1
+      `;
+      const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
+      
+      if (userDevicesResult.rows.length > 0) {
+        serialValues = userDevicesResult.rows[0].devices;
+      } 
+    } 
+
     const query = `
-    SELECT id, serial, channels, lastkeepalive FROM registrars ORDER BY id ASC
+    SELECT id, serial, channels, lastkeepalive FROM registrars ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''} ORDER BY id ASC
     `;
-    const registrars = await client.query(query);
+    const registrars = await client.query(query, templateData.isAdmin ? [] : [serialValues]);
 
     templateData.Registrars = registrars.rows.map((row) => ({
       id: row.id,
@@ -531,6 +573,7 @@ async function live(req, res) {
       SELECT DISTINCT ON (evtuuid) evtuuid, id, cmdno, time, serial, st
       FROM alarms
       WHERE alarmtype = 56
+      ${!templateData.isAdmin ? 'AND serial = ANY($2)' : ''}
       ORDER BY evtuuid, time DESC 
       LIMIT 100
     ) AS a
@@ -542,7 +585,7 @@ async function live(req, res) {
     ) AS g ON a.serial = g.serial AND g.row_num = 1
     ORDER BY a.time DESC;
     `;
-    const alarms = await client.query(subquery, [new Date()]); 
+    const alarms = await client.query(subquery, templateData.isAdmin ? [new Date()] : [new Date(), serialValues]); 
 
     function formatDate(date) {
       const options = {
@@ -629,7 +672,7 @@ async function live(req, res) {
           type = "!! Управление одной рукой";
           break;
         case "22":
-          type = "Очки, блокирующие инфракрасное излучение";
+          type = "Очки, блокирующие инфракрасное";
           break;
         case "23":
           type = "Слепые зоны слева";
@@ -687,10 +730,10 @@ async function live(req, res) {
     // Выполняем запрос, чтобы получить все данные из таблицы registrars
     const queryRegistrars = `
       SELECT id, serial, channels, lastkeepalive, "group", name, plate, sim, ip, port
-      FROM registrars
+      FROM registrars ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''}
       ORDER BY id
     `;
-    const registrarsResult = await client.query(queryRegistrars);
+    const registrarsResult = await client.query(queryRegistrars, templateData.isAdmin ? [] : [serialValues]);
     const allRegistrars = registrarsResult.rows;
 
     const groupedRegistrars = {};
@@ -839,12 +882,28 @@ async function reports(req, res) {
     });
     const client = await pool.connect();
 
+    let serialValues = [];
+    if (!templateData.isAdmin) {
+      
+      const userDevicesQuery = `
+        SELECT devices
+        FROM users
+        WHERE id = $1
+      `;
+      const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
+      
+      if (userDevicesResult.rows.length > 0) {
+        serialValues = userDevicesResult.rows[0].devices;
+      } 
+    } 
+
     const query = `
     SELECT a.evtuuid, a.id, a.cmdno, a.time, a.serial, a.st, r.plate, g.latitude, g.longitude
     FROM (
       SELECT DISTINCT ON (evtuuid) evtuuid, id, cmdno, time, serial, st
       FROM alarms
       WHERE alarmtype = 56
+      ${!templateData.isAdmin ? 'AND serial = ANY($2)' : ''}
       ORDER BY evtuuid, time DESC 
       LIMIT 100
     ) AS a
@@ -856,7 +915,7 @@ async function reports(req, res) {
     ) AS g ON a.serial = g.serial AND g.row_num = 1
     ORDER BY a.time DESC;
     `;
-    const alarms = await client.query(query, [new Date()]); 
+    const alarms = await client.query(query, templateData.isAdmin ? [new Date()] : [new Date(), serialValues]); 
 
     function formatDate(date) {
       const options = {
@@ -999,10 +1058,10 @@ async function reports(req, res) {
     // Выполняем запрос, чтобы получить все данные из таблицы registrars
     const queryRegistrars = `
       SELECT id, serial, lastkeepalive, "group", name, plate, sim, ip, port
-      FROM registrars
+      FROM registrars ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''}
       ORDER BY id
     `;
-    const registrarsResult = await client.query(queryRegistrars);
+    const registrarsResult = await client.query(queryRegistrars, templateData.isAdmin ? [] : [serialValues]);
     const allRegistrars = registrarsResult.rows;
 
     const groupedRegistrars = {};
@@ -1057,11 +1116,26 @@ app.get("/api/devices", async (req, res) => {
     const { page = 1, limit = 10 } = req.query;
     const offset = (page - 1) * limit;
 
+    let serialValues = [];
+    if (!templateData.isAdmin) {
+      const userDevicesQuery = `
+        SELECT devices
+        FROM users
+        WHERE id = $1
+      `;
+      const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
+      
+      if (userDevicesResult.rows.length > 0) {
+        serialValues = userDevicesResult.rows[0].devices;
+      } 
+    } 
+
     const query = `
       SELECT a.id, a.cmdno, a.time, a.serial, a.st, r.plate, g.latitude, g.longitude
       FROM (
         SELECT id, cmdno, time, serial, st
         FROM alarms
+        ${!templateData.isAdmin ? 'WHERE serial = ANY($4)' : ''}
         ORDER BY time DESC 
         LIMIT $1 OFFSET $2
       ) AS a
@@ -1073,7 +1147,7 @@ app.get("/api/devices", async (req, res) => {
       ) AS g ON a.serial = g.serial AND g.row_num = 1
       ORDER BY a.time DESC;
     `;
-    const alarms = await pool.query(query, [limit, offset, new Date()]); 
+    const alarms = await pool.query(query, templateData.isAdmin ? [limit, offset, new Date()] : [limit, offset, new Date(), serialValues]); 
 
     function formatDate(date) {
       const options = {
@@ -1119,8 +1193,8 @@ app.get("/api/devices", async (req, res) => {
       };
     });
 
-    const totalCountQuery = "SELECT COUNT(*) FROM alarms;";
-    const totalCount = await pool.query(totalCountQuery);
+    const totalCountQuery = `SELECT COUNT(*) FROM alarms ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''};`;
+    const totalCount = await pool.query(totalCountQuery, templateData.isAdmin ? [] : [serialValues]);
 
     const totalPages = Math.ceil(totalCount.rows[0].count / limit);
 
@@ -1215,6 +1289,20 @@ app.get('/reports/:id', async (req, res) => {
     const client = await pool.connect();
   
     const minuteInMillis = 90 * 1000; 
+    
+    let serialValues = [];
+    if (!templateData.isAdmin) {
+      const userDevicesQuery = `
+        SELECT devices
+        FROM users
+        WHERE id = $1
+      `;
+      const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
+      
+      if (userDevicesResult.rows.length > 0) {
+        serialValues = userDevicesResult.rows[0].devices;
+      } 
+    } 
   
     const query = `
     WITH PrevNextGeo AS (
@@ -1408,6 +1496,8 @@ app.get('/reports/:id', async (req, res) => {
         actualSpeed = alarm.speed
       }
 
+      if (serialValues.includes(alarm.serial)) {
+
       templateData.Type = type;
       templateData.Speed = actualSpeed;
       templateData.Date = formatDate(alarm.time);
@@ -1437,7 +1527,10 @@ app.get('/reports/:id', async (req, res) => {
           return speed;
         }
       });
-      
+    } else {
+      console.log("Нет доступа к данному аларму")
+      templateData.ifDBError = true;
+    }
     // console.log(templateData);
   
     const source = fs.readFileSync("static/templates/reports/report.html", "utf8");
@@ -1745,6 +1838,9 @@ async function devices(req, res) {
     Registrars: [],
     Groups: [],
     GroupsList: [],
+    EditTransport: false,
+    DeleteTransport: false,
+    Update: false,
   };
 
   try {
@@ -1757,6 +1853,20 @@ async function devices(req, res) {
     });
     const client = await pool.connect();
 
+    let serialValues = [];
+    if (!templateData.isAdmin) {
+      const userDevicesQuery = `
+        SELECT devices
+        FROM users
+        WHERE id = $1
+      `;
+      const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
+      
+      if (userDevicesResult.rows.length > 0) {
+        serialValues = userDevicesResult.rows[0].devices;
+      } 
+    } 
+
     const groupsQuery = "SELECT id, name FROM groups";
     const groupsResult = await client.query(groupsQuery);
     const groupsMap = {};
@@ -1768,10 +1878,10 @@ async function devices(req, res) {
 
     const queryRegistrars = `
       SELECT id, serial, lastkeepalive, "group", name, plate, sim, ip, port
-      FROM registrars
+      FROM registrars ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''}
       ORDER BY id
     `;
-    const registrarsResult = await client.query(queryRegistrars);
+    const registrarsResult = await client.query(queryRegistrars, templateData.isAdmin ? [] : [serialValues]);
     const allRegistrars = registrarsResult.rows;
 
     const groupedRegistrars = {};
@@ -1789,6 +1899,9 @@ async function devices(req, res) {
       Organisation: userInfo.Organisation,
       User: userInfo.User,
       UserInfo: userInfo.Users,
+      EditTransport: userInfo.EditTransport,
+      DeleteTransport: userInfo.DeleteTransport,
+      Update: userInfo.Update,
       isAdmin: req.session.userId === 'admin',
       ifDBError: false,
       Registrars: allRegistrars.map((registrar) => ({
@@ -1840,6 +1953,9 @@ async function groups(req, res) {
     return res.redirect("/signin");
   }
   const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/signin");
+  }
   let templateData = {
     Organisation: userInfo.Organisation,
     User: userInfo.User,
@@ -1847,6 +1963,9 @@ async function groups(req, res) {
     UserInfo: userInfo.Users,
     isAdmin: req.session.userId === 'admin',
     Groups: [],
+    EditTransport: userInfo.EditTransport,
+    DeleteTransport: userInfo.DeleteTransport,
+    Update: userInfo.Update,
   };
 
   try {
@@ -2635,12 +2754,18 @@ async function update(req, res) {
     return res.redirect("/signin");
   }
   const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.Update) {
+    return res.redirect("/signin");
+  }
   let templateData = {
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     ifDBError: false,
     UserInfo: userInfo.Users,
     isAdmin: req.session.userId === 'admin',
+    EditTransport: userInfo.EditTransport,
+    DeleteTransport: userInfo.DeleteTransport,
+    Update: userInfo.Update,
   };
 
   try {
@@ -3093,6 +3218,20 @@ async function videos(req, res) {
     });
     const client = await pool.connect();
 
+    let serialValues = [];
+    if (!templateData.isAdmin) {
+      const userDevicesQuery = `
+        SELECT devices
+        FROM users
+        WHERE id = $1
+      `;
+      const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
+      
+      if (userDevicesResult.rows.length > 0) {
+        serialValues = userDevicesResult.rows[0].devices;
+      } 
+    } 
+
     const minuteInMillis = 60 * 1000;
 
     // Получаем список групп и их идентификаторов из таблицы groups
@@ -3107,10 +3246,10 @@ async function videos(req, res) {
     // Выполняем запрос, чтобы получить все данные из таблицы registrars
     const queryRegistrars = `
       SELECT id, serial, channels, lastkeepalive, "group", name, plate, sim, ip, port
-      FROM registrars
+      FROM registrars ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''}
       ORDER BY id
     `;
-    const registrarsResult = await client.query(queryRegistrars);
+    const registrarsResult = await client.query(queryRegistrars, templateData.isAdmin ? [] : [serialValues]);
     const allRegistrars = registrarsResult.rows;
 
     const groupedRegistrars = {};
@@ -3195,6 +3334,20 @@ async function videoExport(req, res) {
     });
     const client = await pool.connect();
 
+    let serialValues = [];
+    if (!templateData.isAdmin) {
+      const userDevicesQuery = `
+        SELECT devices
+        FROM users
+        WHERE id = $1
+      `;
+      const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
+      
+      if (userDevicesResult.rows.length > 0) {
+        serialValues = userDevicesResult.rows[0].devices;
+      } 
+    } 
+
     const minuteInMillis = 60 * 1000;
 
      // Получаем список групп и их идентификаторов из таблицы groups
@@ -3209,10 +3362,10 @@ async function videoExport(req, res) {
      // Выполняем запрос, чтобы получить все данные из таблицы registrars
      const queryRegistrars = `
        SELECT id, serial, channels, lastkeepalive, "group", name, plate, sim, ip, port
-       FROM registrars
+       FROM registrars ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''}
        ORDER BY id
      `;
-     const registrarsResult = await client.query(queryRegistrars);
+     const registrarsResult = await client.query(queryRegistrars, templateData.isAdmin ? [] : [serialValues]);
      const allRegistrars = registrarsResult.rows;
  
      const groupedRegistrars = {};

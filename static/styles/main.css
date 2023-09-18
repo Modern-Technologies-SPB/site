@@ -37,7 +37,7 @@ header h1 {
   color: rgba(0, 0, 0, 0.75);
   font-weight: 700;
   font-size: 30px;
-  margin-left: 45px;
+  margin-left: 15px;
   margin-right: 35px;
 }
 
@@ -49,6 +49,11 @@ header h2 {
 
 header h2 span {
   margin-right: 7px;
+}
+
+header img {
+  height: 36px;
+  margin-left: 15px;
 }
 
 .account-info {
@@ -213,6 +218,7 @@ header h2 span {
 .main .bg {
   margin-top: 12px;
   background-color: #fcfcff;
+  background: repeat center url(../img/argus5.png);
   border-top: 2px solid #f5f5fa;
   min-height: calc(100vh - 162px - 128px);
   /* height: fit-content; */
@@ -965,7 +971,7 @@ tr:nth-child(even) {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: no-repeat center url(../img/griphon.png);
+  background: no-repeat center url(../img/argus5.png);
   background-size: cover;
 }
 
@@ -1896,7 +1902,7 @@ input[type="datetime-local"] {
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 10px;
   display: inline-block;
-  margin: 10px 0 0 20px;
+  margin: 5px 0 0 20px;
   width: 307px;
   cursor: pointer;
   transition: 0.2s;
@@ -1939,8 +1945,16 @@ input[type="datetime-local"] {
 
 .signals-list label p.name {
   float: left;
-  width: fit-content;
-  margin: 10px 0 12px 10px;
+  /* width: fit-content; */
+  margin: 10px 0 10px 10px;
+}
+
+.signals-list label p.name:first-child {
+  margin-bottom: 3px;
+}
+
+.signals-list label p.name:last-child {
+  margin-top: 3px;
 }
 
 .signals-list label p.name svg {

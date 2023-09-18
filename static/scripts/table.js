@@ -70,18 +70,21 @@ const createTable = () => {
     // Добавляем кнопку удаления после каждого ряда
     const trashCell = document.createElement("td");
     trashCell.setAttribute("class", "optionsCell");
+    if (DeleteTransport) {
     const trashButton = document.createElement("button");
     trashButton.setAttribute("class", "trash");
     trashButton.value = `delete-device-${device.id}`;
     trashButton.id = `delete-device-${device.id}`;
+    trashCell.appendChild(trashButton);
+    }
+    if (EditTransport) {
     const optionsButton = document.createElement("button");
     optionsButton.setAttribute("class", "options");
     optionsButton.setAttribute("onclick", `openForm("${device.id}")`);
     optionsButton.value = `options-device-${device.id}`;
     optionsButton.id = `options-device-${device.id}`;
-
     trashCell.appendChild(optionsButton);
-    trashCell.appendChild(trashButton);
+    }
 
     row.appendChild(trashCell);
     tbody.appendChild(row);

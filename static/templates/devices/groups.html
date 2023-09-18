@@ -10,6 +10,7 @@
 <body>
 
     <header>
+        <img src="../img/argus.png">
         <h1>Аргус</h1>
         <h2><span>/</span> {{Organisation}}</h2>
     </header>
@@ -43,9 +44,11 @@
         <a href="/videos">
             <div><img src="../../img/play.svg">Записи</div>
         </a>
+        {{#if isAdmin}}
         <a class="admin-panel" href="/admin">
-          <div><img src="../../img/keyboard.svg">Админка</div>
+            <div><img src="../img/keyboard.svg">Админка</div>
         </a>
+        {{/if}}
         <a class="settings" href="/settings">
             <div><img src="../../img/gear.svg">Настройки</div>
         </a>
@@ -100,7 +103,9 @@
     <a href="/devices">Список устройств</a>
     <a class="selected" href="/devices/groups">Группы</a>
 
+    {{#if Update}}
     <a class="update" href="/devices/update">Обновление ПО</a>
+    {{/if}}
   </nav>
         <section class="bg">
             <section class="content">
