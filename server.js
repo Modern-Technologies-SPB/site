@@ -1496,7 +1496,7 @@ app.get('/reports/:id', async (req, res) => {
         actualSpeed = alarm.speed
       }
 
-      if (serialValues.includes(alarm.serial)) {
+      if (serialValues.includes(alarm.serial) || templateData.isAdmin) {
 
       templateData.Type = type;
       templateData.Speed = actualSpeed;
@@ -1922,7 +1922,7 @@ async function devices(req, res) {
       GroupsList: groupsResult.rows,
     };
 
-    console.log(templateData);
+    // console.log(templateData);
 
     const source = fs.readFileSync("static/templates/devices/index.html", "utf8");
     const template = handlebars.compile(source);
@@ -2966,7 +2966,7 @@ app.post("/add-user", async (req, res) => {
   }
   const { name, surname, email, phone, password } = req.body;
 
-  console.log(name, surname, email, phone, password)
+  // console.log(name, surname, email, phone, password)
 
   try {
 
