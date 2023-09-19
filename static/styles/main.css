@@ -1242,7 +1242,8 @@ tr:nth-child(even) {
   display: inline-block;
 }
 
-.parameters-input input:read-only {
+.parameters-input input:read-only,
+.parameters-inputs input:read-only {
   background-color: #0000000a;
 }
 

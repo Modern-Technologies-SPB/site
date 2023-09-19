@@ -79,11 +79,21 @@
                         <ul class="area">
                           {{#each Groups}}
                           <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="{{name}}" class="checkbox-input" hidden checked><label for="{{name}}" class="checkbox-label">{{name}}</label>
-                            <ul class="area-devices" id="devices-1">
-                              {{#each serials}}
-                              <li class="device"><img><input type="checkbox" id="{{this}}" class="checkbox-input device-filter" value="{{this}}" hidden checked><label for="{{this}}" class="checkbox-label"><div class="checkmark"></div>{{this}}</label></li>
+                              <ul class="area-devices" id="devices-1">
+                                  {{#each serials}}
+                                  <li class="device"><img><input type="checkbox" id="{{this}}" class="checkbox-input device-filter" value="{{this}}" hidden checked><label for="{{this}}" class="checkbox-label">
+                                      {{#if ../numbers}}
+                                          {{#if (lookup ../numbers @index)}}
+                                              <div class="checkmark"></div>{{lookup ../numbers @index}}
+                                          {{else}}
+                                              <div class="checkmark"></div>{{this}}
+                                          {{/if}}
+                                      {{else}}
+                                          <div class="checkmark"></div>{{this}}
+                                      {{/if}}
+                                  </label></li>
                                   {{/each}}
-                            </ul>
+                              </ul>
                           </li>
                           {{/each}}
                           </ul>

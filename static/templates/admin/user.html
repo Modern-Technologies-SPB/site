@@ -134,9 +134,21 @@
                             <ul class="area-devices" id="devices-1">
                               {{#each serials}}
                               {{#if this.checked}}
-                              <li class="device"><img><input type="checkbox" id="{{this.serial}}" class="checkbox-input device-filter device-serial" value="{{this.serial}}" hidden checked><label for="{{this.serial}}" class="checkbox-label"><div class="checkmark"></div>{{this.serial}}</label></li>
+                              <li class="device"><img><input type="checkbox" id="{{this.serial}}" class="checkbox-input device-filter device-serial" value="{{this.serial}}" hidden checked><label for="{{this.serial}}" class="checkbox-label"><div class="checkmark"></div>
+                                {{#if (lookup ../numbers @index)}}
+                                              {{lookup ../numbers @index}}
+                                          {{else}}
+                                              {{this.serial}}
+                                          {{/if}}
+                              </label></li>
                               {{else}}
-                              <li class="device"><img><input type="checkbox" id="{{this.serial}}" class="checkbox-input device-filter device-serial" value="{{this.serial}}" hidden><label for="{{this.serial}}" class="checkbox-label"><div class="checkmark"></div>{{this.serial}}</label></li>
+                              <li class="device"><img><input type="checkbox" id="{{this.serial}}" class="checkbox-input device-filter device-serial" value="{{this.serial}}" hidden><label for="{{this.serial}}" class="checkbox-label"><div class="checkmark"></div>
+                                {{#if (lookup ../numbers @index)}}
+                                              {{lookup ../numbers @index}}
+                                          {{else}}
+                                              {{this.serial}}
+                                          {{/if}}
+                              </label></li>
                               {{/if}}
                                   {{/each}}
                             </ul>

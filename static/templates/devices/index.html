@@ -89,13 +89,25 @@
                         <ul class="area">
                           {{#each Groups}}
                           <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="{{name}}" class="checkbox-input" hidden checked><label for="{{name}}" class="checkbox-label">{{name}}</label>
-                            <ul class="area-devices" id="devices-1">
-                              {{#each serials}}
-                              <li class="device"><img><input type="checkbox" id="{{this}}" class="checkbox-input device-filter" value="{{this}}" hidden checked><label for="{{this}}" class="checkbox-label"><div class="checkmark"></div>{{this}}</label></li>
+                              <ul class="area-devices" id="devices-1">
+                                  {{#each serials}}
+                                  <li class="device"><img><input type="checkbox" id="{{this}}" class="checkbox-input device-filter" value="{{this}}" hidden checked><label for="{{this}}" class="checkbox-label">
+                                      {{#if ../numbers}}
+                                          {{#if (lookup ../numbers @index)}}
+                                              <div class="checkmark"></div>{{lookup ../numbers @index}}
+                                          {{else}}
+                                              <div class="checkmark"></div>{{this}}
+                                          {{/if}}
+                                      {{else}}
+                                          <div class="checkmark"></div>{{this}}
+                                      {{/if}}
+                                  </label></li>
                                   {{/each}}
-                            </ul>
+                              </ul>
                           </li>
                           {{/each}}
+
+
                           </ul>
                           
                     </section>
@@ -112,12 +124,12 @@
                               <tr>
                                 <th><input id="device-all" type="checkbox"><label for="device-all"><div class="checkmark"></div></label></th>
                                 <th>Группа</th>
+                                <th>Код</th>
                                 <th>Номерной знак</th>
                                 <th>Серийный номер</th>
                                 <th>Статус</th>
                                 <th>Номер SIM-карты</th>
                                 <th>IP-адрес</th>
-                                <th>Порт</th>
                                 <th>{{#if DeleteTransport}}
                                   <button id="delete-device-all" value="delete-device-all" class="trash"></button>
                                   {{/if}}</th>
@@ -179,35 +191,36 @@
           <div class="horizontal-line"></div>
 
           <div class="parameters-inputs">
+              <label for="parameters-serial">Серийный номер<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+              <input name="serialNumber" type="text" id="parameters-serial" placeholder="Серийный номер устройства" required readonly>
+          <div class="parameters-input">
+              <label for="parameters-number">Цифровой код</label>
+              <input name="deviceNumber" type="text" id="parameters-number" placeholder="Цифровой код устройства">
+          </div>
           <div class="parameters-input">
               <label for="parameters-plate">Номерной знак<span style="color: rgba(255, 69, 58, 1);">*</span></label>
               <input name="plateNumber" type="text" id="parameters-plate" placeholder="Номер номерного знака" required>
-          </div>
-          <div class="parameters-input">
-              <label for="parameters-plateColor">Цвет номерного знака<span style="color: rgba(255, 69, 58, 1);">*</span></label>
-              <select name="plateColor" id="parameters-plateColor">
-                  <option value="white">Белый</option>
-                  <option value="blue">Синий</option>
-                  <option value="yellow">Жёлтый</option>
-              </select>
-          </div>
-          <div class="parameters-input">
-              <label for="parameters-serial">Серийный номер<span style="color: rgba(255, 69, 58, 1);">*</span></label>
-              <input name="serialNumber" type="text" id="parameters-serial" placeholder="Серийный номер устройства" required readonly>
           </div>
           <div class="parameters-input">
               <label for="parameters-channels">Количество каналов<span style="color: rgba(255, 69, 58, 1);">*</span></label>
               <input name="channelsAmount" type="text" id="parameters-channels" placeholder="Кол-во каналов устройства" required>
           </div>
           <div class="parameters-input">
-              <label for="parameters-protocol">Протокол<span style="color: rgba(255, 69, 58, 1);">*</span></label>
-              <select name="connectionProtocol" id="parameters-protocol">
-                  <option value="N9M">N9M</option>
-              </select>
+            <label for="parameters-plateColor">Цвет номерного знака<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+            <select name="plateColor" id="parameters-plateColor">
+                <option value="white">Белый</option>
+                <option value="blue">Синий</option>
+                <option value="yellow">Жёлтый</option>
+            </select>
           </div>
+          
           <div class="parameters-input">
               <label for="parameters-ip">IP-адрес<span style="color: rgba(255, 69, 58, 1);">*</span></label>
               <input name="IPAddress" type="text" id="parameters-ip" placeholder="IP-адрес сервера" required>
+          </div>
+          <div class="parameters-input">
+            <label for="parameters-port">Порт<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+            <input name="serverPort" type="text" id="parameters-port" placeholder="Порт сервера" required>
           </div>
           <div class="parameters-input">
               <label for="parameters-group">Группа<span style="color: rgba(255, 69, 58, 1);">*</span></label>
@@ -219,9 +232,12 @@
             </select>
           </div>
           <div class="parameters-input">
-              <label for="parameters-port">Порт<span style="color: rgba(255, 69, 58, 1);">*</span></label>
-              <input name="serverPort" type="text" id="parameters-port" placeholder="Порт сервера" required>
+            <label for="parameters-protocol">Протокол<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+            <select name="connectionProtocol" id="parameters-protocol">
+                <option value="N9M">N9M</option>
+            </select>
           </div>
+          
 
           </div>
 
@@ -515,6 +531,7 @@
       const devices = [
   {{#each Registrars}}
   {
+    number: "{{this.number}}",
     id: "{{this.id}}",
     serial: "{{this.serial}}",
     status: "{{this.status}}",
@@ -685,6 +702,7 @@
         data: JSON.stringify({ id: id }),
         success: function(response) {
           // Установка значений полей формы
+          $("#parameters-number").val(response.number);
           $("#parameters-plate").val(response.plate);
           $("#parameters-plateColor").val(response.plate_color);
           $("#parameters-serial").val(response.serial);

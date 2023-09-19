@@ -556,7 +556,7 @@ async function live(req, res) {
     } 
 
     const query = `
-    SELECT id, serial, channels, lastkeepalive FROM registrars ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''} ORDER BY id ASC
+    SELECT id, serial, channels, lastkeepalive, number FROM registrars ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''} ORDER BY id ASC
     `;
     const registrars = await client.query(query, templateData.isAdmin ? [] : [serialValues]);
 
@@ -565,6 +565,7 @@ async function live(req, res) {
       serial: row.serial,
       channels: row.channels,
       status: Date.now() - Date.parse(row.lastkeepalive) <= minuteInMillis,
+      number: row.number,
     }));
 
     const subquery = `
@@ -729,7 +730,7 @@ async function live(req, res) {
 
     // Выполняем запрос, чтобы получить все данные из таблицы registrars
     const queryRegistrars = `
-      SELECT id, serial, channels, lastkeepalive, "group", name, plate, sim, ip, port
+      SELECT id, serial, channels, lastkeepalive, "group", name, plate, sim, ip, port, number
       FROM registrars ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''}
       ORDER BY id
     `;
@@ -753,6 +754,7 @@ async function live(req, res) {
         sim: registrar.sim,
         ip: registrar.ip,
         port: registrar.port,
+        number: registrar.number,
       });
     });
 
@@ -810,7 +812,7 @@ app.post("/devices-geo", async (req, res) => {
   .map((_, index) => `$${index + 1}`)
   .join(",");
   const subquery = `
-  SELECT g.serial, g.longitude, g.latitude, g.direction, g.speed, r.lastkeepalive, r.plate, r.group
+  SELECT g.serial, g.longitude, g.latitude, g.direction, g.speed, r.lastkeepalive, r.plate, r.group, r.number
   FROM geo g
   INNER JOIN (
     SELECT serial, MAX(time) AS time
@@ -846,6 +848,7 @@ pool.query(subquery, selectedDevices, (err, result) => {
       direction: row.direction,
       speed: row.speed,
       status: Date.now() - Date.parse(row.lastkeepalive) <= minuteInMillis,
+      number: row.number,
       plate: row.plate,
       group: row.group,
     };
@@ -1057,7 +1060,7 @@ async function reports(req, res) {
 
     // Выполняем запрос, чтобы получить все данные из таблицы registrars
     const queryRegistrars = `
-      SELECT id, serial, lastkeepalive, "group", name, plate, sim, ip, port
+      SELECT id, serial, lastkeepalive, "group", name, plate, sim, ip, port, number
       FROM registrars ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''}
       ORDER BY id
     `;
@@ -1065,17 +1068,21 @@ async function reports(req, res) {
     const allRegistrars = registrarsResult.rows;
 
     const groupedRegistrars = {};
+    const groupedNumbers = {};
     allRegistrars.forEach((registrar) => {
       const groupName = groupsMap[registrar.group] || "Другое"; // Используем "Другое", если группа неизвестна
       if (!groupedRegistrars[groupName]) {
         groupedRegistrars[groupName] = [];
+        groupedNumbers[groupName] = [];
       }
       groupedRegistrars[groupName].push(registrar.serial);
+      groupedNumbers[groupName].push(registrar.number);
     });
 
     templateData.Groups = Object.keys(groupedRegistrars).map((groupName) => ({
         name: groupName,
         serials: groupedRegistrars[groupName],
+        numbers: groupedNumbers[groupName],
       }));
 
     const source = fs.readFileSync(
@@ -1877,7 +1884,7 @@ async function devices(req, res) {
     const minuteInMillis = 90 * 1000;
 
     const queryRegistrars = `
-      SELECT id, serial, lastkeepalive, "group", name, plate, sim, ip, port
+      SELECT id, serial, lastkeepalive, "group", name, plate, sim, ip, port, number
       FROM registrars ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''}
       ORDER BY id
     `;
@@ -1885,12 +1892,15 @@ async function devices(req, res) {
     const allRegistrars = registrarsResult.rows;
 
     const groupedRegistrars = {};
+    const groupedNumbers = {};
     allRegistrars.forEach((registrar) => {
       const groupName = groupsMap[registrar.group] || "Другое"; // Используем "Другое", если группа неизвестна
       if (!groupedRegistrars[groupName]) {
         groupedRegistrars[groupName] = [];
+        groupedNumbers[groupName] = [];
       }
       groupedRegistrars[groupName].push(registrar.serial);
+      groupedNumbers[groupName].push(registrar.number);
     });
 
     userInfo = await getUserInfo(req.session.userId);
@@ -1906,6 +1916,7 @@ async function devices(req, res) {
       ifDBError: false,
       Registrars: allRegistrars.map((registrar) => ({
         id: registrar.id,
+        number: registrar.number,
         serial: registrar.serial,
         status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
         name: registrar.name,
@@ -1918,11 +1929,12 @@ async function devices(req, res) {
       Groups: Object.keys(groupedRegistrars).map((groupName) => ({
         name: groupName,
         serials: groupedRegistrars[groupName],
+        numbers: groupedNumbers[groupName],
       })),
       GroupsList: groupsResult.rows,
     };
 
-    // console.log(templateData);
+    console.log(templateData.Groups);
 
     const source = fs.readFileSync("static/templates/devices/index.html", "utf8");
     const template = handlebars.compile(source);
@@ -2203,14 +2215,15 @@ app.post("/updatedevice", async (req, res) => {
   const client = await pool.connect();
 
   var {
-    plateNumber,
-    plateColor,
     serialNumber,
+    deviceNumber,
+    plateNumber,
     channelsAmount,
-    connectionProtocol,
+    plateColor,
     IPAddress,
-    deviceGroup,
     serverPort,
+    deviceGroup,
+    connectionProtocol,
     sumNumber,
     simIMEI,
     simIMSI,
@@ -2270,8 +2283,9 @@ app.post("/updatedevice", async (req, res) => {
         release = $27,
         installer = $28,
         installation = $29,
-        description = $30
-      WHERE serial = $31
+        description = $30,
+        number = $31
+      WHERE serial = $32
       RETURNING *;
     `;
 
@@ -2306,6 +2320,7 @@ app.post("/updatedevice", async (req, res) => {
       equipmentInstaller,
       equipmentInstalled,
       equipmentDescription,
+      deviceNumber,
       serialNumber,
     ];
 
@@ -3049,7 +3064,7 @@ groupsResult.rows.forEach((group) => {
 const minuteInMillis = 90 * 1000;
 
 const queryRegistrars = `
-  SELECT id, serial, lastkeepalive, "group", name, plate, sim, ip, port
+  SELECT id, serial, lastkeepalive, "group", name, plate, sim, ip, port, number
   FROM registrars
   ORDER BY id
 `;
@@ -3057,15 +3072,18 @@ const registrarsResult = await client.query(queryRegistrars);
 const allRegistrars = registrarsResult.rows;
 
 const groupedRegistrars = {};
+const groupedNumbers = {};
 allRegistrars.forEach((registrar) => {
   const groupName = groupsMap[registrar.group] || "Другое"; // Используем "Другое", если группа неизвестна
   if (!groupedRegistrars[groupName]) {
     groupedRegistrars[groupName] = [];
+    groupedNumbers[groupName] = [];
   }
   groupedRegistrars[groupName].push({
     serial: registrar.serial,
     checked: false, 
   });
+  groupedNumbers[groupName].push(registrar.number);
 });
 
 
@@ -3094,9 +3112,10 @@ templateData.Update = response.update;
 templateData.Groups = Object.keys(groupedRegistrars).map((groupName) => ({
   name: groupName,
   serials: groupedRegistrars[groupName],
+  numbers: groupedNumbers[groupName],
 }));
       
-    // console.log(templateData);
+    console.log(templateData.Groups);
   
     const source = fs.readFileSync("static/templates/admin/user.html", "utf8");
     const template = handlebars.compile(source);
@@ -3245,7 +3264,7 @@ async function videos(req, res) {
 
     // Выполняем запрос, чтобы получить все данные из таблицы registrars
     const queryRegistrars = `
-      SELECT id, serial, channels, lastkeepalive, "group", name, plate, sim, ip, port
+      SELECT id, serial, channels, lastkeepalive, "group", name, plate, sim, ip, port, number
       FROM registrars ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''}
       ORDER BY id
     `;
@@ -3269,6 +3288,7 @@ async function videos(req, res) {
         sim: registrar.sim,
         ip: registrar.ip,
         port: registrar.port,
+        number: registrar.number,
       });
     });
 
@@ -3361,7 +3381,7 @@ async function videoExport(req, res) {
  
      // Выполняем запрос, чтобы получить все данные из таблицы registrars
      const queryRegistrars = `
-       SELECT id, serial, channels, lastkeepalive, "group", name, plate, sim, ip, port
+       SELECT id, serial, channels, lastkeepalive, "group", name, plate, sim, ip, port, number
        FROM registrars ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''}
        ORDER BY id
      `;
@@ -3385,6 +3405,7 @@ async function videoExport(req, res) {
          sim: registrar.sim,
          ip: registrar.ip,
          port: registrar.port,
+         number: registrar.number
        });
      });
  

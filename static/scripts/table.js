@@ -41,6 +41,9 @@ const createTable = () => {
     const name = document.createElement("td");
     name.textContent = device.group;
     row.appendChild(name);
+    const number = document.createElement("td");
+    number.textContent = device.number;
+    row.appendChild(number);
     const plate = document.createElement("td");
     plate.textContent = device.plate;
     row.appendChild(plate);
@@ -61,11 +64,16 @@ const createTable = () => {
     sim.textContent = device.sim;
     row.appendChild(sim);
     const ip = document.createElement("td");
-    ip.textContent = device.ip;
+    if (device.ip === "") {
+      ip.textContent = "";
+    } else {
+      if (device.port === "") {
+        ip.textContent = device.ip;
+      } else {
+        ip.textContent = device.ip + ":" + device.port
+      }
+    }
     row.appendChild(ip);
-    const port = document.createElement("td");
-    port.textContent = device.port;
-    row.appendChild(port);
 
     // Добавляем кнопку удаления после каждого ряда
     const trashCell = document.createElement("td");

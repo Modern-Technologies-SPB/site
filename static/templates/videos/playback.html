@@ -105,7 +105,11 @@
                                 <input type="number" id="channels-{{this.serial}}" value="{{this.channels}}" hidden>
                                 <input type="radio" name="camera-serial" id="radio-{{this.serial}}" class="radio-input" value="{{this.serial}}" hidden>
                                 <label for="radio-{{this.serial}}" class="radio-label active-{{this.status}}">
-                                  {{this.serial}}
+                                  {{#if this.number}}
+                                      {{this.number}}
+                                    {{else}}
+                                      {{this.serial}}
+                                  {{/if}}
                                 </label>
                               </li>
                                   {{/each}}
