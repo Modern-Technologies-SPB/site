@@ -189,7 +189,7 @@ header img {
   /* top: 62px; */
   /* left: 177px; */
   margin-left: 177px;
-  margin-top: 92px;
+  margin-top: 74px;
   /* width: calc(100% - 177px); */
   /* height: calc(100vh - 62px); */
 }
@@ -216,11 +216,11 @@ header img {
 }
 
 .main .bg {
-  margin-top: 12px;
+  margin-top:12px;
   background-color: #fcfcff;
   background: repeat center url(../img/argus5.png);
   border-top: 2px solid #f5f5fa;
-  min-height: calc(100vh - 162px - 92px);
+  min-height: calc(100vh - 62px - 53px);
   /* height: fit-content; */
   padding: 0 145px 0 145px;
   justify-content: center;
@@ -317,8 +317,8 @@ header img {
 
 .for-table {
   display: inline-block;
-  height: 85%;
-  margin-top: 35px;
+  height: 90%;
+  margin-top: 45px;
   width: 100%;
 }
 
