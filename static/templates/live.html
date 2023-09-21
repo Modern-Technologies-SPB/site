@@ -253,12 +253,10 @@
 
       cameraSerials.forEach((checkbox) => {
         checkbox.addEventListener('change', function() {
-          console.log($("input[name=camera-serial]:checked").val())
           serial = $("input[name=camera-serial]:checked").val()
           stopAllCameras();
           currentCameraGroup = 1
           totalCameras = $(`#channels-${serial}`).val() - 1;
-          console.log(totalCameras);
           playNextCamerasInGroup();
 
           const markers = document.querySelectorAll('.area-devices .device');
@@ -306,47 +304,73 @@
       }
     
       async function playNextCamerasInGroup() {
-        const startCamera = (currentCameraGroup - 1) * camerasPerGroup + 2;
-        const endCamera = startCamera + camerasPerGroup - 1;
-    
-        if (startCamera > totalCameras) {
-          // currentCameraGroup = 1;
-          // playNextCamerasInGroup();
-          return;
-        }
-    
-        stopAllCameras();
-    
-        let videoElementIndex = 1;
-    
-        for (let i = startCamera; i <= endCamera && i <= totalCameras; i++) {
-          const videoElement = document.getElementById(`camera-${videoElementIndex}`);
-          const flvPlayer = flvjs.createPlayer({
-            type: 'flv',
-            isLive: true,
-            cors: true,
-            url: `${baseURL}?serial=${serial}&channel=${i}&quality=0`,
-          }, {
-            enableWorker: true,
-            enableStashBuffer: false,
-            autoCleanupSourceBuffer: true,
-          });
-    
-          flvPlayer.attachMediaElement(videoElement);
-          flvPlayer.load();
-          flvPlayer.play();
-    
-          flvPlayers.push(flvPlayer);
-    
-          videoElementIndex++;
-    
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
+  const startCamera = (currentCameraGroup - 1) * camerasPerGroup + 2;
+  const endCamera = startCamera + camerasPerGroup - 1;
+
+  if (startCamera > totalCameras) {
+    // currentCameraGroup = 1;
+    // playNextCamerasInGroup();
+    return;
+  }
+
+  stopAllCameras();
+
+  let videoElementIndex = 1;
+
+  for (let i = startCamera; i <= endCamera && i <= totalCameras; i++) {
+    const videoElement = document.getElementById(`camera-${videoElementIndex}`);
+    let flvPlayer = flvjs.createPlayer({
+      type: 'flv',
+      isLive: true,
+      cors: true,
+      url: `${baseURL}?serial=${serial}&channel=${i}&quality=0`,
+    }, {
+      enableWorker: true,
+      enableStashBuffer: false,
+      autoCleanupSourceBuffer: true,
+    });
+
+    flvPlayer.attachMediaElement(videoElement);
+    flvPlayer.load();
+    flvPlayer.play();
+
+    flvPlayers.push(flvPlayer);
+
+    let hasStarted = false;
+
+    const checkStarted = () => {
+      if (!hasStarted && videoElement.readyState >= 2) {
+        hasStarted = true;
+        console.log(`Трансляция началась для камеры ${i}`);
       }
+    };
+
+    const checkInterval = setInterval(checkStarted, 1000);
+
+    setTimeout(() => {
+      clearInterval(checkInterval);
+      if (!hasStarted) {
+        console.log(`Трансляция для камеры ${i} не началась, запрашиваем повторно...`);
+        flvPlayer.unload();
+        flvPlayer.load();
+        flvPlayer.play();
+        // if (i > 0) {
+        //   i--; 
+        // }
+      } 
+    }, 3000);
+
+    videoElementIndex++;
+
+    await new Promise(resolve => setTimeout(resolve, 4000));
+  }
+}
+
+
+
     
       function switchCameras(direction) {
         if ((currentCameraGroup === 1 && direction === -1) || (currentCameraGroup === Math.ceil(totalCameras / camerasPerGroup) && direction === 1)) {
-          // Если текущая группа - первая и переключаемся назад, или текущая группа - последняя и переключаемся вперед, не переключаемся
           return;
         }
         currentCameraGroup += direction;
@@ -420,13 +444,12 @@ const selectedDevices = Array.from(checkboxes)
             .filter(checkbox => checkbox.checked && checkbox.value !== 'on')
             .map(checkbox => checkbox.value));
         
-        console.log(selectedDevices); // Вывести выбранные устройства в консоль
     });
 });
 
 
   function addMarker(device) {
-    const { serial, status, longitude, latitude, direction, speed, number } = device;
+    const { serial, status, longitude, latitude, direction, speed, number, groupName } = device;
 
             
     if (serial === $("input[name=camera-serial]:checked").val()) {
@@ -460,7 +483,6 @@ var markerObj = L.marker([latitude, longitude], { icon: marker });
         }
 
   function fetchAndShowMarkers() {
-    console.log(selectedDevices);
     fetch('/devices-geo', {
           method: 'POST',
           headers: {
@@ -470,11 +492,9 @@ var markerObj = L.marker([latitude, longitude], { icon: marker });
         })
       .then(response => response.json())
       .then(data => {
-        console.log(data.devicesData);
         clearMarkers();
         data.devicesData.forEach(device => {
           addMarker(device);
-          console.log(device);
         });
 
         // Поиск устройства с выбранным серийным номером
@@ -488,10 +508,9 @@ var markerObj = L.marker([latitude, longitude], { icon: marker });
 
         const propertiesDiv = document.getElementById('properties');
 
-        console.log(selectedDevice);
 
         if (selectedDevice) {
-          groupElement.textContent = selectedDevice.group;
+          groupElement.textContent = selectedDevice.groupName;
           speedElement.textContent = selectedDevice.speed + ' км/ч';
           plateElement.textContent = selectedDevice.plate;
           geoElement.textContent = `${selectedDevice.latitude.toFixed(6)}, ${selectedDevice.longitude.toFixed(6)}`;

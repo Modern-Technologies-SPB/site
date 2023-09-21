@@ -174,7 +174,9 @@
           <div class="vertical-line"></div>
           <input name="newStage" type="radio" value="equipment" id="stage-equipment"><label for="stage-equipment">Оборудование</label>
           <br>
-          <input name="newStage" type="radio" value="parameters" id="stage-parameters"><label style="margin-top: 115%;" for="stage-parameters">Системные настройки</label>
+          <input name="newStage" type="radio" value="parameters" id="stage-parameters"><label style="margin-top: 90%;" for="stage-parameters" id="stage-parameters-label">Системные настройки</label>
+          <div class="vertical-line" id="between-parameters-and-cameras"></div>
+          <input name="newStage" type="radio" value="cameras" id="stage-cameras"><label for="stage-cameras" id="stage-cameras-label">Настройки камер</label>
       </section>
     </section>
     <section id="add-new-container" class="add-new">
@@ -440,7 +442,23 @@
 
       </form>
 
-      <div id="parameters" class="new-parameters">
+      <div id="parameters" style="position: relative;" class="new-parameters">
+
+        <section style="display: flex; width: 100%; height:100%; top: 0; left: 0;" class="dberror" id="parameters-bg" >
+          <div class="loader-container">
+            <div class="loader">
+              <div class="square" id="sq11"></div>
+              <div class="square" id="sq12"></div>
+              <div class="square" id="sq13"></div>
+              <div class="square" id="sq14"></div>
+              <div class="square" id="sq15"></div>
+              <div class="square" id="sq16"></div>
+              <div class="square" id="sq17"></div>
+              <div class="square" id="sq18"></div>
+              <div class="square" id="sq19"></div>
+            </div>
+          </div>
+      </section>
 
         <h1>Системные настройки</h1>
         <h2>Параметры регистраторов</h2>
@@ -464,18 +482,19 @@
           </select>
         </div>
         <div class="parameters-input">
-            <label for="system-video">Формат видео</label>
-            <select name="VIDEOFORMAT" id="system-video">
-              <option value="0">800 x 600 px</option>
-              <option value="1">1024 x 768 px</option>
-              <option value="2">1280 x 1024 px</option>
-              <option value="3">1366 x 768 px</option>
-              <option value="4">1440 x 900 px</option>
-              <option value="5">720p</option>
-              <option value="6">1080I</option>
-              <option value="7">1080p</option>
-              <option value="8">480p</option>
-              <option value="9">576p</option>
+            <label for="system-timezone">Часовой пояс</label>
+            <select name="TIMEZ" id="system-timezone">
+              <option value="120A">(МСК-1) Калининград</option>
+              <option value="180C">(МСК) Москва</option>
+              <option value="240A">(МСК+1) Самара</option>
+              <option value="300A">(МСК+2) Екатеринбург</option>
+              <option value="360A">(МСК+3) Омск</option>
+              <option value="420A">(МСК+4) Красноярск</option>
+              <option value="480A">(МСК+5) Иркутск</option>
+              <option value="540A">(МСК+6) Якутск</option>
+              <option value="600A">(МСК+7) Владивосток</option>
+              <option value="660A">(МСК+8) Магадан</option>
+              <option value="720A">(МСК+9) Камчатка</option>
           </select>
         </div>
         <div class="parameters-input">
@@ -522,6 +541,117 @@
         <button id="continue-parameters" onclick="sendPutRequest();" type="button">Сохранить</button>
 
     </div>
+
+    <div id="cameras" style="position: relative;" class="new-parameters">
+      <section style="display: flex; width: 100%; height:100%; top: 0; left: 0;" class="dberror" id="cameras-bg" >
+        <div class="loader-container">
+          <div class="loader">
+            <div class="square" id="sq1"></div>
+            <div class="square" id="sq2"></div>
+            <div class="square" id="sq3"></div>
+            <div class="square" id="sq4"></div>
+            <div class="square" id="sq5"></div>
+            <div class="square" id="sq6"></div>
+            <div class="square" id="sq7"></div>
+            <div class="square" id="sq8"></div>
+            <div class="square" id="sq9"></div>
+          </div>
+        </div>
+    </section>
+
+      <h1>Настройки камер</h1>
+      <h2>Выберите нужную камеру и выставьте параметры</h2>
+
+      <div class="horizontal-line"></div>
+      <label style="width: 100%;" for="cameras-id">Номер камеры</label>
+        <select style="width: 100%;" name="cameras-id" id="cameras-id">
+          <option value="1">Камера 1</option>
+          <option value="2">Камера 2</option>
+          <option value="3">Камера 3</option>
+          <option value="4">Камера 4</option>
+          <option value="5">Камера 5</option>
+          <option value="6">Камера 6</option>
+          <option value="7">Камера 7</option>
+          <option value="8">Камера 8</option>
+          <option value="9">Камера 9</option>
+          <option value="10">Камера 10</option>
+          <option value="11">Камера 11</option>
+          <option value="12">Камера 12</option>
+          <option value="13">Камера 13</option>
+          <option value="14">Камера 14</option>
+          <option value="15">Камера 15</option>
+          <option value="16">Камера 16</option>
+        </select>
+
+        <div class="horizontal-line"></div>
+
+
+      <div class="parameters-inputs">
+
+
+      <div class="parameters-input">
+          <label for="cameras-quality">Качество видео</label>
+          <select name="QLT" id="cameras-quality">
+            <option value="1">Максимальное</option>
+            <option value="2">Скорее максимальное</option>
+            <option value="3">Скорее минимальное</option>
+            <option value="4">Минимальное</option>
+        </select>
+      </div>
+      <div class="parameters-input">
+        <label for="cameras-bitrate">Максимальный битрейт</label>
+        <input name="BR" type="text" id="cameras-bitrate" placeholder="Максимальный битрейт видео">
+      </div>
+      <div class="parameters-input">
+          <label for="cameras-video">Разрешение видео</label>
+          <select name="RST" id="cameras-video">
+            <option value="0">352 x 288</option>
+            <option value="1">352 x 576</option>
+            <option value="2">704 x 576</option>
+            <option value="3">176 x 144</option>
+            <option value="4">320 × 240</option>
+            <option value="5">640 × 480</option>
+            <option value="6">1280 x 720</option>
+            <option value="7">1920 × 1080</option>
+        </select>
+      </div>
+      <div class="parameters-input">
+        <label for="cameras-alert">Качество видео при предупреждении</label>
+        <select name="ALT" id="cameras-alert">
+          <option value="1">Максимальное</option>
+          <option value="2">Скорее максимальное</option>
+          <option value="3">Скорее минимальное</option>
+          <option value="4">Минимальное</option>
+      </select>
+    </div>
+      <div class="parameters-input">
+        <label for="cameras-ven">Нужно ли видео</label>
+        <select name="VEN" id="cameras-ven">
+            <option value="0">Нет</option>
+            <option value="1">Да</option>
+        </select>
+    </div>
+    <div class="parameters-input">
+      <label for="cameras-aen">Нужно ли аудио</label>
+      <select name="AEN" id="cameras-aen">
+          <option value="0">Нет</option>
+          <option value="1">Да</option>
+      </select>
+  </div>
+
+  <div class="parameters-input">
+    <label for="cameras-framerate">Фреймрейт</label>
+    <input name="FR" type="text" id="cameras-framerate" placeholder="Фреймрейт видео">
+  </div>
+
+
+      </div>
+
+      <div class="horizontal-line"></div>
+
+      <button id="continue-cameras" onclick="updateCamera();" type="button">Сохранить</button>
+
+  </div>
 
     </section>
   </section>
@@ -571,18 +701,18 @@
     async function sendPutRequest() {
       const dateModSelect = document.getElementById('system-date');
       const timeFormatSelect = document.getElementById('system-time');
-      const videoFormatSelect = document.getElementById('system-video');
       const streamFormatSelect = document.getElementById('system-stream');
       const languageSelect = document.getElementById('system-language');
       const geoModSelect = document.getElementById('system-geo');
+      const timeZoneSelect = document.getElementById('system-timezone');
 
       // Извлекаем значения выбранных опций
       const DATEMOD = dateModSelect.value;
       const TIMEFORMAT = timeFormatSelect.value;
-      const VIDEOFORMAT = videoFormatSelect.value;
       const SUBSTREAMMODE = streamFormatSelect.value;
       const LANGUAGE = languageSelect.value;
       const GEOMOD = geoModSelect.value;
+      const TIMEZ = timeZoneSelect.value;
 
       // Извлекаем значения чекбоксов
       const NE = document.getElementById('NE').checked ? 1 : 0;
@@ -598,10 +728,10 @@
       const requestData = {
         DATEMOD,
         TIMEFORMAT,
-        VIDEOFORMAT,
         SUBSTREAMMODE,
         LANGUAGE,
         GEOMOD,
+        TIMEZ,
         NE,
         TE,
         VE,
@@ -629,7 +759,6 @@
           form.removeClass("form-animation");
           $("body").css("overflow", "auto");
           console.log('PUT запрос выполнен успешно');
-          // Здесь вы можете выполнить дополнительные действия, если необходимо
         } else {
           console.error('Ошибка при выполнении PUT запроса');
         }
@@ -689,8 +818,15 @@
 
       
 
+      var camerasData;
+      
       // Открывает popup форму
       function openForm(id) {
+
+        document.getElementById('parameters-bg').style.display = 'flex';
+        document.getElementById('cameras-bg').style.display = 'flex';
+
+        document.getElementById('cameras-id').value = 1;
 
         var formContainer = $("#form-bg");
       var form = $("#form");
@@ -735,6 +871,20 @@
           $("#parameters-equipment-installed").val(formatDate(new Date(response.installation)));
           $("#parameters-device-description").val(response.description);
 
+
+          var nowTime = new Date();
+          var lastkeepalive = new Date(response.lastkeepalive);
+          var differenceTime = (nowTime - lastkeepalive) / (1000 * 60);
+          if (differenceTime > 1) {
+              $("#between-parameters-and-cameras").hide();
+              $("#stage-parameters-label").hide();
+              $("#stage-cameras-label").hide();
+          } else {
+            $("#between-parameters-and-cameras").show();
+              $("#stage-parameters-label").show();
+              $("#stage-cameras-label").show();
+          }
+
           activeContent = content1
           switchContent(content1);
 
@@ -746,6 +896,8 @@
           content4.style.display = "none";
           content5.style.opacity = 0;
           content5.style.display = "none";
+          content6.style.opacity = 0;
+          content6.style.display = "none";
 
           document.getElementById("stage-details").checked = true;
 
@@ -755,16 +907,7 @@
           $("body").css("overflow", "hidden");
 
           const requestBody = {
-            "serial": $("#parameters-serial").val(),
-            "FIELDS": [
-              "DATEMOD",
-              "TIMEFORMAT",
-              "LANGUAGE",
-              "VIDEOFORMAT",
-              "GEOMOD",
-              "SUBSTREAMMODE",
-              "DISPLAYMENU"
-            ]
+            "serial": $("#parameters-serial").val()
           };
 
           console.log(requestBody);
@@ -779,18 +922,31 @@
           })
           .then(response => response.json())
           .then(data => {
-            // Заполняем поля input данными из ответа
-            document.getElementById('system-date').value = data.DATEMOD;
-            document.getElementById('system-time').value = data.TIMEFORMAT;
-            document.getElementById('system-language').value = data.LANGUAGE;
-            document.getElementById('system-video').value = data.VIDEOFORMAT;
-            document.getElementById('system-geo').value = data.GEOMOD;
-            document.getElementById('system-stream').value = data.SUBSTREAMMODE;
-            document.getElementById('NE').checked = data.DISPLAYMENU.NE === 1;
-            document.getElementById('TE').checked = data.DISPLAYMENU.TE === 1;
-            document.getElementById('VE').checked = data.DISPLAYMENU.VE === 1;
-            document.getElementById('SE').checked = data.DISPLAYMENU.SE === 1;
-            document.getElementById('GE').checked = data.DISPLAYMENU.GE === 1;
+
+            document.getElementById('parameters-bg').style.display = 'none';
+            document.getElementById('cameras-bg').style.display = 'none';
+
+            camerasData = data;
+
+            document.getElementById('system-date').value = data.DATA.TIMEP.DATEM;
+            document.getElementById('system-time').value = data.DATA.TIMEP.TIMEM;
+            document.getElementById('system-language').value = data.DATA.GSP.LANT;
+            document.getElementById('system-timezone').value = data.DATA.TIMEP.TIMEZ;
+            document.getElementById('system-geo').value = data.DATA.GSP.GM;
+            document.getElementById('system-stream').value = data.DATA.SUBSTRNET.SM;
+            document.getElementById('NE').checked = data.DATA.DOSD.NE === 1;
+            document.getElementById('TE').checked = data.DATA.DOSD.TE === 1;
+            document.getElementById('VE').checked = data.DATA.DOSD.VE === 1;
+            document.getElementById('SE').checked = data.DATA.DOSD.SE === 1;
+            document.getElementById('GE').checked = data.DATA.DOSD.GE === 1;
+
+            document.getElementById('cameras-quality').value = data.DATA.AR.VEC[0].QLT;
+            document.getElementById('cameras-bitrate').value = data.DATA.AR.VEC[0].BR;
+            document.getElementById('cameras-video').value = data.DATA.AR.VEC[0].RST;
+            document.getElementById('cameras-alert').value = data.DATA.AR.VEC[0].ALT;
+            document.getElementById('cameras-ven').value = data.DATA.AR.VEC[0].VEN;
+            document.getElementById('cameras-aen').value = data.DATA.AR.VEC[0].AEN;
+            document.getElementById('cameras-framerate').value = data.DATA.AR.VEC[0].FR;
           })
           .catch(error => console.error('Ошибка:', error));
         },
@@ -800,7 +956,7 @@
         }
       });
 
-      }
+      };
 
 
 
@@ -834,6 +990,68 @@
         $("body").css("overflow", "auto");
       }
     });
+
+    document.getElementById('cameras-id').addEventListener('change', function() {
+      var selectedCamera = this.value;
+
+      var cameraData = camerasData.DATA.AR.VEC[selectedCamera - 1]; 
+
+      document.getElementById('cameras-quality').value = cameraData.QLT;
+      document.getElementById('cameras-bitrate').value = cameraData.BR;
+      document.getElementById('cameras-video').value = cameraData.RST;
+      document.getElementById('cameras-alert').value = cameraData.ALT;
+      document.getElementById('cameras-ven').value = cameraData.VEN;
+      document.getElementById('cameras-aen').value = cameraData.AEN;
+      document.getElementById('cameras-framerate').value = cameraData.FR;
+    });
+
+    async function updateCamera() {
+
+
+    var selectedCamera = document.getElementById('cameras-id').value;
+
+    var cameraData = {
+      QLT: document.getElementById('cameras-quality').value,
+      BR: document.getElementById('cameras-bitrate').value,
+      RST: document.getElementById('cameras-video').value,
+      ALT: document.getElementById('cameras-alert').value,
+      VEN: document.getElementById('cameras-ven').value,
+      AEN: document.getElementById('cameras-aen').value,
+      FR: document.getElementById('cameras-framerate').value
+    };
+
+    camerasData.DATA.AR.VEC[selectedCamera - 1] = cameraData;
+
+
+    const serial = $("#parameters-serial").val();
+
+      try {
+        // Отправляем PUT запрос
+        const response = await fetch(`/camera-parameters?serial=${serial}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(camerasData.DATA.AR),
+        });
+
+        if (response.ok) {
+          // PUT запрос выполнен успешно
+          var formContainer = $("#form-bg");
+          var form = $("#form");
+          formContainer.removeClass("active");
+          form.removeClass("form-animation");
+          $("body").css("overflow", "auto");
+          console.log('PUT запрос выполнен успешно');
+        } else {
+          console.error('Ошибка при выполнении PUT запроса');
+        }
+      } catch (error) {
+        console.error('Произошла ошибка при отправке PUT запроса:', error);
+      }
+
+  };
+
     </script>
 
     <script>

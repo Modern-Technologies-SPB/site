@@ -14,6 +14,7 @@ const content2 = document.getElementById("sim");
 const content3 = document.getElementById("ts");
 const content4 = document.getElementById("equipment");
 const content5 = document.getElementById("parameters");
+const content6 = document.getElementById("cameras");
 const btn1 = document.getElementById("continue-details");
 const btn2 = document.getElementById("continue-sim");
 const btn3 = document.getElementById("continue-ts");
@@ -106,6 +107,8 @@ for (let radioButton of radioButtons) {
       switchContent(content4);
     } else if (radioButton.value === "parameters") {
       switchContent(content5);
+    } else if (radioButton.value === "cameras") {
+      switchContent(content6);
     }
   });
 }

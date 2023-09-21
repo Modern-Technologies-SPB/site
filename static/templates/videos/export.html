@@ -860,7 +860,7 @@ endVideoTimeInput.addEventListener("blur", sendPostRequest);
 
     const serial = selectedDevice.value;
 
-    const url = `http://localhost:8081/export?url=http%3A%2F%2Fkrbl.ru%3A8080%2Fhttp%2Fdownload.flv%3Fserial%3D${serial}%26channel%3D${channel}%26queryTime%3D${selectedDate}%26startTime%3D${startTime}%26endTime%3D${endTime}%26recordID%3D${resData.dataId}`;
+    const url = `http://localhost:8081/export?url=http%3A%2F%2F{{SERVER_IP}}%3A8080%2Fhttp%2Fdownload.flv%3Fserial%3D${serial}%26channel%3D${channel}%26queryTime%3D${selectedDate}%26startTime%3D${startTime}%26endTime%3D${endTime}%26recordID%3D${resData.dataId}`;
     document.getElementById("exportLoading").style.display = 'none';
     window.open(url, '_blank'); 
   }

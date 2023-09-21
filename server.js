@@ -7,7 +7,6 @@ const handlebars = require("handlebars");
 require("dotenv").config();
 const multer = require("multer");
 const http = require("http");
-const Client = require('ssh2').Client;
 const axios = require('axios');
 const moment = require('moment');
 const bodyParser = require('body-parser');
@@ -54,17 +53,6 @@ app.get("/videos/export",videoExport);
 app.get("/settings", settings);
 app.get("/admin", adminPanel);
 app.get("/admin/organisation", organisation);
-
-const connectionProperties = {
-  host: process.env.SSH_HOST,
-  port: process.env.SSH_PORT,
-  username: process.env.SSH_USERNAME,
-  password: process.env.SSH_PASSWORD, 
-};
-
-const commandToExecute = 'docker ps | grep connectionserver-video-server';
-
-const conn = new Client();
 
 async function getUserInfo(userId) {
   const pool = new Pool({
@@ -131,53 +119,23 @@ app.post("/videos/restart", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
-conn.on('ready', function() {
+
+  var options = {
+    method: 'GET',
+    url: `http://${process.env.SERVER_IP}:8080/http/restart`,
+    headers: {'Content-Type': 'application/json'},
+    data: {video: true}
+  };
   
-  console.log('Подключение по SSH успешно');
-
-  conn.exec(commandToExecute, function(err, stream) {
-    if (err) throw err;
-
-    let containerId = '';
-
-    stream
-      .on('data', function(data) {
-        const lines = data.toString().split('\n');
-        
-        for (const line of lines) {
-          if (line.includes('connectionserver-video-server')) {
-            containerId = line.trim().split(/\s+/)[0];
-            break;
-          }
-        }
-
-        if (containerId) {
-          console.log('Найден CONTAINER ID:', containerId);
-          const restartCommand = `docker restart ${containerId}`;
-          conn.exec(restartCommand, function(err, stream) {
-            if (err);
-            console.log('Команда для рестарта выполнена.');
-            conn.end(); // Закрываем соединение SSH
-            res.status(200).json({ message: "Команда для рестарта выполнена." });
-            return;
-          });
-        } else {
-          console.log('Контейнер connectionserver-video-server не найден.');
-          conn.end(); // Закрываем соединение SSH
-        }
-      })
-      .stderr.on('data', function(data) {
-        console.error('Ошибка выполнения команды:', data.toString());
-        conn.end(); // Закрываем соединение SSH
-        res.status(500).json({ error: "Ошибка сервера" });
-        return;
-      });
+  axios.request(options).then(function (response) {
+    res.status(200).json({ message: "Команда для рестарта выполнена." });
+    return;
+  }).catch(function (error) {
+    console.error(error);
+    res.status(500).json({ error: "Ошибка сервера" });
+    return;
   });
-}).connect(connectionProperties);
 
-conn.on('error', function(err) {
-  console.error('Ошибка подключения: ' + err.message);
-});
 });
 
 
@@ -199,6 +157,7 @@ async function index(req, res) {
   }
   const userInfo = await getUserInfo(req.session.userId);
   var templateData = {
+    SERVER_IP: process.env.SERVER_IP,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
@@ -517,6 +476,7 @@ async function live(req, res) {
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
+    SERVER_IP: process.env.SERVER_IP,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
@@ -827,7 +787,7 @@ app.post("/devices-geo", async (req, res) => {
   INNER JOIN registrars r ON g.serial = r.serial
 `;
 
-pool.query(subquery, selectedDevices, (err, result) => {
+pool.query(subquery, selectedDevices, async (err, result) => {
   if (err) {
     console.error("Ошибка выполнения запроса:", err);
     res.status(500).json({ error: "Ошибка сервера" });
@@ -836,12 +796,16 @@ pool.query(subquery, selectedDevices, (err, result) => {
 
   const minuteInMillis = 60000;
 
-  const devicesData = result.rows.map((row) => {
+  const devicesData = [];
+
+  for (const row of result.rows) {
     if (row.speed > 150) {
       row.speed /= 100;
     }
-    
-    return {
+
+    const groupName = await getGroupNameById(pool, row.group);
+
+    const deviceData = {
       serial: row.serial,
       longitude: row.longitude,
       latitude: row.latitude,
@@ -851,14 +815,25 @@ pool.query(subquery, selectedDevices, (err, result) => {
       number: row.number,
       plate: row.plate,
       group: row.group,
+      groupName: groupName, 
     };
-  });
+
+    devicesData.push(deviceData);
+  }
   
-  // console.log(devicesData)
 
     res.json({ devicesData });
   });
 });
+
+async function getGroupNameById(pool, groupId) {
+  const query = "SELECT name FROM groups WHERE id = $1";
+  const result = await pool.query(query, [groupId]);
+  if (result.rows.length > 0) {
+    return result.rows[0].name;
+  }
+  return 'Другое';
+}
 
 
 async function reports(req, res) {
@@ -867,6 +842,7 @@ async function reports(req, res) {
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
+    SERVER_IP: process.env.SERVER_IP,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
@@ -1215,36 +1191,6 @@ app.get("/api/devices", async (req, res) => {
   }
 });
 
-async function generatePDF(data) {
-  const browser = await puppeteer.launch({
-    headless: true, 
-    ignoreDefaultArgs: ['--disable-extensions']
-  });  const page = await browser.newPage();
-
-  const htmlTemplate = fs.readFileSync('static/templates/reports/pdf.html', 'utf-8');
-
-  const filledTemplate = htmlTemplate
-  .replace(/{{Id}}/g, data.Id)
-                                    .replace(/{{Organisation}}/g, data.Organisation)
-                                    .replace(/{{Type}}/g, data.Type)
-                                    .replace(/{{Speed}}/g, data.Speed)
-                                    .replace(/{{Date}}/g, data.Date)
-                                    .replace(/{{Serial}}/g, data.Serial)
-                                    .replace(/{{Geo}}/g, data.Geo)
-                                    .replace(/{{PrevLongitude}}/g, data.PrevLongitude)
-                                    .replace(/{{PrevLatitude}}/g, data.PrevLatitude)
-                                    .replace(/{{NextLongitude}}/g, data.NextLongitude)
-                                    .replace(/{{NextLatitude}}/g, data.NextLatitude)
-                                    .replace(/{{Speeds}}/g, data.Speeds);
-
-  await page.setContent(filledTemplate);
-
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  await page.pdf({ path: 'report.pdf', format: 'A4' });
-
-  await browser.close();
-}
 
 
 
@@ -1256,6 +1202,7 @@ app.get('/reports/:id', async (req, res) => {
   const id = req.params.id;
 
   let templateData = {
+    SERVER_IP: process.env.SERVER_IP,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
@@ -1568,6 +1515,7 @@ app.get('/generate-pdf/:id', async (req, res) => {
   const id = req.params.id;
 
   let templateData = {
+    SERVER_IP: process.env.SERVER_IP,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
@@ -1814,19 +1762,22 @@ let data = {
   Speeds: templateData.Speeds,
 };
 
-      generatePDF(data)
-  .then(() => {
-    console.log('PDF создан успешно.');
-    res.sendFile(`${__dirname}/report.pdf`);
-  })
-  .catch((error) => {
-    console.error('Ошибка при создании PDF:', error);
-    res.status(500).send('Ошибка при создании PDF');
-  });
-} catch (error) {
-  console.error(error);
-  res.status(500).send('Ошибка при получении данных');
-}
+      const source = fs.readFileSync("static/templates/reports/pdf.html", "utf8");
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  } catch (error) {
+    console.error(error);
+    templateData.ifDBError = true;
+
+    const source = fs.readFileSync(
+      "static/templates/reports/pdf.html",
+      "utf8"
+    );
+    const template = handlebars.compile(source);
+    const resultT = template(data);
+    res.send(resultT);
+  }
 
 });
 
@@ -1837,6 +1788,7 @@ async function devices(req, res) {
 
   let userInfo;
   let templateData = {
+    SERVER_IP: process.env.SERVER_IP,
     Organisation: '',
     User: '',
     UserInfo: '',
@@ -1906,6 +1858,7 @@ async function devices(req, res) {
     userInfo = await getUserInfo(req.session.userId);
 
     templateData = {
+    SERVER_IP: process.env.SERVER_IP,
       Organisation: userInfo.Organisation,
       User: userInfo.User,
       UserInfo: userInfo.Users,
@@ -1934,7 +1887,6 @@ async function devices(req, res) {
       GroupsList: groupsResult.rows,
     };
 
-    console.log(templateData.Groups);
 
     const source = fs.readFileSync("static/templates/devices/index.html", "utf8");
     const template = handlebars.compile(source);
@@ -1969,6 +1921,7 @@ async function groups(req, res) {
     return res.redirect("/signin");
   }
   let templateData = {
+    SERVER_IP: process.env.SERVER_IP,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     ifDBError: false,
@@ -2041,29 +1994,70 @@ app.post('/update-group', async (req, res) => {
   }
 });
 
-async function getParameterByName(serial, fieldName) {
-  const requestPayload = {
-    FIELDS: [fieldName],
-  };
+async function getParameters(serial) {
 
-  const requestResponse = await axios.get(`http://krbl.ru:8080/http/parameters/request?serial=${serial}`, {
+  const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
     headers: {
       'Content-Type': 'application/json',
     },
-    data: JSON.stringify(requestPayload),
+    data: JSON.stringify({
+      "FIELDS": [
+        "DOSD"
+      ]
+    }),
   });
+
+  const requestResponse2 = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: JSON.stringify({
+      "FIELDS": [
+        "GSP"
+      ]
+    }),
+  });
+
+  const requestResponse3 = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: JSON.stringify({
+      "FIELDS": [
+        "TIMEP"
+      ]
+    }),
+  });
+
+  const requestResponse4 = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: JSON.stringify({
+      "FIELDS": [
+        "SUBSTRNET"
+      ]
+    }),
+  });
+
+  const requestResponse5 = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: JSON.stringify({
+      "FIELDS": [
+        "AR"
+      ]
+    }),
+  });
+
   // console.log(requestResponse.data);
   await new Promise(resolve => setTimeout(resolve, 300));
 
-  const getResponse = await axios.get(`http://krbl.ru:8080/http/parameters/get?serial=${serial}`);
+  const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
   // console.log(getResponse.data);
 
-  const fieldPath = findPathForField(fieldName);
-  if (fieldPath) {
-    const value = _.get(getResponse.data, fieldPath);
-    return { [fieldName]: value };
-  }
-  return null;
+  return getResponse.data;
 }
 
 app.post('/device-parameters', async (req, res) => {
@@ -2071,20 +2065,12 @@ app.post('/device-parameters', async (req, res) => {
     return res.redirect("/signin");
   }
   try {
-    const { serial, FIELDS } = req.body;
-    // console.log(serial, FIELDS);
+    const { serial } = req.body;
 
-    const responseData = {};
 
     // Используем асинхронный цикл для выполнения GET-запросов по очереди
-    for (const field of FIELDS) {
-      const parameter = await getParameterByName(serial, field);
-      if (parameter) {
-        Object.assign(responseData, parameter);
-      }
-    }
+    const responseData = await getParameters(serial);
 
-    // console.log(responseData);
 
     res.json(responseData);
   } catch (error) {
@@ -2092,27 +2078,6 @@ app.post('/device-parameters', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-function findPathForField(fieldName) {
-  const fieldPathMap = {
-    "VEHICLEID": "DATA.RIP.BN",
-    "DATEMOD": "DATA.TIMEP.DATEM",
-    "TIMEFORMAT": "DATA.TIMEP.TIMEM",
-    "LANGUAGE": "DATA.GSP.LANT",
-    "VIDEOFORMAT": "DATA.GSP.VGA",
-    "GEOMOD": "DATA.GSP.GM",
-    "SUBSTREAMMODE": "DATA.SUBSTRNET.SM",
-    "NETWORK": "DATA.SUBSTRNET.NEC",
-    "DISPLAYMENU": "DATA.DOSD",
-    "RECORDINGPARAMS": "DATA.RP.RCP",
-    "FUTURERECORDINGSTYLE": "DATA.MP.OT",
-    "FUTURERECORDING": "DATA.MP.OT",
-    "STREAMPARAMS": "DATA.AR.VEC",
-    "VIDEOIMAGEMOD": "DATA.SVIP",
-  };
-
-  return fieldPathMap[fieldName] || null;
-}
 
 app.put('/device-parameters', async (req, res) => {
   if (req.session.userId === undefined) {
@@ -2130,6 +2095,7 @@ app.put('/device-parameters', async (req, res) => {
     VIDEOFORMAT,
     GEOMOD,
     SUBSTREAMMODE,
+    TIMEZ,
     NE,
     TE,
     VE,
@@ -2139,30 +2105,60 @@ app.put('/device-parameters', async (req, res) => {
 
   // Создаем JSON для GET запроса
   const requestBody = {
-    TIMEP: {
-      DATEM: parseInt(DATEMOD, 10) || 1,
-      TIMEM: parseInt(TIMEFORMAT, 10) || 0
+    "TIMEP": {
+      "DATEM": parseInt(DATEMOD, 10) || 1,
+      "TIMEM": parseInt(TIMEFORMAT, 10) || 0,
+      "TIMEZ": TIMEZ || "180C"
     },
-    GSP: {
-      LANT: parseInt(LANGUAGE, 10) || 12,
-      VGA: parseInt(VIDEOFORMAT, 10) || 0,
-      GM: parseInt(GEOMOD, 10) || 0
+    "GSP": {
+      "LANT": parseInt(LANGUAGE, 10) || 12,
+      "VGA": parseInt(VIDEOFORMAT, 10) || 0,
+      "GM": parseInt(GEOMOD, 10) || 0
     },
-    SUBSTRNET: {
-      SM: parseInt(SUBSTREAMMODE, 10) || 1
+    "SUBSTRNET": {
+      "SM": parseInt(SUBSTREAMMODE, 10) || 1
     },
-    DOSD: {
-      NE: parseInt(NE, 10) || 1,
-      TE: parseInt(TE, 10) || 1,
-      VE: parseInt(VE, 10) || 0,
-      SE: parseInt(SE, 10) || 0,
-      GE: parseInt(GE, 10) || 0
+    "DOSD": {
+      "NE": parseInt(NE, 10) || 1,
+      "TE": parseInt(TE, 10) || 1,
+      "VE": parseInt(VE, 10) || 0,
+      "SE": parseInt(SE, 10) || 0,
+      "GE": parseInt(GE, 10) || 0
     }
+  };
+
+
+  // Отправляем GET запрос с JSON BODY
+  try {
+    const response = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/set?serial=${serial}`, {
+      data: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    res.status(response.status).send(response.data);
+  } catch (error) {
+    res.status(500).send('Произошла ошибка при отправке GET запроса.');
+  }
+});
+
+
+app.put('/camera-parameters', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  // Получаем данные из PUT запроса
+  const camerasData = req.body;
+  const { serial } = req.query;
+
+  // Создаем JSON для GET запроса
+  const requestBody = {
+    "AR": camerasData
   };
 
   // Отправляем GET запрос с JSON BODY
   try {
-    const response = await axios.get(`http://krbl.ru:8080/http/parameters/set?serial=${serial}`, {
+    const response = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/set?serial=${serial}`, {
       data: JSON.stringify(requestBody),
       headers: {
         'Content-Type': 'application/json'
@@ -2691,6 +2687,7 @@ async function drivers(req, res) {
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
+    SERVER_IP: process.env.SERVER_IP,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
@@ -2773,6 +2770,7 @@ async function update(req, res) {
     return res.redirect("/signin");
   }
   let templateData = {
+    SERVER_IP: process.env.SERVER_IP,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     ifDBError: false,
@@ -2808,6 +2806,7 @@ async function settings(req, res) {
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
+    SERVER_IP: process.env.SERVER_IP,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     ifDBError: false,
@@ -2843,6 +2842,7 @@ async function organisation(req, res) {
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
+    SERVER_IP: process.env.SERVER_IP,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     ifDBError: false,
@@ -2909,6 +2909,7 @@ async function adminPanel(req, res) {
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
+    SERVER_IP: process.env.SERVER_IP,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     ifDBError: false,
@@ -3025,6 +3026,7 @@ app.get('/admin/user/:id', async (req, res) => {
   const id = req.params.id;
 
   let templateData = {
+    SERVER_IP: process.env.SERVER_IP,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
@@ -3115,7 +3117,6 @@ templateData.Groups = Object.keys(groupedRegistrars).map((groupName) => ({
   numbers: groupedNumbers[groupName],
 }));
       
-    console.log(templateData.Groups);
   
     const source = fs.readFileSync("static/templates/admin/user.html", "utf8");
     const template = handlebars.compile(source);
@@ -3218,6 +3219,7 @@ async function videos(req, res) {
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
+    SERVER_IP: process.env.SERVER_IP,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
@@ -3335,6 +3337,7 @@ async function videoExport(req, res) {
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
+    SERVER_IP: process.env.SERVER_IP,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
@@ -3455,10 +3458,10 @@ app.get('/getData', async (req, res) => {
   const selectedChannel = req.query.selectedChannel;
 
   try {
-    const successResponse = await axios.get(`http://krbl.ru:8080/http/filelist/request?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`);
+    const successResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/filelist/request?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`);
     if (successResponse.data.SUCCESS) {
       await new Promise(resolve => setTimeout(resolve, 7000));
-      const dataResponse = await axios.get(`http://krbl.ru:8080/http/filelist/get?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`);
+      const dataResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/filelist/get?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`);
       if (successResponse.data.SUCCESS) {
       const dataId = dataResponse.data.DATAID;
       const dateRanges = dataResponse.data.DATA;
