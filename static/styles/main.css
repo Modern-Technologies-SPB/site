@@ -1833,7 +1833,7 @@ input[type="datetime-local"] {
 }
 
 .signals-list {
-  width: 345px;
+  /* width: 345px; */
   height: 100%;
   background-color: #f7f7fa;
   border-right: #f5f5fa 2px solid;
@@ -1843,17 +1843,14 @@ input[type="datetime-local"] {
   z-index: 3;
 }
 
-.signals-list.hide {
+.signals-list {
   width: 40px;
+  overflow: hidden;
+  transition: width 0.3s ease-in-out;
 }
 
-.signals-list.hide h1,
-.signals-list.hide ul,
-.signals-list.hide input {
-  transition: 1s;
-  /* width: 10; */
-  margin-left: 50px;
-  display: none;
+.signals-list.active {
+  width: 345px; 
 }
 
 .signals-list h1 {
@@ -1889,6 +1886,30 @@ input[type="datetime-local"] {
   white-space: nowrap;
   height: 150px;
   padding-bottom: 50px;
+}
+
+.signals-list.active li,
+.signals-list.active h1 {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.signals-list.active #left-slider {
+  transform: rotate(0);
+  transition: transform 0.3s ease-in-out;
+}
+
+.signals-list #left-slider {
+  transform: rotate(180deg);
+  transition: transform 0.3s ease-in-out;
+}
+
+.signals-list li,
+.signals-list h1 {
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
 
 .signals-list li {
@@ -2075,6 +2096,7 @@ input[type="datetime-local"] {
   right: 0;
   width: calc(100% - 345px - 2px);
   z-index: 3;
+  transition: all 0.3s ease-in-out
 }
 
 .stream-cameras button {
