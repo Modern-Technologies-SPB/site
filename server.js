@@ -139,17 +139,17 @@ app.post("/videos/restart", async (req, res) => {
 });
 
 
-// const DB_User = process.env.DB_USER;
-// const DB_Password = process.env.DB_PASSWORD;
-// const DB_Host = process.env.DB_HOST;
-// const DB_Port = process.env.DB_PORT;
-// const DB_Name = process.env.DB_NAME;
+const DB_User = process.env.DB_USER;
+const DB_Password = process.env.DB_PASSWORD;
+const DB_Host = process.env.DB_HOST;
+const DB_Port = process.env.DB_PORT;
+const DB_Name = process.env.DB_NAME;
 
-const DB_User = "postgres";
-const DB_Password = process.env.POSTGRES_PASSWORD;
-const DB_Host = "postgres";
-const DB_Port = "5432";
-const DB_Name = "postgres";
+// const DB_User = "postgres";
+// const DB_Password = process.env.POSTGRES_PASSWORD;
+// const DB_Host = "postgres";
+// const DB_Port = "5432";
+// const DB_Name = "postgres";
 
 async function index(req, res) {
   if (req.session.userId === undefined) {
@@ -198,8 +198,9 @@ async function index(req, res) {
       
       if (userDevicesResult.rows.length > 0) {
         serialValues = userDevicesResult.rows[0].devices;
+        templateData.Count = serialValues.length;
       } 
-      templateData.Count = serialValues.length;
+      templateData.Count = 0;
     } 
 
     const last11DaysQuery = `
