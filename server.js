@@ -2592,6 +2592,33 @@ app.post("/deletedriver", async (req, res) => {
   }
 });
 
+app.post("/deletedevice", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const id = req.body.id;
+
+  const pool = new Pool({
+    user: DB_User,
+    host: DB_Host,
+    database: DB_Name,
+    password: DB_Password,
+    port: DB_Port,
+  });
+  const client = await pool.connect();
+
+  try {
+    // Выполняем запрос и получаем результат
+    const query = "DELETE FROM registrars WHERE id = $1;";
+    const devicedata = await client.query(query, [id]);
+
+    // Формирование и отправка ответа
+    res.send("Data deleted successfully");
+  } finally {
+    client.release();
+  }
+});
+
 app.post("/deleteuser", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");

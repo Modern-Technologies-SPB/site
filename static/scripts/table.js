@@ -83,6 +83,7 @@ const createTable = () => {
     trashButton.setAttribute("class", "trash");
     trashButton.value = `delete-device-${device.id}`;
     trashButton.id = `delete-device-${device.id}`;
+    trashButton.setAttribute("onclick", `deleteDevice(${device.id})`);
     trashCell.appendChild(trashButton);
     }
     if (EditTransport) {

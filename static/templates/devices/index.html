@@ -130,9 +130,7 @@
                                 <th>Статус</th>
                                 <th>Номер SIM-карты</th>
                                 <th>IP-адрес</th>
-                                <th>{{#if DeleteTransport}}
-                                  <button id="delete-device-all" value="delete-device-all" class="trash"></button>
-                                  {{/if}}</th>
+                                <th></th>
                               </tr>
                             </thead>
                             <tbody>
@@ -657,6 +655,18 @@
   </section>
   </section>
 
+  <section style="display: none;" class="dberror" id="deleteConfirmation">
+    <div class="erorr-container">
+      <img src="../img/warning.svg"> <br>
+      <h1>Удаление устройства </h1> <br>
+      <span>Вы уверены что хотите удалить <span id="deviceDeleteInfo"></span>?</span>
+      <div class="buttons">
+      <button id="deleteCancel" onclick="closeDeletion();" style="display: inline-block; background-color: white; color: rgba(0, 0, 0, 0.7); margin-right: 5px;" type="button">Отменить</button>
+      <button id="deleteDevice" style="display: inline-block;" type="button" onclick="deleteDevice()">Подтвердить</button>
+    </div>
+    </div>
+  </section>
+
     <script>
       const devices = [
   {{#each Registrars}}
@@ -1052,6 +1062,56 @@
 
   };
 
+    </script>
+
+    <script>
+      function deleteDevice(id) {
+
+var deleteConfirmation = $("#deleteConfirmation");
+
+$.ajax({
+  url: "/devicedata", 
+  method: "POST",
+  contentType: "application/json",
+  data: JSON.stringify({ id: id }),
+  success: function(response) {
+    // Установка значений полей формы
+    $("#deviceDeleteInfo").html(response.serial);
+    document.getElementById('deleteDevice').setAttribute("onclick", `confirmDelete(${response.id})`);
+
+
+    document.getElementById('deleteConfirmation').style.display = "flex";
+
+    $("body").css("overflow", "hidden");
+    },
+    error: function() {
+      // Обработка ошибки при запросе к серверу
+      alert("Произошла ошибка при запросе к серверу.");
+    }
+});
+  
+}
+
+function closeDeletion() {
+    document.getElementById('deleteConfirmation').style.display = "none";
+  }
+
+function confirmDelete(id) {
+$.ajax({
+  url: "/deletedevice", 
+  method: "POST",
+  contentType: "application/json",
+  data: JSON.stringify({ id: id }),
+  success: function(response) {
+    location.reload();
+    },
+    error: function() {
+      // Обработка ошибки при запросе к серверу
+      alert("Произошла ошибка при запросе к серверу.");
+    }
+});
+  
+}
     </script>
 
     <script>
