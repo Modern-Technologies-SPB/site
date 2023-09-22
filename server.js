@@ -196,11 +196,12 @@ async function index(req, res) {
       `;
       const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
       
-      if (userDevicesResult.rows.length > 0) {
+      if (userDevicesResult.rows[0].devices.length > 0) {
         serialValues = userDevicesResult.rows[0].devices;
         templateData.Count = serialValues.length;
-      } 
-      templateData.Count = 0;
+      } else {
+        templateData.Count = 0;
+      }
     } 
 
     const last11DaysQuery = `
@@ -511,7 +512,7 @@ async function live(req, res) {
       `;
       const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
       
-      if (userDevicesResult.rows.length > 0) {
+      if (userDevicesResult.rows[0].devices.length > 0) {
         serialValues = userDevicesResult.rows[0].devices;
       } 
     } 
@@ -872,7 +873,7 @@ async function reports(req, res) {
       `;
       const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
       
-      if (userDevicesResult.rows.length > 0) {
+      if (userDevicesResult.rows[0].devices.length > 0) {
         serialValues = userDevicesResult.rows[0].devices;
       } 
     } 
@@ -1109,7 +1110,7 @@ app.get("/api/devices", async (req, res) => {
       `;
       const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
       
-      if (userDevicesResult.rows.length > 0) {
+      if (userDevicesResult.rows[0].devices.length > 0) {
         serialValues = userDevicesResult.rows[0].devices;
       } 
     } 
@@ -1254,7 +1255,7 @@ app.get('/reports/:id', async (req, res) => {
       `;
       const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
       
-      if (userDevicesResult.rows.length > 0) {
+      if (userDevicesResult.rows[0].devices.length > 0) {
         serialValues = userDevicesResult.rows[0].devices;
       } 
     } 
@@ -1822,7 +1823,7 @@ async function devices(req, res) {
       `;
       const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
       
-      if (userDevicesResult.rows.length > 0) {
+      if (userDevicesResult.rows[0].devices.length > 0) {
         serialValues = userDevicesResult.rows[0].devices;
       } 
     } 
@@ -3249,7 +3250,7 @@ async function videos(req, res) {
       `;
       const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
       
-      if (userDevicesResult.rows.length > 0) {
+      if (userDevicesResult.rows[0].devices.length > 0) {
         serialValues = userDevicesResult.rows[0].devices;
       } 
     } 
@@ -3367,7 +3368,7 @@ async function videoExport(req, res) {
       `;
       const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
       
-      if (userDevicesResult.rows.length > 0) {
+      if (userDevicesResult.rows[0].devices.length > 0) {
         serialValues = userDevicesResult.rows[0].devices;
       } 
     } 
