@@ -19,23 +19,6 @@ const createTable = () => {
 
   devicesToDisplay.forEach((device) => {
     const row = document.createElement("tr");
-    // Добавляем чекбокс перед каждым рядом
-    const checkboxCell = document.createElement("td");
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.value = `device-${device.id}`;
-    checkbox.id = `device-${device.id}`;
-
-    const checkboxLabel = document.createElement("label");
-    checkboxLabel.setAttribute("for", `device-${device.id}`);
-
-    const checkboxDiv = document.createElement("div");
-    checkboxDiv.setAttribute("class", "checkmark");
-    checkboxLabel.appendChild(checkboxDiv);
-
-    checkboxCell.appendChild(checkbox);
-    checkboxCell.appendChild(checkboxLabel);
-    row.appendChild(checkboxCell);
 
     // Добавляем ячейки с данными
     const name = document.createElement("td");

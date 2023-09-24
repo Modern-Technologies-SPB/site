@@ -45,8 +45,7 @@ app.get("/register", register);
 app.get("/live", live);
 app.get("/reports", reports);
 app.get("/devices", devices);
-// app.get("/devices/drivers", drivers);
-app.get("/devices/update", update);
+// app.get("/devices/update", update);
 app.get("/devices/groups", groups)
 app.get("/videos", videos);
 app.get("/videos/export",videoExport);
@@ -1221,11 +1220,6 @@ app.get('/reports/:id', async (req, res) => {
     QueryTime: "",
     StartTime: "",
     EndTime: "",
-    
-    DriverName: "",
-    DriverPhone: "",
-    DriverEmail: "",
-    DriverLicense: "",
 
     PrevLatitude: "",
     PrevLongitude: "",
@@ -1273,15 +1267,9 @@ app.get('/reports/:id', async (req, res) => {
         (SELECT g4.longitude FROM alarms a4 LEFT JOIN geo g4 ON a4.geoid = g4.id WHERE a4.evtuuid = a.evtuuid ORDER BY a4.time DESC LIMIT 1) AS next_longitude,
         g.longitude,
         g.latitude,
-        g.speed,
-        d.name,
-        d.surname,
-        d.card,
-        d.phone,
-        d.email
+        g.speed
       FROM alarms a
       LEFT JOIN geo g ON a.geoid = g.id
-      LEFT JOIN drivers d ON a.serial = d.transport
       WHERE a.id = ${id}
       LIMIT 1
     ),
@@ -1465,11 +1453,6 @@ app.get('/reports/:id', async (req, res) => {
       templateData.StartTime = formatTimeToHHMMSSBefore(alarm.time);
       templateData.EndTime = formatTimeToHHMMSSAfter(alarm.time);
 
-      templateData.DriverName = alarm.name + " " + alarm.surname;
-      templateData.DriverPhone = alarm.phone;
-      templateData.DriverEmail = alarm.email;
-      templateData.DriverLicense = alarm.card;
-
       templateData.PrevLatitude = alarm.prev_latitude;   
       templateData.PrevLongitude = alarm.prev_longitude; 
       templateData.NextLatitude = alarm.next_latitude;   
@@ -1531,11 +1514,6 @@ app.get('/generate-pdf/:id', async (req, res) => {
     Geo: "",
     Latitude: "",
     Longitude: "",
-    
-    DriverName: "",
-    DriverPhone: "",
-    DriverEmail: "",
-    DriverLicense: "",
 
     PrevLatitude: "",
     PrevLongitude: "",
@@ -1569,15 +1547,9 @@ app.get('/generate-pdf/:id', async (req, res) => {
         (SELECT g4.longitude FROM alarms a4 LEFT JOIN geo g4 ON a4.geoid = g4.id WHERE a4.evtuuid = a.evtuuid ORDER BY a4.time DESC LIMIT 1) AS next_longitude,
         g.longitude,
         g.latitude,
-        g.speed,
-        d.name,
-        d.surname,
-        d.card,
-        d.phone,
-        d.email
+        g.speed
       FROM alarms a
       LEFT JOIN geo g ON a.geoid = g.id
-      LEFT JOIN drivers d ON a.serial = d.transport
       WHERE a.id = ${id}
       LIMIT 1
     ),
@@ -1729,11 +1701,6 @@ app.get('/generate-pdf/:id', async (req, res) => {
       templateData.Geo = alarm.latitude + "," + alarm.longitude;
       templateData.Latitude = alarm.latitude
       templateData.Longitude = alarm.longitude
-
-      templateData.DriverName = alarm.name + " " + alarm.surname;
-      templateData.DriverPhone = alarm.phone;
-      templateData.DriverEmail = alarm.email;
-      templateData.DriverLicense = alarm.card;
 
       templateData.PrevLatitude = alarm.prev_latitude;   
       templateData.PrevLongitude = alarm.prev_longitude; 
@@ -2336,179 +2303,6 @@ app.post("/updatedevice", async (req, res) => {
   }
 });
 
-app.post("/updatedriver", upload.single("upload-file"), async (req, res) => {
-  if (req.session.userId === undefined) {
-    return res.redirect("/signin");
-  }
-  const pool = new Pool({
-    user: DB_User,
-    host: DB_Host,
-    database: DB_Name,
-    password: DB_Password,
-    port: DB_Port,
-  });
-  const client = await pool.connect();
-
-  var {
-    driverName,
-    driverSurname,
-    driverCard,
-    driverGender,
-    driverLicense,
-    driverPassport,
-    driverPhone,
-    driverEmail,
-    driverTransport,
-    driverDescription,
-    driverID,
-  } = req.body;
-
-  try {
-    // Вставка новой строки в таблицу drivers
-    const query = `
-      UPDATE drivers
-      SET name = $1,
-          surname = $2,
-          card = $3,
-          gender = $4,
-          license = $5,
-          passport = $6,
-          phone = $7,
-          email = $8,
-          transport = $9,
-          description = $10
-      WHERE id = $11
-      RETURNING *;
-    `;
-
-    const values = [
-      driverName,
-      driverSurname,
-      driverCard,
-      driverGender,
-      driverLicense,
-      driverPassport,
-      driverPhone,
-      driverEmail,
-      driverTransport,
-      driverDescription,
-      driverID,
-    ];
-
-    const result = await client.query(query, values);
-
-    const newRow = result.rows[0];
-    // console.log("New driver added:", newRow);
-
-    res.send("Data added successfully");
-  } catch (error) {
-    console.error("Error adding data:", error);
-    res.status(500).send("An error occurred while adding data");
-  } finally {
-    client.release();
-  }
-});
-
-app.post("/adddriver", upload.single("upload-file"), async (req, res) => {
-  if (req.session.userId === undefined) {
-    return res.redirect("/signin");
-  }
-  const pool = new Pool({
-    user: DB_User,
-    host: DB_Host,
-    database: DB_Name,
-    password: DB_Password,
-    port: DB_Port,
-  });
-  const client = await pool.connect();
-
-  var {
-    driverName,
-    driverSurname,
-    driverCard,
-    driverGender,
-    driverLicense,
-    driverPassport,
-    driverPhone,
-    driverEmail,
-    driverTransport,
-    driverDescription,
-  } = req.body;
-
-  try {
-    // Вставка новой строки в таблицу drivers
-    const query = `
-      INSERT INTO drivers (
-        name,
-        surname,
-        card,
-        gender,
-        license,
-        passport,
-        phone,
-        email,
-        transport,
-        description
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-      RETURNING *;
-    `;
-
-    const values = [
-      driverName,
-      driverSurname,
-      driverCard,
-      driverGender,
-      driverLicense,
-      driverPassport,
-      driverPhone,
-      driverEmail,
-      driverTransport,
-      driverDescription,
-    ];
-
-    const result = await client.query(query, values);
-
-    const newRow = result.rows[0];
-    // console.log("New driver added:", newRow);
-
-    res.send("Data added successfully");
-  } catch (error) {
-    console.error("Error adding data:", error);
-    res.status(500).send("An error occurred while adding data");
-  } finally {
-    client.release();
-  }
-});
-
-app.post("/driverdata", async (req, res) => {
-  if (req.session.userId === undefined) {
-    return res.redirect("/signin");
-  }
-  const id = req.body.id;
-
-  const pool = new Pool({
-    user: DB_User,
-    host: DB_Host,
-    database: DB_Name,
-    password: DB_Password,
-    port: DB_Port,
-  });
-  const client = await pool.connect();
-
-  try {
-    // Выполняем запрос и получаем результат
-    const query = "SELECT * FROM drivers WHERE id = $1;";
-    const driverdata = await client.query(query, [id]);
-
-    // Формирование и отправка ответа
-    const response = driverdata.rows[0];
-    res.json(response);
-  } finally {
-    client.release();
-  }
-});
-
 app.post("/userdata", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
@@ -2560,33 +2354,6 @@ app.post("/groupdata", async (req, res) => {
     // Формирование и отправка ответа
     const response = userdata.rows[0];
     res.json(response);
-  } finally {
-    client.release();
-  }
-});
-
-app.post("/deletedriver", async (req, res) => {
-  if (req.session.userId === undefined) {
-    return res.redirect("/signin");
-  }
-  const id = req.body.id;
-
-  const pool = new Pool({
-    user: DB_User,
-    host: DB_Host,
-    database: DB_Name,
-    password: DB_Password,
-    port: DB_Port,
-  });
-  const client = await pool.connect();
-
-  try {
-    // Выполняем запрос и получаем результат
-    const query = "DELETE FROM drivers WHERE id = $1;";
-    const driverdata = await client.query(query, [id]);
-
-    // Формирование и отправка ответа
-    res.send("Data deleted successfully");
   } finally {
     client.release();
   }
@@ -2709,86 +2476,6 @@ app.post("/add-group", async (req, res) => {
     res.status(500).json({ error: "Ошибка при добавлении пользователя" });
   }
 });
-
-async function drivers(req, res) {
-  if (req.session.userId === undefined) {
-    return res.redirect("/signin");
-  }
-  const userInfo = await getUserInfo(req.session.userId);
-  let templateData = {
-    SERVER_IP: process.env.SERVER_IP,
-    Organisation: userInfo.Organisation,
-    User: userInfo.User,
-    UserInfo: userInfo.Users,
-    isAdmin: req.session.userId === 'admin',
-    ifDBError: false,
-    Drivers: [],
-    Registrars: [],
-  };
-
-  try {
-    const pool = new Pool({
-      user: DB_User,
-      host: DB_Host,
-      database: DB_Name,
-      password: DB_Password,
-      port: DB_Port,
-    });
-    const client = await pool.connect();
-
-    // Выполняем запрос для объединения данных из таблиц drivers и registrars
-    const queryDrivers = `
-      SELECT d.id, d.name, d.surname, d.transport, d.phone, d.email, d.card, r.connected
-      FROM drivers d
-      LEFT JOIN registrars r ON d.transport = r.serial
-      ORDER BY r.connected DESC NULLS LAST, CASE WHEN r.connected = true THEN 0 ELSE 1 END, d.id
-    `;
-    const driversResult = await client.query(queryDrivers);
-
-    templateData.Drivers = driversResult.rows.map((driver) => ({
-      id: driver.id,
-      name: driver.name,
-      surname: driver.surname,
-      transport: driver.transport,
-      phone: driver.phone,
-      email: driver.email,
-      card: driver.card,
-    }));
-
-    const queryRegistrars = `
-      SELECT serial
-      FROM registrars
-    `;
-    const registrarsResult = await client.query(queryRegistrars);
-
-    templateData.Registrars = registrarsResult.rows.map(
-      (registrar) => registrar.serial
-    );
-
-    // console.log(templateData);
-
-    const source = fs.readFileSync(
-      "static/templates/devices/drivers.html",
-      "utf8"
-    );
-    const template = handlebars.compile(source);
-    const resultT = template(templateData);
-    res.send(resultT);
-
-    client.release();
-  } catch (error) {
-    console.error(error);
-    templateData.ifDBError = true;
-
-    const source = fs.readFileSync(
-      "static/templates/devices/drivers.html",
-      "utf8"
-    );
-    const template = handlebars.compile(source);
-    const resultT = template(templateData);
-    res.send(resultT);
-  }
-}
 
 async function update(req, res) {
   if (req.session.userId === undefined) {
