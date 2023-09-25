@@ -878,7 +878,7 @@ async function reports(req, res) {
     } 
 
     const query = `
-    SELECT a.evtuuid, a.id, a.cmdno, a.time, a.serial, a.st, r.plate, g.latitude, g.longitude
+    SELECT a.evtuuid, a.id, a.cmdno, a.time, a.serial, a.st, r.plate, g.latitude, g.longitude, r.number
     FROM (
       SELECT DISTINCT ON (evtuuid) evtuuid, id, cmdno, time, serial, st
       FROM alarms
@@ -1016,6 +1016,7 @@ async function reports(req, res) {
         id: alarm.id,
         cmdno: alarm.cmdno,
         time: formatDate(alarm.time),
+        number: alarm.number,
         serial: alarm.serial,
         st: alarm.st,
         type: type,
@@ -1879,7 +1880,193 @@ async function devices(req, res) {
   }
 }
 
+app.get('/devices/device/system/:serial', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
+  }
+  const serial = req.params.serial;
 
+  let templateData = {
+    SERVER_IP: process.env.SERVER_IP,
+    Organisation: userInfo.Organisation,
+    User: userInfo.User,
+    UserInfo: userInfo.Users,
+    isAdmin: req.session.userId === 'admin',
+    ifDBError: false,
+    Serial: serial,
+    EditTransport: false,
+    DeleteTransport: false,
+    Update: false,
+  };
+
+  try {
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+    const client = await pool.connect();
+      
+    const source = fs.readFileSync("static/templates/devices/system.html", "utf8");
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  
+    client.release();
+  } catch (error) {
+    console.error(error);
+    templateData.ifDBError = true;
+
+    const source = fs.readFileSync(
+      "static/templates/devices/system.html",
+      "utf8"
+    );
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  }
+});
+
+app.get('/devices/device/:serial', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
+  }
+  const serial = req.params.serial;
+
+  let templateData = {
+    SERVER_IP: process.env.SERVER_IP,
+    Organisation: userInfo.Organisation,
+    User: userInfo.User,
+    UserInfo: userInfo.Users,
+    isAdmin: req.session.userId === 'admin',
+    ifDBError: false,
+    Serial: serial,
+    EditTransport: false,
+    DeleteTransport: false,
+    Update: false,
+    GroupsList: [],
+
+    Number: "",
+    Plate: "",
+    PlateColor: "",
+    Channels: "",
+    Protocol: "",
+    Ip: "",
+    Group: "",
+    Port: "",
+    Sim: "",
+    Imei: "",
+    Imsi: "",
+    Module: "",
+    Type: "",
+    Factory: "",
+    Capacity: "",
+    Engine: "",
+    Stanina: "",
+    Fuel: "",
+    Certificate: "",
+    Category: "",
+    Expire: "",
+    Consumption: "",
+    Region: "",
+    City: "",
+    Name: "",
+    Password: "",
+    Batch: "",
+    Release: "",
+    Installer: "",
+    Installation: "",
+    Description: "",
+  };
+
+  try {
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+    const client = await pool.connect();
+
+    const query = "SELECT * FROM registrars WHERE serial = $1";
+    const result = await client.query(query, [serial]);
+
+    const groupsQuery = "SELECT id, name FROM groups";
+    const groupsResult = await client.query(groupsQuery);
+
+    templateData.GroupsList = groupsResult.rows.map(row => ({
+      id: row.id,
+      name: row.name,
+    }));
+
+    // Предполагается, что результат запроса содержит одну строку данных.
+    if (result.rows.length === 1) {
+      const rowData = result.rows[0];
+
+      // Заполнение данных из результата SQL запроса в объект templateData.
+      templateData.Number = rowData.number;
+      templateData.Plate = rowData.plate;
+      templateData.PlateColor = rowData.plate_color;
+      templateData.Channels = rowData.channels;
+      templateData.Protocol = rowData.protocol;
+      templateData.Ip = rowData.ip;
+      templateData.Group = rowData.group;
+      templateData.Port = rowData.port;
+      templateData.Sim = rowData.sim;
+      templateData.Imei = rowData.imei;
+      templateData.Imsi = rowData.imsi;
+      templateData.Module = rowData.module;
+      templateData.Type = rowData.auto;
+      templateData.Factory = rowData.factory;
+      templateData.Capacity = rowData.capacity;
+      templateData.Engine = rowData.engine;
+      templateData.Stanina = rowData.stanina;
+      templateData.Fuel = rowData.fuel;
+      templateData.Certificate = rowData.certificate;
+      templateData.Category = rowData.category;
+      templateData.Expire = rowData.certificate_exp;
+      templateData.Consumption = rowData.consumption;
+      templateData.Region = rowData.region;
+      templateData.City = rowData.city;
+      templateData.Name = rowData.name;
+      templateData.Password = rowData.password;
+      templateData.Batch = rowData.batch;
+      templateData.Release = rowData.release;
+      templateData.Installer = rowData.installer;
+      templateData.Installation = rowData.installation;
+      templateData.Description = rowData.description;
+    }
+      
+    const source = fs.readFileSync("static/templates/devices/device.html", "utf8");
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  
+    client.release();
+  } catch (error) {
+    console.error(error);
+    templateData.ifDBError = true;
+
+    const source = fs.readFileSync(
+      "static/templates/devices/device.html",
+      "utf8"
+    );
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  }
+});
 
 async function groups(req, res) {
   if (req.session.userId === undefined) {
@@ -1971,7 +2158,7 @@ async function getParameters(serial) {
     },
     data: JSON.stringify({
       "FIELDS": [
-        "DOSD"
+        "EOSD"
       ]
     }),
   });
@@ -2024,10 +2211,77 @@ async function getParameters(serial) {
   await new Promise(resolve => setTimeout(resolve, 300));
 
   const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
-  // console.log(getResponse.data);
 
   return getResponse.data;
 }
+
+app.post('/main-parameters', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  try {
+    const { serial } = req.body;
+
+    const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: JSON.stringify({
+      "FIELDS": [
+        "RIP",
+        "VS"
+      ]
+    }),
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 300));
+
+  const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
+
+    res.json(getResponse.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/main-parameters', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const requestData = req.body;
+  const { serial } = req.query;
+
+  const {
+    NUMBER,
+    PLATE,
+    VIN
+  } = requestData;
+
+  const requestBody = {
+    "RIP": {
+      "BN": NUMBER,
+      "BID": PLATE
+    },
+    "VS": {
+      "VIN": VIN
+    }
+  };
+
+
+
+  try {
+    const response = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/set?serial=${serial}`, {
+      data: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    res.status(response.status).send(response.data);
+  } catch (error) {
+    res.status(500).send('Произошла ошибка при отправке GET запроса.');
+  }
+});
 
 app.post('/device-parameters', async (req, res) => {
   if (req.session.userId === undefined) {
@@ -2037,7 +2291,7 @@ app.post('/device-parameters', async (req, res) => {
     const { serial } = req.body;
 
 
-    // Используем асинхронный цикл для выполнения GET-запросов по очереди
+
     const responseData = await getParameters(serial);
 
 
@@ -2045,6 +2299,314 @@ app.post('/device-parameters', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/ethernet-parameters', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  try {
+    const { serial } = req.body;
+
+    const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: JSON.stringify({
+      "FIELDS": [
+        "ETHERNET",
+        "KEYS"
+      ]
+    }),
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 300));
+
+  const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
+
+    res.json(getResponse.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/ethernet-parameters', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const requestData = req.body;
+  const { serial } = req.query;
+
+  const {
+    IPMODE,
+    IPADDR,
+    SUBMASK,
+    GATEWAY,
+    DNSMODE,
+    PDNS,
+    ADNS,
+    MAC
+  } = requestData;
+
+
+  const requestBody = {
+    "ETHERNET": {
+      "IPMODE": IPMODE,
+      "PIP": {
+        "IPADDR": IPADDR,
+        "SUBMASK": SUBMASK,
+        "GATEWAY": GATEWAY,
+      },
+      "DNSMODE": DNSMODE,
+      "DNS": {
+        "PDNS": PDNS,
+        "ADNS": ADNS
+      }
+    },
+    "KEYS": {
+      "MAC": MAC
+    }
+  };
+
+  try {
+    const response = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/set?serial=${serial}`, {
+      data: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    res.status(response.status).send(response.data);
+  } catch (error) {
+    res.status(500).send('Произошла ошибка при отправке GET запроса.');
+  }
+});
+
+app.post('/wifi-parameters', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  try {
+    const { serial } = req.body;
+
+    const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: JSON.stringify({
+      "FIELDS": [
+        "WIFI"
+      ]
+    }),
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 300));
+
+  const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
+
+    res.json(getResponse.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/wifi-parameters', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const requestData = req.body;
+  const { serial } = req.query;
+
+  const {
+    WIFI,
+    ESSID,
+    ECRYPTTYPE,
+    PWD,
+    IPMODE,
+    IPADDR,
+    SUBMASK,
+    GATEWAY
+  } = requestData;
+
+
+  const requestBody = {
+    "WIFI": {
+      "ENABLE": WIFI,
+      "ESSID": ESSID,
+      "ECRYPTTYPE": ECRYPTTYPE,
+      "IPMODE": IPMODE,
+      "PWD": PWD,
+      "PIP": {
+        "IPADDR": IPADDR,
+        "SUBMASK": SUBMASK,
+        "GATEWAY": GATEWAY,
+      }
+    }
+  };
+
+  try {
+    const response = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/set?serial=${serial}`, {
+      data: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    res.status(response.status).send(response.data);
+  } catch (error) {
+    res.status(500).send('Произошла ошибка при отправке GET запроса.');
+  }
+});
+
+app.post('/communication-parameters', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  try {
+    const { serial } = req.body;
+
+    const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: JSON.stringify({
+      "FIELDS": [
+        "M3G"
+      ]
+    }),
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 300));
+
+  const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
+
+    res.json(getResponse.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/communication-parameters', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+
+  const requestData = req.body;
+  const { serial } = req.query;
+
+  const {
+    NM1,
+    APN1,
+    UN1,
+    PW1,
+    NM2,
+    APN2,
+    UN2,
+    PW2,
+    AT,
+    TN1,
+    TN2,
+    TN3
+  } = requestData;
+
+
+  const requestBody = {
+    "M3G": {
+      "M3M": {
+        "AT": AT,
+        "TN1":TN1,
+        "TN2":TN2,
+        "TN3":TN3
+      },
+      "MP": {
+        "NM": NM1,
+        "APN": APN1,
+        "UN": UN1,
+        "PW": PW1
+      },
+      "M4G": {
+        "NM": NM2,
+        "APN": APN2,
+        "UN": UN2,
+        "PW": PW2
+      },
+    }
+  };
+
+  try {
+    const response = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/set?serial=${serial}`, {
+      data: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    res.status(response.status).send(response.data);
+  } catch (error) {
+    res.status(500).send('Произошла ошибка при отправке GET запроса.');
+  }
+});
+
+app.post('/install-parameters', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  try {
+    const { serial } = req.body;
+
+    const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: JSON.stringify({
+      "FIELDS": [
+        "MCMS"
+      ]
+    }),
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 300));
+
+  const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
+
+    res.json(getResponse.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/install-parameters', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+
+  const requestData = req.body;
+  const { serial } = req.query;
+
+  const {
+    SP
+  } = requestData;
+
+
+  const requestBody = {
+    "MCMS": {
+      "SP": SP
+    }
+  };
+
+
+  try {
+    const response = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/set?serial=${serial}`, {
+      data: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    res.status(response.status).send(response.data);
+  } catch (error) {
+    res.status(500).send('Произошла ошибка при отправке GET запроса.');
   }
 });
 
@@ -2069,8 +2631,10 @@ app.put('/device-parameters', async (req, res) => {
     TE,
     VE,
     SE,
-    GE
+    GE,
+    DE
   } = requestData;
+
 
   // Создаем JSON для GET запроса
   const requestBody = {
@@ -2087,15 +2651,25 @@ app.put('/device-parameters', async (req, res) => {
     "SUBSTRNET": {
       "SM": parseInt(SUBSTREAMMODE, 10) || 1
     },
-    "DOSD": {
-      "NE": parseInt(NE, 10) || 1,
-      "TE": parseInt(TE, 10) || 1,
-      "VE": parseInt(VE, 10) || 0,
-      "SE": parseInt(SE, 10) || 0,
-      "GE": parseInt(GE, 10) || 0
-    }
+    "EOSD": [
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
+  ]
   };
-
 
   // Отправляем GET запрос с JSON BODY
   try {
@@ -2183,6 +2757,7 @@ app.post("/updatedevice", async (req, res) => {
     serialNumber,
     deviceNumber,
     plateNumber,
+    vinNumber,
     channelsAmount,
     plateColor,
     IPAddress,
@@ -2249,8 +2824,9 @@ app.post("/updatedevice", async (req, res) => {
         installer = $28,
         installation = $29,
         description = $30,
-        number = $31
-      WHERE serial = $32
+        number = $31,
+        vin = $32
+      WHERE serial = $33
       RETURNING *;
     `;
 
@@ -2286,6 +2862,7 @@ app.post("/updatedevice", async (req, res) => {
       equipmentInstalled,
       equipmentDescription,
       deviceNumber,
+      vinNumber,
       serialNumber,
     ];
 

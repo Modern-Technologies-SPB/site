@@ -156,6 +156,7 @@
   {
     id: "{{this.id}}",
     cmdno: "{{this.cmdno}}",
+    number: "{{this.number}}",
     time: "{{this.time}}",
     serial: "{{this.serial}}",
     type: "{{this.type}}",
@@ -230,46 +231,6 @@ checkboxes.forEach((checkbox) => {
       devices.style.display = 'none';
     }
   });
-});
-
-      </script>
-
-      <script>
-
-var table = document.querySelector('#deviceTable');
-var tableCheckboxAll = table.querySelector('#device-all');
-var tableCheckboxes = table.querySelectorAll('tbody input[type="checkbox"]');
-
-tableCheckboxAll.addEventListener('click', function(event) {
-    table = document.querySelector('#deviceTable');
-    tableCheckboxes = table.querySelectorAll('tbody input[type="checkbox"]');
-    if (tableCheckboxAll.checked) {
-    tableCheckboxes.forEach((tableCheckbox) => {
-        tableCheckbox.checked = true;
-      });
-    } else {
-        tableCheckboxes.forEach((tableCheckbox) => {
-        tableCheckbox.checked = false;
-      });
-    }
-});
-
-$('#deviceTable').click( function(event) {
-    table = document.querySelector('#deviceTable');
-    tableCheckboxes = table.querySelectorAll('tbody input[type="checkbox"]');
-
-
-for (var i = 0; i < tableCheckboxes.length; i++) {
-    tableCheckboxes[i].addEventListener('click', function(event) {
-    for (var j = 0; j < tableCheckboxes.length; j++) {
-      if (!tableCheckboxes[j].checked || tableCheckboxes[j].disabled) {
-        tableCheckboxAll.checked = false;
-        return;
-      }
-    }
-    tableCheckboxAll.checked = true;
-  });
-}
 });
 
       </script>

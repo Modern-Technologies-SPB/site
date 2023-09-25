@@ -30,7 +30,7 @@ const createTable = () => {
     reportID.textContent = device.id;
     row.appendChild(reportID);
     const plate = document.createElement("td");
-    plate.textContent = device.plate;
+    plate.textContent = device.number;
     row.appendChild(plate);
     const numberTS = document.createElement("td");
     numberTS.textContent = device.serial;
@@ -77,7 +77,6 @@ const createPagination = () => {
     const pageLink = document.createElement("a");
     pageLink.href = "#";
     if (i === currentPage) {
-      document.querySelector("#device-all").checked = false;
       pageLink.classList.add("active");
     }
     pageLink.textContent = i;

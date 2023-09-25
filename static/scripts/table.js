@@ -27,9 +27,6 @@ const createTable = () => {
     const number = document.createElement("td");
     number.textContent = device.number;
     row.appendChild(number);
-    const plate = document.createElement("td");
-    plate.textContent = device.plate;
-    row.appendChild(plate);
     const serial = document.createElement("td");
     serial.textContent = device.serial;
     row.appendChild(serial);
@@ -72,7 +69,8 @@ const createTable = () => {
     if (EditTransport) {
     const optionsButton = document.createElement("button");
     optionsButton.setAttribute("class", "options");
-    optionsButton.setAttribute("onclick", `openForm("${device.id}")`);
+    // optionsButton.setAttribute("onclick", `openForm("${device.id}")`);
+    optionsButton.setAttribute("onclick", `location.href = "/devices/device/${device.serial}"`);
     optionsButton.value = `options-device-${device.id}`;
     optionsButton.id = `options-device-${device.id}`;
     trashCell.appendChild(optionsButton);
@@ -103,7 +101,7 @@ const createPagination = () => {
     const pageLink = document.createElement("a");
     pageLink.href = "#";
     if (i === currentPage) {
-      document.querySelector("#device-all").checked = false;
+      // document.querySelector("#device-all").checked = false;
       pageLink.classList.add("active");
     }
     pageLink.textContent = i;

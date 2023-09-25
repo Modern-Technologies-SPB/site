@@ -322,7 +322,7 @@
       }
     
       async function playNextCamerasInGroup() {
-  const startCamera = currentCameraGroup === 1 ? 2 : (currentCameraGroup - 1) * camerasPerGroup + 1;
+  const startCamera = currentCameraGroup === 1 ? 2 : (currentCameraGroup - 1) * camerasPerGroup;
   const endCamera = startCamera + camerasPerGroup - 1;
 
   if (startCamera > totalCameras) {

@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{Serial}}</title>
+    <link rel="stylesheet" href="../../../styles/main.css" />
+</head>
+<body>
+
+  <style>
+    .main {
+      margin-top: 92px !important;
+    }
+
+    .main .bg {
+      min-height: calc(100vh - 162px - 92px);
+    }
+  </style>
+
+    <header>
+        <img src="../../../img/argus.png">
+        <h1>Аргус</h1>
+        <h2><span>/</span> {{Organisation}}</h2>
+    </header>
+
+    <section class="account-info">
+      <div id="account-main">
+          <img id="person" src="../../../img/person.svg">
+          <span>{{User}}</span>
+          <img id="down" src="../../../img/down.svg">
+          <img id="up" src="../../../img/up.svg">
+      </div>
+      <a href="/logout"><div id="account-additional" class="additional">Выйти</div></a>
+  </section>
+
+    
+
+
+    <section class="navigation">
+        <a href="/">
+            <div><img src="../../../img/chart.svg">Главная</div>
+        </a>
+        <a href="/devices">
+            <div class="selected"><img src="../../../img/cloud.svg">Устройства</div>
+        </a>
+        <a href="/reports">
+            <div><img src="../../../img/bubble.svg">Отчёты</div>
+        </a>
+        <a href="/live">
+            <div><img src="../../../img/waves.svg">Трансляция</div>
+        </a>
+        <a href="/videos">
+            <div><img src="../../../img/play.svg">Записи</div>
+        </a>
+        {{#if isAdmin}}
+        <a class="admin-panel" href="/admin">
+            <div><img src="../../../img/keyboard.svg">Админка</div>
+        </a>
+        {{/if}}
+        <a class="settings" href="/settings">
+            <div><img src="../../../img/gear.svg">Настройки</div>
+        </a>
+    </section>
+
+    <section class="main">
+      {{#if ifDBError}}
+      <section class="dberror">
+        <div class="erorr-container">
+          <img src="../../../img/warning.svg"> <br>
+          <h1>Ошибка </h1> <br>
+          <span>Не удалось получить данные из БД</span>
+          <button type="button" onclick="location.reload();">Повторить попытку</button>
+        </div>
+      </section>
+      {{/if}}
+
+      <section style="display: none;" class="dberror" id="addInformation" >
+        <div class="erorr-container">
+          <div id="loader" class="loader">
+            <div class="square" id="sq1"></div>
+            <div class="square" id="sq2"></div>
+            <div class="square" id="sq3"></div>
+            <div class="square" id="sq4"></div>
+            <div class="square" id="sq5"></div>
+            <div class="square" id="sq6"></div>
+            <div class="square" id="sq7"></div>
+            <div class="square" id="sq8"></div>
+            <div class="square" id="sq9"></div>
+          </div>
+          <svg id="success-mark" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="108" height="108" fill="none" viewBox="0 0 108 108">
+            <g clip-path="url(#a)">
+              <path fill="#8086F9" fill-opacity=".85" d="M54 107.947c29.541 0 54-24.5 54-53.973C108 24.447 83.488 0 53.947 0 24.459 0 0 24.447 0 53.974c0 29.474 24.512 53.973 54 53.973Zm0-8.995c-24.988 0-44.947-20.002-44.947-44.978 0-24.976 19.906-44.978 44.894-44.978S99 28.998 99 53.974c0 24.976-20.012 44.978-45 44.978Zm-5.824-19.844c1.747 0 3.23-.846 4.289-2.487l24.194-38.046c.582-1.058 1.27-2.222 1.27-3.386 0-2.382-2.117-3.916-4.341-3.916-1.323 0-2.647.847-3.653 2.381l-21.97 35.241-10.43-13.493c-1.27-1.693-2.435-2.116-3.917-2.116-2.277 0-4.077 1.852-4.077 4.18 0 1.164.477 2.276 1.218 3.28l12.917 15.875c1.324 1.747 2.753 2.487 4.5 2.487Z"/>
+            </g>
+            <defs>
+              <clipPath id="a">
+                <path fill="#fff" d="M0 0h108v108H0z"/>
+              </clipPath>
+            </defs>
+          </svg>
+          
+                <h1>Обновление устройства</h1> <br>
+                <span id="status">Пожалуйста, подождите</span>
+                <button id="closeButton" style="display: none;" onclick="hideMessage()">Закрыть</button>
+        </div>
+    </section>
+  
+    <div class="name">
+      <span>{{Serial}}</span>
+  </div>
+  <nav>
+    <a class="return-name" href="/devices">
+      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="17" fill="none" viewBox="0 0 10 17">
+      <g clip-path="url(#a)">
+        <path fill="#8086F9" d="M0 8.477a.88.88 0 0 0 .273.644l7.745 7.568a.84.84 0 0 0 .634.264c.508 0 .899-.38.899-.889a.917.917 0 0 0-.264-.634l-7.11-6.953 7.11-6.954A.936.936 0 0 0 9.551.89.876.876 0 0 0 8.652 0a.869.869 0 0 0-.634.254L.273 7.832A.864.864 0 0 0 0 8.477Z"/>
+      </g>
+      <defs>
+        <clipPath id="a">
+          <path fill="#fff" d="M0 0h9.551v16.963H0z"/>
+        </clipPath>
+      </defs>
+    </svg>
+     Вернуться</a>
+     <a href="/devices/device/{{Serial}}">Основные настройки</a>
+     <a class="selected" href="/devices/device/system/{{Serial}}">Системные настройки</a>
+  </nav>
+        <section class="bg">
+            <section class="content">
+
+              <section class="for-new">
+
+                <section class="stages">
+                    <input name="newStage" type="radio" value="parameters" id="stage-parameters" checked><label for="stage-parameters">Системные настройки</label>
+                    <div class="vertical-line" style="background: transparent;"></div>
+                    <input name="newStage" type="radio" value="ethernet" id="stage-ethernet"><label for="stage-ethernet">Сеть</label>
+                    <div class="vertical-line"></div>
+                    <input name="newStage" type="radio" value="wifi" id="stage-wifi"><label for="stage-wifi">Wi-Fi</label>
+                    <div class="vertical-line"></div>
+                    <input name="newStage" type="radio" value="communication" id="stage-communication"><label for="stage-communication">Коммуникации</label>
+                    <div class="vertical-line" style="background: transparent;"></div>
+                    <input name="newStage" type="radio" value="install" id="stage-install"><label for="stage-install">Установка сервера</label>
+                </section>
+              </section>
+              <section id="add-new-container" class="add-new">
+
+                <section style="display: flex; width: 100%; height:100%; top: 0; left: 0;" class="dberror" id="parameters-bg" >
+                  <div class="loader-container">
+                    <div class="loader">
+                      <div class="square" id="sq11"></div>
+                      <div class="square" id="sq12"></div>
+                      <div class="square" id="sq13"></div>
+                      <div class="square" id="sq14"></div>
+                      <div class="square" id="sq15"></div>
+                      <div class="square" id="sq16"></div>
+                      <div class="square" id="sq17"></div>
+                      <div class="square" id="sq18"></div>
+                      <div class="square" id="sq19"></div>
+                    </div>
+                  </div>
+              </section>
+          
+          
+          
+                <div id="parameters" class="new-parameters active">
+          
+                  <h1>Системные настройки</h1>
+                  <h2>Параметры регистраторов</h2>
+          
+                  <div class="horizontal-line"></div>
+          
+                  <div class="parameters-inputs">
+                  <div class="parameters-input">
+                      <label for="system-date">Формат даты</label>
+                      <select name="DATEMOD" id="system-date">
+                        <option value="0">ММ-ДД-ГГГГ</option>
+                        <option value="1">ГГГГ-ММ-ДД</option>
+                        <option value="2">ДД-ММ-ГГГГ</option>
+                    </select>
+                  </div>
+                  <div class="parameters-input">
+                      <label for="system-time">Формат времени</label>
+                      <select name="TIMEFORMAT" id="system-time">
+                        <option value="0">24 ч</option>
+                        <option value="1">12 ч</option>
+                    </select>
+                  </div>
+                  <div class="parameters-input">
+                      <label for="system-timezone">Часовой пояс</label>
+                      <select name="TIMEZ" id="system-timezone">
+                        <option value="120A">(МСК-1) Калининград</option>
+                        <option value="180C">(МСК) Москва</option>
+                        <option value="240A">(МСК+1) Самара</option>
+                        <option value="300A">(МСК+2) Екатеринбург</option>
+                        <option value="360A">(МСК+3) Омск</option>
+                        <option value="420A">(МСК+4) Красноярск</option>
+                        <option value="480A">(МСК+5) Иркутск</option>
+                        <option value="540A">(МСК+6) Якутск</option>
+                        <option value="600A">(МСК+7) Владивосток</option>
+                        <option value="660A">(МСК+8) Магадан</option>
+                        <option value="720A">(МСК+9) Камчатка</option>
+                    </select>
+                  </div>
+                  <div class="parameters-input">
+                    <label for="system-stream">Формат трансляции</label>
+                    <select name="SUBSTREAMMODE" id="system-stream">
+                      <option value="0">Плавно</option>
+                      <option value="1">Менее качественно, но более плавно</option>
+                      <option value="2">Менее плавно, но более качественно</option>
+                      <option value="3">Качество</option>
+                  </select>
+                </div>
+                <div class="parameters-input">
+                  <label for="system-language">Язык системы</label>
+                  <select name="LANGUAGE" id="system-language">
+                    <option value="1">Английский</option>
+                    <option value="12">Русский</option>
+                </select>
+              </div>
+                  <div class="parameters-input">
+                      <label for="system-geo">Определение геопозиции</label>
+                      <select name="GEOMOD" id="system-geo">
+                          <option value="0">GPS</option>
+                          <option value="1">BEIDO</option>
+                          <option value="2">GALILEO</option>
+                          <option value="3">GLENAS</option>
+                          <option value="4">Смешанное</option>
+                      </select>
+                  </div>
+          
+                  </div>
+          
+                  <div class="horizontal-line"></div>
+          
+                  <h2 style="margin-bottom: 5px;">Отметьте то, что должно отображаться на трансляции</h2>
+          
+                  <input type="checkbox" id="TE" class="checkbox-input" hidden><label for="TE" class="checkbox-label"><div class="checkmark"></div>Время</label>
+                  <input type="checkbox" id="SE" class="checkbox-input" hidden><label for="SE" class="checkbox-label"><div class="checkmark"></div>Скорость</label>
+                  <input type="checkbox" id="VE" class="checkbox-input" hidden><label for="VE" class="checkbox-label"><div class="checkmark"></div>Номер ТС</label>
+                  <input type="checkbox" id="GE" class="checkbox-input" hidden><label for="GE" class="checkbox-label"><div class="checkmark"></div>Координаты</label>
+                  <input type="checkbox" id="NE" class="checkbox-input" hidden><label for="NE" class="checkbox-label"><div class="checkmark"></div>Названия камер</label>
+                  <input type="checkbox" id="DE" class="checkbox-input" hidden><label for="DE" class="checkbox-label"><div class="checkmark"></div>ID регистратора</label>
+          
+                  <div class="horizontal-line"></div>
+          
+                  <button onclick="sendPutRequest('parameters');" type="button">Сохранить</button>
+          
+              </div>
+
+              <div id="ethernet" class="new-parameters">
+          
+                <h1>Параметры сети</h1>
+        
+                <div class="horizontal-line"></div>
+        
+                <div class="parameters-inputs">
+                    <label for="system-ipmode">Способ получения IP</label>
+                    <select style="width: 100%;" name="IPMODE" id="system-ipmode">
+                      <option value="1">Получить IP через DHCP</option>
+                      <option value="0">Статический IP</option>
+                  </select>
+                  <div id="ipaddr" class="parameters-input">
+                    <label for="system-ipaddr">IP-адрес</label>
+                    <input name="IPADDR" type="text" id="system-ipaddr" placeholder="IP-адрес" required>
+                  </div>
+                  <div id="submask" class="parameters-input">
+                    <label for="system-submask">Маска сети</label>
+                    <input name="SUBMASK" type="text" id="system-submask" placeholder="Маска сети" required>
+                  </div>
+                <div id="gateway" class="parameters-input">
+                    <label for="system-gateway">Шлюз сети</label>
+                    <input name="GATEWAY" type="text" id="system-gateway" placeholder="Шлюз сети" required>
+                </div>
+                    <label for="system-dnsmode">Способ получения DNS</label>
+                    <select style="width: 100%;" name="DNSMODE" id="system-dnsmode">
+                      <option value="1">Автоматическое получение DNS</option>
+                      <option value="0">Ручной выбор DNS</option>
+                    </select>
+                    <div id="pdns" class="parameters-input">
+                      <label for="system-pdns">Предпочтительный DNS</label>
+                      <input name="PDNS" type="text" id="system-pdns" placeholder="Предпочтительный DNS" required>
+                    </div>
+                    <div id="adns" class="parameters-input">
+                      <label for="system-adns">Альтернативный DNS</label>
+                      <input name="ADNS" type="text" id="system-adns" placeholder="Альтернативный DNS" required>
+                    </div>
+                      <label for="system-mac">MAC-адрес</label>
+                      <input name="MAC" type="text" id="system-mac" placeholder="MAC-адрес" required>
+
+        
+                </div>
+        
+                
+                <div class="horizontal-line"></div>
+        
+                <button onclick="sendPutRequest('ethernet');" type="button">Сохранить</button>
+        
+            </div>
+
+            <div id="wifi" class="new-parameters">
+          
+              <h1>Параметры Wi-Fi</h1>
+      
+              <div class="horizontal-line"></div>
+      
+              <div class="parameters-inputs">
+                  <select style="width: 100%;" name="WIFI" id="system-wifi">
+                    <option value="1">Включен</option>
+                    <option value="0">Выключен</option>
+                </select>
+                <div class="parameters-input">
+                  <label for="system-wifi-essid">Название точки доступа</label>
+                  <input name="WIFI-ESSID" type="text" id="system-wifi-essid" placeholder="Название точки доступа" required>
+                </div>
+                <div class="parameters-input">
+                  <label for="system-wifi-ecrypttype">Шифрование сети</label>
+                  <select style="width: 100%;" name="WIFI-ECRYPTTYPE" id="system-wifi-ecrypttype">
+                  <option value="0">Нет</option>
+                    <option value="1">WEP</option>
+                    <option value="2">WPA / WPA2-PSK</option>
+                    <option value="3">WPA2_Enterprise</option>
+                  </select>
+                </div>
+              <div class="parameters-input">
+                  <label for="system-wifi-pwd">Пароль сети</label>
+                  <input name="WIFI-PWD" type="text" id="system-wifi-pwd" placeholder="Пароль сети" required>
+              </div>
+                  <label for="system-wifi-ipmode">Тип IP адреса</label>
+                  <select style="width: 100%;" name="WIFI-IPMODE" id="system-wifi-ipmode">
+                    <option value="1">Получение IP через DHCP</option>
+                    <option value="0">Статический IP</option>
+                  </select>
+                  <div id="wifi-ipaddr" class="parameters-input">
+                    <label for="system-wifi-ipaddr">IP адрес</label>
+                    <input name="WIFI-IPADDR" type="text" id="system-wifi-ipaddr" placeholder="IP адрес" required>
+                  </div>
+                  <div id="wifi-submask" class="parameters-input">
+                    <label for="system-wifi-submask">Маска сети</label>
+                    <input name="WIFI-SUBMASK" type="text" id="system-wifi-submask" placeholder="Маска сети" required>
+                  </div>
+                  <div id="wifi-gateway" class="parameters-input">
+                    <label for="system-wifi-gateway">Шлюз сети</label>
+                    <input name="WIFI-GATEWAY" type="text" id="system-wifi-gateway" placeholder="Шлюз сети" required>
+                  </div>
+
+      
+              </div>
+      
+              
+              <div class="horizontal-line"></div>
+      
+              <button onclick="sendPutRequest('wifi');" type="button">Сохранить</button>
+      
+          </div>
+
+          <div id="communication" class="new-parameters">
+          
+            <h1>Коммуникационный модуль</h1>
+            <h2>Модуль 1</h2>
+    
+            <div class="horizontal-line"></div>
+    
+            <div class="parameters-inputs">
+              <div class="parameters-input">
+                <label for="system-nm1">Тип сети</label>
+                  <select style="width: 100%;" name="NM1" id="system-nm1">
+                    <option value="0">3G / 4G</option>
+                    <option value="1">2G</option>
+                    <option value="2">3G</option>
+                    <option value="3">4G</option>
+                  </select>
+              </div>
+              <div class="parameters-input">
+                <label for="system-apn1">APN</label>
+                <input name="APN1" type="text" id="system-apn1" placeholder="APN" required>
+              </div>
+            <div class="parameters-input">
+                <label for="system-un1">Логин</label>
+                <input name="UN1" type="text" id="system-un1" placeholder="Логин" required>
+            </div>
+            <div class="parameters-input">
+              <label for="system-pw1">Пароль</label>
+              <input name="PW1" type="text" id="system-pw1" placeholder="Пароль" required>
+          </div>
+        </div>
+
+          <h2>Модуль 2</h2>
+
+          <div class="parameters-inputs">
+    
+            <div class="horizontal-line"></div>
+    
+            <div class="parameters-inputs">
+              <div class="parameters-input">
+                <label for="system-nm2">Тип сети</label>
+                  <select style="width: 100%;" name="NM2" id="system-nm2">
+                    <option value="0">3G / 4G</option>
+                    <option value="1">2G</option>
+                    <option value="2">3G</option>
+                    <option value="3">4G</option>
+                  </select>
+              </div>
+              <div class="parameters-input">
+                <label for="system-apn2">APN</label>
+                <input name="APN2" type="text" id="system-apn2" placeholder="APN" required>
+              </div>
+            <div class="parameters-input">
+                <label for="system-un2">Логин</label>
+                <input name="UN2" type="text" id="system-un2" placeholder="Логин" required>
+            </div>
+            <div class="parameters-input">
+              <label for="system-pw2">Пароль</label>
+              <input name="PW2" type="text" id="system-pw2" placeholder="Пароль" required>
+          </div>
+
+        </div>
+
+        <div class="horizontal-line"></div>
+
+        <div class="parameters-inputs">
+
+          <div class="parameters-input">
+            <label for="system-at">Режим работы</label>
+            <select name="AT" id="system-at">
+                <option value="0">Без выключения</option>
+                <option value="1">Включать по звонку/СМС</option>
+                <option value="2">Включать по срабатыванию датчиков</option>
+            </select>
+        </div>
+        <div class="parameters-input">
+          <label for="system-tn1">Номер активации 1</label>
+          <input name="TN1" type="text" id="system-tn1" placeholder="Номер активации 1" required>
+      </div>
+      <div class="parameters-input">
+        <label for="system-tn2">Номер активации 2</label>
+        <input name="TN2" type="text" id="system-tn2" placeholder="Номер активации 2" required>
+    </div>
+    <div class="parameters-input">
+      <label for="system-tn3">Номер активации 3</label>
+      <input name="TN3" type="text" id="system-tn3" placeholder="Номер активации 3" required>
+  </div>
+
+        </div>
+          </div>
+
+            
+            <div class="horizontal-line"></div>
+    
+            <button onclick="sendPutRequest('communication');" type="button">Сохранить</button>
+    
+        </div>
+
+        <div style="padding-bottom: 50%;" id="install" class="new-parameters">
+          
+          <h1>Подключенные серверы</h1>
+  
+          <div class="horizontal-line"></div>
+
+          <div class="parameters-inputs" id="server-container">
+  
+          </div>
+
+          <button onclick="sendPutRequest('install');" type="button">Сохранить</button>
+
+          <button style="margin-right: 25px;" onclick="addServer()" type="button">Добавить сервер</button>
+  
+      </div>
+          
+          
+                
+          
+              
+          
+              </section>
+
+            </section>
+        </section>
+    </section>
+
+    <section style="display: none;" class="dberror" id="deleteConfirmation">
+      <div class="erorr-container">
+        <img src="../img/warning.svg"> <br>
+        <h1>Удаление группы </h1> <br>
+        <span>Вы уверены что хотите удалить <span id="driverDeleteInfo"></span>?</span>
+        <div class="buttons">
+        <button id="deleteCancel" onclick="closeDeletion();" style="display: inline-block; background-color: white; color: rgba(0, 0, 0, 0.7); margin-right: 5px;" type="button" onclick="deleteDriver()">Отменить</button>
+        <button id="deleteDriver" style="display: inline-block;" type="button">Подтвердить</button>
+      </div>
+      </div>
+    </section>
+
+    <script src="../../../scripts/jquery.min.js"></script>
+    <script src="https://rawgit.com/RobinHerbots/Inputmask/5.x/dist/jquery.inputmask.js"></script>
+
+    <script>
+      function addServer(data) {
+    const serverCount = document.querySelectorAll('.server').length + 1;
+
+    // Создаем блок полей ввода для нового сервера
+    const serverContainer = document.getElementById('server-container');
+    const serverDiv = document.createElement('div');
+    serverDiv.classList.add('server');
+
+    serverDiv.innerHTML = `
+    <label for="system-EN${serverCount}">Статус</label>
+      <select style="width: 100%;" name="EN${serverCount}" id="system-EN${serverCount}">
+        <option value="0">Выключен</option>
+        <option value="1">Включен</option>
+      </select>
+      <div class="parameters-input">
+        <label for="system-CP${serverCount}">Протокол подключения</label>
+        <select name="CP${serverCount}" id="system-CP${serverCount}">
+          <option value="0">N9M</option>
+        </select>
+      </div>
+      <div class="parameters-input">
+        <label for="system-NWT${serverCount}">Используемая сеть</label>
+        <select name="NWT${serverCount}" id="system-NWT${serverCount}">
+          <option value="0">Локальная</option>
+          <option value="1">Wi-Fi</option>
+          <option value="2">Модуль 1</option>
+          <option value="3">Модуль 2</option>
+          <option value="4">Адаптивно</option>
+        </select>
+      </div>
+      <div class="parameters-input">
+        <label for="system-CS${serverCount}">Адрес сервера</label>
+        <input name="CS${serverCount}" type="text" id="system-CS${serverCount}" placeholder="Адрес сервера" required>
+      </div>
+      <div class="parameters-input">
+        <label for="system-CPORT${serverCount}">TCP порт сервера</label>
+        <input name="CPORT${serverCount}" type="text" id="system-CPORT${serverCount}" placeholder="TCP порт сервера" required>
+      </div>
+      <div class="parameters-input">
+        <label for="system-CUPORT${serverCount}">UDP порт сервера</label>
+        <input name="CUPORT${serverCount}" type="text" id="system-CUPORT${serverCount}" placeholder="UDP порт сервера" required>
+      </div>
+      <div class="parameters-input">
+        <label for="system-MS${serverCount}">Адрес для медиасервиса</label>
+        <input name="MS${serverCount}" type="text" id="system-MS${serverCount}" placeholder="Адрес для медиасервиса" required>
+      </div>
+      <div class="parameters-input">
+        <label for="system-MPORT${serverCount}">TCP порт медиасервиса</label>
+        <input name="MPORT${serverCount}" type="text" id="system-MPORT${serverCount}" placeholder="TCP порт медиасервиса" required>
+      </div>
+      <div class="parameters-input">
+        <label for="system-MUPORT${serverCount}">UDP порт медиасервиса</label>
+        <input name="MUPORT${serverCount}" type="text" id="system-MUPORT${serverCount}" placeholder="UDP порт медиасервиса" required>
+      </div>
+      <div class="horizontal-line"></div>
+      <button style="background: rgb(255, 69, 58); float: left;" onclick="removeServer(${serverCount})" type="button">Удалить</button>
+
+    `;
+
+    serverContainer.appendChild(serverDiv);
+
+    if (data) {
+      document.getElementById(`system-CP${serverCount}`).value = data.CP;
+      document.getElementById(`system-CPORT${serverCount}`).value = data.CPORT;
+      document.getElementById(`system-CS${serverCount}`).value = data.CS;
+      document.getElementById(`system-CUPORT${serverCount}`).value = data.CUPORT;
+      document.getElementById(`system-EN${serverCount}`).value = data.EN;
+      document.getElementById(`system-MPORT${serverCount}`).value = data.MPORT;
+      document.getElementById(`system-MS${serverCount}`).value = data.MS;
+      document.getElementById(`system-MUPORT${serverCount}`).value = data.MUPORT;
+      document.getElementById(`system-NWT${serverCount}`).value = data.NWT;
+    }
+
+    const csInput = document.getElementById(`system-CS${serverCount}`);
+    const msInput = document.getElementById(`system-MS${serverCount}`);
+    csInput.addEventListener('blur', () => {
+      if (csInput.value && !msInput.value) {
+        msInput.value = csInput.value;
+      }
+    });
+  }
+
+  function removeServer(serverCount) {
+    const serverToRemove = document.getElementById(`system-EN${serverCount}`).closest('.server');
+    serverToRemove.remove();
+  }
+
+  function clearServerContainer() {
+    const serverContainer = document.getElementById('server-container');
+    while (serverContainer.firstChild) {
+      serverContainer.firstChild.remove();
+    }
+  }
+
+  let serverData;
+
+  function saveData() {
+    const servers = document.querySelectorAll('.server');
+    serverData = [];
+
+    servers.forEach((server, index) => {
+  const serverObj = {
+    "CP": parseInt(document.getElementById(`system-CP${index + 1}`).value, 10),
+    "CPORT": parseInt(document.getElementById(`system-CPORT${index + 1}`).value, 10),
+    "CS": document.getElementById(`system-CS${index + 1}`).value,
+    "CUPORT": parseInt(document.getElementById(`system-CUPORT${index + 1}`).value, 10),
+    "EN": parseInt(document.getElementById(`system-EN${index + 1}`).value, 10),
+    "LGK": 0,
+    "MPORT": parseInt(document.getElementById(`system-MPORT${index + 1}`).value, 10),
+    "MS": document.getElementById(`system-MS${index + 1}`).value,
+    "MUPORT": parseInt(document.getElementById(`system-MUPORT${index + 1}`).value, 10),
+    "NWT": parseInt(document.getElementById(`system-NWT${index + 1}`).value, 10),
+  };
+
+  serverData.push(serverObj);
+});
+
+
+  }
+    </script>
+    <script src="../../../scripts/parameters-form.js"></script> 
+    <script>
+      $(document).ready(function(){
+
+          $('#user-phone').inputmask({"mask": "+7 (999) 999-9999"});
+
+      });
+  </script>
+
+  <script>
+    function formatDate(date) {
+  if (date === "") {
+    date = new Date(); 
+  } else {
+    date = new Date(date)
+  }
+
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+const serial = "{{Serial}}";
+const requestBody = {
+            "serial": serial
+          };
+
+
+
+          document.getElementById('parameters-bg').style.display = 'flex';
+
+          fetch('/device-parameters', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+          })
+          .then(response => response.json())
+          .then(data => {
+
+            document.getElementById('parameters-bg').style.display = 'none';
+
+            camerasData = data;
+
+            console.log(data.DATA);
+
+            document.getElementById('system-date').value = data.DATA.TIMEP.DATEM;
+            document.getElementById('system-time').value = data.DATA.TIMEP.TIMEM;
+            document.getElementById('system-language').value = data.DATA.GSP.LANT;
+            document.getElementById('system-timezone').value = data.DATA.TIMEP.TIMEZ;
+            document.getElementById('system-geo').value = data.DATA.GSP.GM;
+            document.getElementById('system-stream').value = data.DATA.SUBSTRNET.SM;
+            document.getElementById('NE').checked = data.DATA.EOSD[0].NE === 1;
+            document.getElementById('TE').checked = data.DATA.EOSD[0].TE === 1;
+            document.getElementById('VE').checked = data.DATA.EOSD[0].VE === 1;
+            document.getElementById('SE').checked = data.DATA.EOSD[0].SE === 1;
+            document.getElementById('GE').checked = data.DATA.EOSD[0].GE === 1;
+            document.getElementById('DE').checked = data.DATA.EOSD[0].DE === 1;
+          })
+          .catch(error => console.error('Ошибка:', error));
+
+  </script>
+
+  <script>
+    async function sendPutRequest(type) {
+      console.log(type);
+      if (type === 'parameters') {
+
+        const deleteConfirmation = document.getElementById("addInformation");
+        const loader = document.getElementById("loader");
+        const status = document.getElementById("status");
+        const closeButton = document.getElementById("closeButton");
+        const mark = document.getElementById("success-mark");
+
+        loader.style.display = "block";
+        closeButton.style.display = "none";
+        deleteConfirmation.style.display = "flex";
+        mark.style.display = "none";
+      
+      const DATEMOD = document.getElementById('system-date').value;
+      const TIMEFORMAT = document.getElementById('system-time').value;
+      const SUBSTREAMMODE = document.getElementById('system-stream').value;
+      const LANGUAGE = document.getElementById('system-language').value;
+      const GEOMOD = document.getElementById('system-geo').value;
+      const TIMEZ = document.getElementById('system-timezone').value;
+
+
+      const NE = document.getElementById('NE').checked ? 1 : 0;
+      const TE = document.getElementById('TE').checked ? 1 : 0;
+      const VE = document.getElementById('VE').checked ? 1 : 0;
+      const SE = document.getElementById('SE').checked ? 1 : 0;
+      const GE = document.getElementById('GE').checked ? 1 : 0;
+      const DE = document.getElementById('DE').checked ? 1 : 0;
+
+
+      const requestData = {
+        DATEMOD,
+        TIMEFORMAT,
+        SUBSTREAMMODE,
+        LANGUAGE,
+        GEOMOD,
+        TIMEZ,
+        NE,
+        TE,
+        VE,
+        SE,
+        GE,
+        DE,
+      };
+
+      try {
+        const response = await fetch(`/device-parameters?serial=${serial}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestData),
+        });
+
+        if (response.ok) {
+          var formContainer = $("#form-bg");
+          var form = $("#form");
+          formContainer.removeClass("active");
+          form.removeClass("form-animation");
+          $("body").css("overflow", "auto");
+          showMessage("Данные успешно обновлены", true);
+          console.log('PUT запрос выполнен успешно');
+        } else {
+          showMessage("Не удалось обновить данные", false);
+          console.error('Ошибка при выполнении PUT запроса');
+        }
+      } catch (error) {
+        showMessage("Не удалось обновить данные", false);
+        console.error('Произошла ошибка при отправке PUT запроса:', error);
+      }
+    }
+
+    if (type === 'ethernet') {
+
+      const deleteConfirmation = document.getElementById("addInformation");
+        const loader = document.getElementById("loader");
+        const status = document.getElementById("status");
+        const closeButton = document.getElementById("closeButton");
+        const mark = document.getElementById("success-mark");
+
+        loader.style.display = "block";
+        closeButton.style.display = "none";
+        deleteConfirmation.style.display = "flex";
+        mark.style.display = "none";
+      
+      const IPMODE = document.getElementById('system-ipmode').value;
+      const IPADDR = document.getElementById('system-ipaddr').value;
+      const SUBMASK = document.getElementById('system-submask').value;
+      const GATEWAY = document.getElementById('system-gateway').value;
+      const DNSMODE = document.getElementById('system-dnsmode').value;
+      const PDNS = document.getElementById('system-pdns').value;
+      const ADNS = document.getElementById('system-adns').value;
+      const MAC = document.getElementById('system-mac').value;
+
+
+      const requestData = {
+        IPMODE,
+        IPADDR,
+        SUBMASK,
+        GATEWAY,
+        DNSMODE,
+        PDNS,
+        ADNS,
+        MAC,
+      };
+
+      try {
+        const response = await fetch(`/ethernet-parameters?serial=${serial}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestData),
+        });
+
+        if (response.ok) {
+          var formContainer = $("#form-bg");
+          var form = $("#form");
+          formContainer.removeClass("active");
+          form.removeClass("form-animation");
+          $("body").css("overflow", "auto");
+          showMessage("Данные успешно обновлены", true);
+          console.log('PUT запрос выполнен успешно');
+        } else {
+          showMessage("Не удалось обновить данные", false);
+          console.error('Ошибка при выполнении PUT запроса');
+        }
+      } catch (error) {
+        showMessage("Не удалось обновить данные", false);
+        console.error('Произошла ошибка при отправке PUT запроса:', error);
+      }
+    }
+
+    if (type === 'wifi') {
+
+    const deleteConfirmation = document.getElementById("addInformation");
+    const loader = document.getElementById("loader");
+    const status = document.getElementById("status");
+    const closeButton = document.getElementById("closeButton");
+    const mark = document.getElementById("success-mark");
+
+    loader.style.display = "block";
+    closeButton.style.display = "none";
+    deleteConfirmation.style.display = "flex";
+    mark.style.display = "none";
+
+  const WIFI = document.getElementById('system-wifi').value;
+  const ESSID = document.getElementById('system-wifi-essid').value;
+  const ECRYPTTYPE = document.getElementById('system-wifi-ecrypttype').value;
+  const PWD = document.getElementById('system-wifi-pwd').value;
+  const IPMODE = document.getElementById('system-wifi-ipmode').value;
+  const IPADDR = document.getElementById('system-wifi-ipaddr').value;
+  const SUBMASK = document.getElementById('system-wifi-submask').value;
+  const GATEWAY = document.getElementById('system-wifi-gateway').value;
+
+
+  const requestData = {
+    WIFI,
+    ESSID,
+    ECRYPTTYPE,
+    PWD,
+    IPMODE,
+    IPADDR,
+    SUBMASK,
+    GATEWAY,
+  };
+
+  try {
+    const response = await fetch(`/wifi-parameters?serial=${serial}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestData),
+    });
+
+    if (response.ok) {
+      var formContainer = $("#form-bg");
+      var form = $("#form");
+      formContainer.removeClass("active");
+      form.removeClass("form-animation");
+      $("body").css("overflow", "auto");
+      showMessage("Данные успешно обновлены", true);
+      console.log('PUT запрос выполнен успешно');
+    } else {
+      showMessage("Не удалось обновить данные", false);
+      console.error('Ошибка при выполнении PUT запроса');
+    }
+  } catch (error) {
+    showMessage("Не удалось обновить данные", false);
+    console.error('Произошла ошибка при отправке PUT запроса:', error);
+  }
+  }
+
+  if (type === 'communication') {
+
+  const deleteConfirmation = document.getElementById("addInformation");
+  const loader = document.getElementById("loader");
+  const status = document.getElementById("status");
+  const closeButton = document.getElementById("closeButton");
+  const mark = document.getElementById("success-mark");
+
+  loader.style.display = "block";
+  closeButton.style.display = "none";
+  deleteConfirmation.style.display = "flex";
+  mark.style.display = "none";
+
+  const NM1 = document.getElementById('system-nm1').value;
+  const APN1 = document.getElementById('system-apn1').value;
+  const UN1 = document.getElementById('system-un1').value;
+  const PW1 = document.getElementById('system-pw1').value;
+  const NM2 = document.getElementById('system-nm2').value;
+  const APN2 = document.getElementById('system-apn2').value;
+  const UN2 = document.getElementById('system-un2').value;
+  const PW2 = document.getElementById('system-pw2').value;
+
+  const AT = document.getElementById('system-at').value;
+  const TN1 = document.getElementById('system-tn1').value;
+  const TN2 = document.getElementById('system-tn2').value;
+  const TN3 = document.getElementById('system-tn3').value;
+
+
+  const requestData = {
+  NM1,
+  APN1,
+  UN1,
+  PW1,
+  NM2,
+  APN2,
+  UN2,
+  PW2,
+  AT,
+  TN1,
+  TN2,
+  TN3,
+  };
+
+  try {
+  const response = await fetch(`/communication-parameters?serial=${serial}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestData),
+  });
+
+  if (response.ok) {
+    var formContainer = $("#form-bg");
+    var form = $("#form");
+    formContainer.removeClass("active");
+    form.removeClass("form-animation");
+    $("body").css("overflow", "auto");
+    showMessage("Данные успешно обновлены", true);
+    console.log('PUT запрос выполнен успешно');
+  } else {
+    showMessage("Не удалось обновить данные", false);
+    console.error('Ошибка при выполнении PUT запроса');
+  }
+  } catch (error) {
+  showMessage("Не удалось обновить данные", false);
+  console.error('Произошла ошибка при отправке PUT запроса:', error);
+  }
+  }
+
+  if (type === 'install') {
+
+  const deleteConfirmation = document.getElementById("addInformation");
+  const loader = document.getElementById("loader");
+  const status = document.getElementById("status");
+  const closeButton = document.getElementById("closeButton");
+  const mark = document.getElementById("success-mark");
+
+  loader.style.display = "block";
+  closeButton.style.display = "none";
+  deleteConfirmation.style.display = "flex";
+  mark.style.display = "none";
+
+  saveData();
+
+  const SP = serverData;
+  console.log(SP);
+
+  const requestData = {
+    SP
+  };
+
+  try {
+  const response = await fetch(`/install-parameters?serial=${serial}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestData),
+  });
+
+  if (response.ok) {
+    var formContainer = $("#form-bg");
+    var form = $("#form");
+    formContainer.removeClass("active");
+    form.removeClass("form-animation");
+    $("body").css("overflow", "auto");
+    showMessage("Данные успешно обновлены", true);
+    console.log('PUT запрос выполнен успешно');
+  } else {
+    showMessage("Не удалось обновить данные", false);
+    console.error('Ошибка при выполнении PUT запроса');
+  }
+  } catch (error) {
+  showMessage("Не удалось обновить данные", false);
+  console.error('Произошла ошибка при отправке PUT запроса:', error);
+  }
+}
+    }
+  </script>
+
+
+<script>
+
+$(document).ready(function() {
+      if ($('#system-ipmode').val() === "1") {
+        $('#ipaddr').hide();
+        $('#submask').hide();
+        $('#gateway').hide();
+      } else {
+        $('#ipaddr').show();
+        $('#submask').show();
+        $('#gateway').show();
+      }
+
+      if ($('#system-dnsmode').val() === "1") {
+        $('#pdns').hide();
+        $('#adns').hide();
+      } else {
+        $('#pdns').show();
+        $('#adns').show();
+      }
+
+      if ($('#system-wifi-ipmode').val() === "1") {
+        $('#wifi-ipaddr').hide();
+        $('#wifi-submask').hide();
+        $('#wifi-gateway').hide();
+      } else {
+        $('#wifi-ipaddr').show();
+        $('#wifi-submask').show();
+        $('#wifi-gateway').show();
+      }
+    });
+
+    $(document).on("input", "select", async function () {
+    if ($('#system-ipmode').val() === "1") {
+        $('#ipaddr').hide();
+        $('#submask').hide();
+        $('#gateway').hide();
+      } else {
+        $('#ipaddr').show();
+        $('#submask').show();
+        $('#gateway').show();
+      }
+
+      if ($('#system-dnsmode').val() === "1") {
+        $('#pdns').hide();
+        $('#adns').hide();
+      } else {
+        $('#pdns').show();
+        $('#adns').show();
+      }
+
+      if ($('#system-wifi-ipmode').val() === "1") {
+        $('#wifi-ipaddr').hide();
+        $('#wifi-submask').hide();
+        $('#wifi-gateway').hide();
+      } else {
+        $('#wifi-ipaddr').show();
+        $('#wifi-submask').show();
+        $('#wifi-gateway').show();
+      }
+  });
+  
+</script>
+
+  
+
+    <script>
+        function hideMessage() {
+          setTimeout(function() {
+              location.reload();
+              const deleteConfirmation = document.getElementById("addInformation");
+              deleteConfirmation.style.display = "none";
+          }, 2000);
+        
+    }
+
+    function showMessage(messageText, isSuccess) {
+        const loader = document.getElementById("loader");
+        const status = document.getElementById("status");
+        const closeButton = document.getElementById("closeButton");
+        const mark = document.getElementById("success-mark");
+
+        loader.style.display = "none";
+        status.textContent = messageText;
+        if (isSuccess) {
+            mark.style.display = "block";
+            status.style.color = "green"; 
+        } else {
+            status.style.color = "red"; 
+        }
+        closeButton.style.display = "block";
+    }
+    </script>
+
+    <script>
+        // Скрытие/Показ дополнительных меню аккаунта
+        const accountMain = document.getElementById('account-main');
+        const accountAdditional = document.getElementById('account-additional');
+        const accountUp = document.getElementById('up');
+        const accountDown = document.getElementById('down');
+        accountAdditional.style.display = 'none';
+        accountUp.style.display = 'none';
+        
+        accountMain.addEventListener('click', () => {
+          if (accountAdditional.style.display === 'none') {
+            accountAdditional.style.display = 'flex';
+            accountUp.style.display = 'unset';
+            accountDown.style.display = 'none';
+          } else {
+            accountAdditional.style.display = 'none';
+            accountUp.style.display = 'none';
+            accountDown.style.display = 'unset';
+          }
+        });
+      </script>
+
+      
+    
+</body>
+</html>

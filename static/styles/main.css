@@ -1130,6 +1130,7 @@ tr:nth-child(even) {
   height: 90%;
   border: 2px solid #f5f5fa;
   border-radius: 20px 0px 0px 20px;
+  padding-bottom: 25px;
 }
 
 .for-new input[type="radio"] {
@@ -1190,6 +1191,7 @@ tr:nth-child(even) {
   border: 2px solid #f5f5fa;
   border-left: 0;
   border-radius: 0px 20px 20px 0px;
+  padding-bottom: 25px;
 }
 
 .new-parameters {
