@@ -526,6 +526,7 @@ header img {
 
 .organisation label,
 #parameters label,
+#ai label,
 .permission-group label {
   color: rgba(0, 0, 0, 0.5);
   cursor: pointer !important;
@@ -807,11 +808,13 @@ td {
 }
 
 .table input[type="checkbox"],
-#parameters input[type="checkbox"] {
+#parameters input[type="checkbox"],
+#ai input[type="checkbox"] {
   display: none;
 }
 
-#parameters .checkbox-label {
+#parameters .checkbox-label,
+#ai .checkbox-label {
   margin-top: 10px;
 }
 
@@ -829,6 +832,11 @@ td {
 
 .table input[type="checkbox"]:checked + label .checkmark {
   background: url(../img/checkbox-table-check.svg);
+}
+
+#checkboxContainer .checkbox-label {
+  width: fit-content !important;
+  padding: 10px;
 }
 
 .table .trash,

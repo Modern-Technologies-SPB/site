@@ -2577,6 +2577,35 @@ app.post('/install-parameters', async (req, res) => {
   }
 });
 
+app.post('/ai-parameters', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  try {
+    const { serial } = req.body;
+
+    const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: JSON.stringify({
+      "FIELDS": [
+        "DSM"
+      ]
+    }),
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 300));
+
+  const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
+
+    res.json(getResponse.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.put('/install-parameters', async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");

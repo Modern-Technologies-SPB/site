@@ -140,6 +140,8 @@
                     <input name="newStage" type="radio" value="communication" id="stage-communication"><label for="stage-communication">Коммуникации</label>
                     <div class="vertical-line" style="background: transparent;"></div>
                     <input name="newStage" type="radio" value="install" id="stage-install"><label for="stage-install">Установка сервера</label>
+                    <div class="vertical-line" style="background: transparent;"></div>
+                    <input name="newStage" type="radio" value="ai" id="stage-ai"><label for="stage-ai">Тревоги</label>
                 </section>
               </section>
               <section id="add-new-container" class="add-new">
@@ -465,6 +467,132 @@
           <button style="margin-right: 25px;" onclick="addServer()" type="button">Добавить сервер</button>
   
       </div>
+
+      <div id="ai" class="new-parameters">
+          
+        <h1>Управления тревогами</h1>
+
+        <div class="horizontal-line"></div>
+
+        <div class="parameters-inputs">
+          <label for="system-ai">Статус</label>
+            <select style="width: 100%;" name="AI" id="system-ai">
+              <option value="0">0 - Физиологическая усталость</option>
+              <option value="1">1 - Нет водителя</option>
+              <option value="2">2 - Говорит по телефону</option>
+              <option value="3">3 - Курение</option>
+              <option value="4">4 - Отклекся</option>
+              <option value="5">5 - Предупреждение о покидании полосы движения</option>
+              <option value="6">6 - Предупреждение о столкновении</option>
+              <option value="9">9 - Расстояние до машины слишком близко</option>
+              <option value="10">10 - Зевание</option>
+              <option value="11">11 - Столкновение с пешеходом</option>
+          </select>
+          <div class="parameters-input">
+            <label for="system-ai-en1">Статус</label>
+            <select name="AI-EN1" id="system-ai-en1">
+              <option value="0">Выключено</option>
+              <option value="1">Включено</option>
+          </select>
+        </div>
+        <div class="parameters-input">
+          <label for="system-ai-as1">Тип угрозы</label>
+          <select name="AI-AS1" id="system-ai-as1">
+            <option value="0">Событие</option>
+            <option value="1">Предупреждение</option>
+            <option value="2">Тревога</option>
+        </select>
+      </div>
+      <div class="parameters-input">
+        <label for="system-ai-ensp1">ENSP</label>
+        <select name="AI-ENSP1" id="system-ai-ensp1">
+          <option value="0">Выключено</option>
+          <option value="1">Включено</option>
+      </select>
+    </div>
+          <div class="parameters-input">
+            <label for="system-ai-fgms1">Нижний диапозон скорости</label>
+            <input name="AI-FGMS1" type="text" id="system-ai-fgms1" placeholder="0 - 50 км/ч" required>
+          </div>
+          <div class="parameters-input">
+            <label for="system-ai-sgms1">Верхний диапозон скорости</label>
+            <input name="AI-SGMS1" type="text" id="system-ai-sgms1" placeholder="0 - 50 км/ч" required>
+          </div>
+          <div class="parameters-input">
+            <label for="system-ai-esst1">Чувствительность</label>
+            <select name="AI-ESST1" id="system-ai-esst1">
+              <option value="1">Низкая</option>
+              <option value="2">Средняя</option>
+              <option value="3">Высокая</option>
+              <option value="4">Пользовательская</option>
+          </select>
+        </div>
+        <div class="parameters-input">
+            <label for="system-ai-udt1">Длительность распознования</label>
+            <input name="AI-UDT1" type="text" id="system-ai-udt1" placeholder="0 - 60 секунд" required>
+        </div>
+        <div class="parameters-input">
+          <label for="system-ai-vt1">Длительность</label>
+          <input name="AI-VT1" type="text" id="system-ai-vt1" placeholder="0 - 600 секунд" required>
+      </div>
+      <div class="parameters-input">
+        <label for="system-ai-sdt1">Эффективное время</label>
+        <input name="AI-SDT1" type="text" id="system-ai-sdt1" placeholder="0 - 10 секунд" required>
+      </div>
+      <div class="parameters-input">
+        <label for="system-ai-et1">Длительность тревоги</label>
+        <input name="AI-ET1" type="text" id="system-ai-et1" placeholder="В секундах" required>
+      </div>
+      <div class="parameters-input">
+        <label for="system-ai-ss-en1">Снимки сразу после тревог</label>
+        <select name="AI-SS-EN1" id="system-ai-ss-en1">
+          <option value="0">Выключено</option>
+          <option value="1">Включено</option>
+      </select>
+    </div>
+    <div class="parameters-input">
+      <label for="system-ai-ar-d1">Запись после тревоги</label>
+      <input name="AI-ar-d1" type="text" id="system-ai-ar-d1" placeholder="В секундах" required>
+    </div>
+        </div>
+
+        <div class="horizontal-line"></div>
+
+        <div id="checkboxContainer"></div>
+          
+          
+
+        
+        <div class="horizontal-line"></div>
+
+        <button onclick="updateDataInArray(0);" type="button">Сохранить</button>
+
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+    const checkboxContainer = document.getElementById('checkboxContainer');
+    const resultSpan = document.getElementById('result');
+
+    for (let i = 1; i <= 16; i++) {
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'checkbox-input';
+        checkbox.hidden = true;
+        checkbox.id = `camera${i}`;
+
+        const label = document.createElement('label');
+        label.htmlFor = `camera${i}`;
+        label.className = 'checkbox-label';
+        label.innerHTML = `<div class="checkmark"></div>${i} Камера`;
+
+
+        checkboxContainer.appendChild(checkbox);
+        checkboxContainer.appendChild(label);
+    }
+});
+
+    </script>
           
           
                 
