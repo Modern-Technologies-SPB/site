@@ -2733,6 +2733,78 @@ app.put('/ai-parameters', async (req, res) => {
   }
 });
 
+app.post('/cameras-parameters', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
+  }
+  try {
+    const { serial } = req.body;
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+
+    const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: JSON.stringify({
+      "FIELDS": [
+        "AR"
+      ]
+    }),
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
+
+    res.json(getResponse.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/cameras-parameters', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
+  }
+
+  const requestData = req.body;
+  const { serial } = req.query;
+
+  const {
+    VEC
+  } = requestData;
+
+  const requestBody = {
+    "AR": {
+      "VEC": VEC
+    }
+  };
+
+
+  try {
+    const response = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/set?serial=${serial}`, {
+      data: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    res.status(response.status).send(response.data);
+  } catch (error) {
+    res.status(500).send('Произошла ошибка при отправке GET запроса.');
+  }
+});
+
 app.put('/install-parameters', async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");

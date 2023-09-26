@@ -6,7 +6,8 @@ const content2 = document.getElementById("ethernet");
 const content3 = document.getElementById("wifi");
 const content4 = document.getElementById("communication");
 const content5 = document.getElementById("install");
-const content6 = document.getElementById("ai");;
+const content6 = document.getElementById("ai");
+const content7 = document.getElementById("cameras");
 const radioButtons = document.querySelectorAll(
   'input[type="radio"][name="newStage"]'
 );
@@ -61,6 +62,7 @@ function fadeOut(element, callback) {
 }
 
 var givenData;
+var camerasData;
 
 function encodeCHValue(channels) {
   let CH = 0;
@@ -293,6 +295,8 @@ for (let radioButton of radioButtons) {
 
             document.getElementById('parameters-bg').style.display = 'none';
 
+            document.getElementById("system-ai").value = 0;
+
             camerasData = data;
 
             console.log(data.DATA);
@@ -357,6 +361,51 @@ for (let radioButton of radioButtons) {
 
           })
           .catch(error => console.error('Ошибка:', error));
+    } else if (radioButton.value === "cameras") {
+      switchContent(content7);
+      document.getElementById('parameters-bg').style.display = 'flex';
+
+          fetch('/cameras-parameters', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+          })
+          .then(response => response.json())
+          .then(data => {
+
+            document.getElementById('parameters-bg').style.display = 'none';
+
+            document.getElementById("cameras-id").value = 0;
+
+            console.log(data.DATA);
+
+            camerasData = data.DATA.AR.VEC;
+
+              function updateFields(selectedIndex) {
+                const selectedData = camerasData[selectedIndex];
+
+                document.getElementById("cameras-quality").value = selectedData.QLT;
+                document.getElementById("cameras-bitrate").value = selectedData.BR;
+                document.getElementById("cameras-video").value = selectedData.RST;
+                document.getElementById("cameras-alert").value = selectedData.ALT;
+                document.getElementById("cameras-ven").value = selectedData.VEN;
+                document.getElementById("cameras-aen").value = selectedData.AEN;
+                document.getElementById("cameras-framerate").value = selectedData.FR;
+            }
+
+            document.getElementById("cameras-id").addEventListener("change", function () {
+                const selectedIndex = parseInt(this.value);
+                updateFields(selectedIndex);
+            });
+
+            updateFields(0);
+
+            $("select").trigger("input");
+
+          })
+          .catch(error => console.error('Ошибка:', error));
     }
   });
 }
@@ -389,4 +438,20 @@ function updateDataInArray() {
   selectedDataRow.APR.AR.CH = parseInt(encodeCHValue(selectedCameras));
 
   givenData[selectedIndex] = selectedDataRow;
+}
+
+function updateCamerasInArray() {
+  const selectedIndex = parseInt(document.getElementById("cameras-id").value);
+  const selectedDataRow = camerasData[selectedIndex];
+
+
+  selectedDataRow.QLT = parseInt(document.getElementById("cameras-quality").value);
+  selectedDataRow.BR = parseInt(document.getElementById("cameras-bitrate").value);
+  selectedDataRow.RST = parseInt(document.getElementById("cameras-video").value);
+  selectedDataRow.ALT = parseInt(document.getElementById("cameras-alert").value);
+  selectedDataRow.VEN = parseInt(document.getElementById("cameras-ven").value);
+  selectedDataRow.AEN = parseInt(document.getElementById("cameras-aen").value);
+  selectedDataRow.FR = parseInt(document.getElementById("cameras-framerate").value);
+
+  camerasData[selectedIndex] = selectedDataRow;
 }

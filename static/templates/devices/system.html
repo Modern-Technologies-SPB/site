@@ -142,6 +142,8 @@
                     <input autocomplete="off" name="newStage" type="radio" value="install" id="stage-install"><label for="stage-install">Установка сервера</label>
                     <div class="vertical-line" style="background: transparent;"></div>
                     <input autocomplete="off" name="newStage" type="radio" value="ai" id="stage-ai"><label for="stage-ai">Тревоги</label>
+                    <div class="vertical-line" style="background: transparent;"></div>
+                    <input autocomplete="off" name="newStage" type="radio" value="cameras" id="stage-cameras"><label for="stage-cameras">Камеры</label>
                 </section>
               </section>
               <section id="add-new-container" class="add-new">
@@ -225,7 +227,7 @@
                           <option value="0">GPS</option>
                           <option value="1">BEIDO</option>
                           <option value="2">GALILEO</option>
-                          <option value="3">GLENAS</option>
+                          <option value="3">ГЛОНАСС</option>
                           <option value="4">Смешанное</option>
                       </select>
                   </div>
@@ -585,6 +587,103 @@
         <button onclick="sendPutRequest('ai');" type="button">Сохранить</button>
 
     </div>
+
+    <div id="cameras" class="new-parameters">
+          
+      <h1>Настройки камер</h1>
+      <h2>Выберите нужную камеру и выставьте параметры</h2>
+
+      <div class="horizontal-line"></div>
+      <label autocomplete="off" style="width: 100%;" for="cameras-id">Номер камеры</label>
+        <select style="width: 100%;" name="cameras-id" id="cameras-id">
+          <option value="0">Камера 1</option>
+          <option value="1">Камера 2</option>
+          <option value="2">Камера 3</option>
+          <option value="3">Камера 4</option>
+          <option value="4">Камера 5</option>
+          <option value="5">Камера 6</option>
+          <option value="6">Камера 7</option>
+          <option value="7">Камера 8</option>
+          <option value="8">Камера 9</option>
+          <option value="9">Камера 10</option>
+          <option value="10">Камера 11</option>
+          <option value="11">Камера 12</option>
+          <option value="12">Камера 13</option>
+          <option value="13">Камера 14</option>
+          <option value="14">Камера 15</option>
+          <option value="15">Камера 16</option>
+        </select>
+
+        <div class="horizontal-line"></div>
+
+
+      <div class="parameters-inputs">
+
+
+      <div class="parameters-input">
+          <label for="cameras-quality">Качество видео</label>
+          <select name="QLT" id="cameras-quality">
+            <option value="1">Максимальное</option>
+            <option value="2">Скорее максимальное</option>
+            <option value="3">Скорее минимальное</option>
+            <option value="4">Минимальное</option>
+        </select>
+      </div>
+      <div class="parameters-input">
+        <label for="cameras-bitrate">Максимальный битрейт</label>
+        <input name="BR" type="text" id="cameras-bitrate" placeholder="Максимальный битрейт видео">
+      </div>
+      <div class="parameters-input">
+          <label for="cameras-video">Разрешение видео</label>
+          <select name="RST" id="cameras-video">
+            <option value="0">352 x 288</option>
+            <option value="1">352 x 576</option>
+            <option value="2">704 x 576</option>
+            <option value="3">176 x 144</option>
+            <option value="4">320 × 240</option>
+            <option value="5">640 × 480</option>
+            <option value="6">1280 x 720</option>
+            <option value="7">1920 × 1080</option>
+        </select>
+      </div>
+      <div class="parameters-input">
+        <label for="cameras-alert">Качество видео при предупреждении</label>
+        <select name="ALT" id="cameras-alert">
+          <option value="1">Максимальное</option>
+          <option value="2">Скорее максимальное</option>
+          <option value="3">Скорее минимальное</option>
+          <option value="4">Минимальное</option>
+      </select>
+    </div>
+      <div class="parameters-input">
+        <label for="cameras-ven">Нужно ли видео</label>
+        <select name="VEN" id="cameras-ven">
+            <option value="0">Нет</option>
+            <option value="1">Да</option>
+        </select>
+    </div>
+    <div class="parameters-input">
+      <label for="cameras-aen">Нужно ли аудио</label>
+      <select name="AEN" id="cameras-aen">
+          <option value="0">Нет</option>
+          <option value="1">Да</option>
+      </select>
+  </div>
+
+  <div class="parameters-input">
+    <label for="cameras-framerate">Фреймрейт</label>
+    <input name="FR" type="text" id="cameras-framerate" placeholder="Фреймрейт видео">
+  </div>
+
+
+      </div>
+
+      <div class="horizontal-line"></div>
+
+
+      <button onclick="sendPutRequest('cameras');" type="button">Сохранить</button>
+
+  </div>
 
     <script>
       document.addEventListener('DOMContentLoaded', function () {
@@ -1169,6 +1268,55 @@ const requestData = {
 
 try {
 const response = await fetch(`/ai-parameters?serial=${serial}`, {
+  method: 'PUT',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(requestData),
+});
+
+if (response.ok) {
+  var formContainer = $("#form-bg");
+  var form = $("#form");
+  formContainer.removeClass("active");
+  form.removeClass("form-animation");
+  $("body").css("overflow", "auto");
+  showMessage("Данные успешно обновлены", true);
+  console.log('PUT запрос выполнен успешно');
+} else {
+  showMessage("Не удалось обновить данные", false);
+  console.error('Ошибка при выполнении PUT запроса');
+}
+} catch (error) {
+showMessage("Не удалось обновить данные", false);
+console.error('Произошла ошибка при отправке PUT запроса:', error);
+}
+}
+
+if (type === 'cameras') {
+
+const deleteConfirmation = document.getElementById("addInformation");
+const loader = document.getElementById("loader");
+const status = document.getElementById("status");
+const closeButton = document.getElementById("closeButton");
+const mark = document.getElementById("success-mark");
+
+loader.style.display = "block";
+closeButton.style.display = "none";
+deleteConfirmation.style.display = "flex";
+mark.style.display = "none";
+
+updateCamerasInArray();
+
+const VEC = camerasData;
+console.log(VEC);
+
+const requestData = {
+  VEC
+};
+
+try {
+const response = await fetch(`/cameras-parameters?serial=${serial}`, {
   method: 'PUT',
   headers: {
     'Content-Type': 'application/json',
