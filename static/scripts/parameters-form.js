@@ -62,6 +62,44 @@ function fadeOut(element, callback) {
 
 var givenData;
 
+function encodeCHValue(channels) {
+  let CH = 0;
+  for (const channelNumber of channels) {
+    if (channelNumber >= 1 && channelNumber <= 32) {
+      const channelBit = 1 << (channelNumber - 1);
+      CH |= channelBit;
+    }
+  }
+  return CH;
+}
+
+let selectedCameras;
+
+function checkSelectedCameras() {
+  const checkboxes = document.querySelectorAll('.checkbox-input');
+  selectedCameras = []; 
+
+  checkboxes.forEach((checkbox) => {
+    if (checkbox.checked) {
+      const cameraNumber = checkbox.id.replace('camera', ''); 
+      selectedCameras.push(cameraNumber);
+    }
+  });
+
+}
+
+function decodeCHValue(CH) {
+  const channels = [];
+  for (let i = 0; i < 32; i++) {
+    const channelBit = (CH >> i) & 1;
+    if (channelBit === 1) {
+      const channelNumber = i + 1;
+      channels.push(channelNumber);
+    }
+  }
+  return channels;
+}
+
 for (let radioButton of radioButtons) {
   radioButton.addEventListener("change", () => {
     if (radioButton.value === "parameters") {
@@ -260,46 +298,6 @@ for (let radioButton of radioButtons) {
             console.log(data.DATA);
             givenData = data.DATA.DSM.DSMA;
 
-            console.log(givenData);
-
-            function encodeCHValue(channels) {
-              let CH = 0;
-              for (const channelNumber of channels) {
-                if (channelNumber >= 1 && channelNumber <= 32) {
-                  const channelBit = 1 << (channelNumber - 1);
-                  CH |= channelBit;
-                }
-              }
-              return CH;
-            }
-            
-            let selectedCameras;
-
-            function checkSelectedCameras() {
-              const checkboxes = document.querySelectorAll('.checkbox-input');
-              selectedCameras = []; 
-          
-              checkboxes.forEach((checkbox) => {
-                if (checkbox.checked) {
-                  const cameraNumber = checkbox.id.replace('camera', ''); 
-                  selectedCameras.push(cameraNumber);
-                }
-              });
-
-            }
-
-            function decodeCHValue(CH) {
-              const channels = [];
-              for (let i = 0; i < 32; i++) {
-                const channelBit = (CH >> i) & 1;
-                if (channelBit === 1) {
-                  const channelNumber = i + 1;
-                  channels.push(channelNumber);
-                }
-              }
-              return channels;
-            }
-
             var desiredCameras;
 
             function updateCheckboxes() {
@@ -338,7 +336,6 @@ for (let radioButton of radioButtons) {
 
                 checkSelectedCameras();
                 newCH = encodeCHValue(selectedCameras);
-                console.log('Выбранные камеры:', newCH);
             }
 
             document.getElementById("system-ai").addEventListener("change", function () {
@@ -349,28 +346,8 @@ for (let radioButton of radioButtons) {
             document.getElementById("checkboxContainer").addEventListener("change", function () {
                 checkSelectedCameras();
                 newCH = encodeCHValue(selectedCameras);
-                console.log('Выбранные камеры:', newCH);
           });
-          function updateDataInArray(selectedIndex) {
-            const selectedDataRow = data.DATA.DSM.DSMA[selectedIndex];
           
-            selectedDataRow.EN = document.getElementById("system-ai-en1").value;
-            selectedDataRow.AS = document.getElementById("system-ai-as1").value;
-            selectedDataRow.APR.ENSP = document.getElementById("system-ai-ensp1").value;
-            selectedDataRow.FGMS = document.getElementById("system-ai-fgms1").value;
-            selectedDataRow.SGMS = document.getElementById("system-ai-sgms1").value;
-            selectedDataRow.ESST = document.getElementById("system-ai-esst1").value;
-            selectedDataRow.UDT = document.getElementById("system-ai-udt1").value;
-            selectedDataRow.VT = document.getElementById("system-ai-vt1").value;
-            selectedDataRow.SDT = document.getElementById("system-ai-sdt1").value;
-            selectedDataRow.APR.ET = document.getElementById("system-ai-et1").value;
-            selectedDataRow.APR.SS.EN = document.getElementById("system-ai-ss-en1").value;
-            selectedDataRow.APR.AR.D = document.getElementById("system-ai-ar-d1").value;
-          
-            selectedDataRow.APR.AR.CH = encodeCHValue(selectedCameras);
-
-            console.log(selectedDataRow);
-          }
 
             updateFields(0);
 
@@ -388,4 +365,26 @@ function truncateText(select) {
   if (option.text.length > maxLength) {
     option.text = option.text.substring(0, maxLength) + "...";
   }
+}
+
+function updateDataInArray() {
+  const selectedIndex = parseInt(document.getElementById("system-ai").value);
+  const selectedDataRow = givenData[selectedIndex];
+
+  selectedDataRow.EN = parseInt(document.getElementById("system-ai-en1").value);
+  selectedDataRow.AS = parseInt(document.getElementById("system-ai-as1").value);
+  selectedDataRow.APR.ENSP = parseInt(document.getElementById("system-ai-ensp1").value);
+  selectedDataRow.FGMS = parseInt(document.getElementById("system-ai-fgms1").value);
+  selectedDataRow.SGMS = parseInt(document.getElementById("system-ai-sgms1").value);
+  selectedDataRow.ESST = parseInt(document.getElementById("system-ai-esst1").value);
+  selectedDataRow.UDT = parseInt(document.getElementById("system-ai-udt1").value);
+  selectedDataRow.VT = parseInt(document.getElementById("system-ai-vt1").value);
+  selectedDataRow.SDT = parseInt(document.getElementById("system-ai-sdt1").value);
+  selectedDataRow.APR.ET = parseInt(document.getElementById("system-ai-et1").value);
+  selectedDataRow.APR.SS.EN = parseInt(document.getElementById("system-ai-ss-en1").value);
+  selectedDataRow.APR.AR.D = parseInt(document.getElementById("system-ai-ar-d1").value);
+
+  selectedDataRow.APR.AR.CH = parseInt(encodeCHValue(selectedCameras));
+
+  givenData[selectedIndex] = selectedDataRow;
 }

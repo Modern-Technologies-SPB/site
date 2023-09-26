@@ -2127,6 +2127,10 @@ app.post('/update-group', async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
+  }
   try {
     const { groupId, newName } = req.body;
 
@@ -2162,6 +2166,9 @@ async function getParameters(serial) {
       ]
     }),
   });
+  
+  await new Promise(resolve => setTimeout(resolve, 300));
+
 
   const requestResponse2 = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
     headers: {
@@ -2174,6 +2181,9 @@ async function getParameters(serial) {
     }),
   });
 
+  await new Promise(resolve => setTimeout(resolve, 300));
+
+
   const requestResponse3 = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
     headers: {
       'Content-Type': 'application/json',
@@ -2185,6 +2195,9 @@ async function getParameters(serial) {
     }),
   });
 
+  await new Promise(resolve => setTimeout(resolve, 300));
+
+
   const requestResponse4 = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
     headers: {
       'Content-Type': 'application/json',
@@ -2195,6 +2208,8 @@ async function getParameters(serial) {
       ]
     }),
   });
+
+  await new Promise(resolve => setTimeout(resolve, 300));
 
   const requestResponse5 = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
     headers: {
@@ -2219,8 +2234,14 @@ app.post('/main-parameters', async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
+  }
   try {
     const { serial } = req.body;
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
     headers: {
@@ -2234,7 +2255,7 @@ app.post('/main-parameters', async (req, res) => {
     }),
   });
 
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
   const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
 
@@ -2248,6 +2269,10 @@ app.post('/main-parameters', async (req, res) => {
 app.put('/main-parameters', async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
   }
   const requestData = req.body;
   const { serial } = req.query;
@@ -2287,9 +2312,14 @@ app.post('/device-parameters', async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
+  }
   try {
     const { serial } = req.body;
 
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
 
     const responseData = await getParameters(serial);
@@ -2306,8 +2336,14 @@ app.post('/ethernet-parameters', async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
+  }
   try {
     const { serial } = req.body;
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
     headers: {
@@ -2321,7 +2357,7 @@ app.post('/ethernet-parameters', async (req, res) => {
     }),
   });
 
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
   const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
 
@@ -2335,6 +2371,10 @@ app.post('/ethernet-parameters', async (req, res) => {
 app.put('/ethernet-parameters', async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
   }
   const requestData = req.body;
   const { serial } = req.query;
@@ -2387,8 +2427,14 @@ app.post('/wifi-parameters', async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
+  }
   try {
     const { serial } = req.body;
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
     headers: {
@@ -2401,7 +2447,7 @@ app.post('/wifi-parameters', async (req, res) => {
     }),
   });
 
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
   const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
 
@@ -2415,6 +2461,10 @@ app.post('/wifi-parameters', async (req, res) => {
 app.put('/wifi-parameters', async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
   }
   const requestData = req.body;
   const { serial } = req.query;
@@ -2463,8 +2513,14 @@ app.post('/communication-parameters', async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
+  }
   try {
     const { serial } = req.body;
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
     headers: {
@@ -2477,7 +2533,7 @@ app.post('/communication-parameters', async (req, res) => {
     }),
   });
 
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
   const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
 
@@ -2491,6 +2547,10 @@ app.post('/communication-parameters', async (req, res) => {
 app.put('/communication-parameters', async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
   }
 
   const requestData = req.body;
@@ -2552,8 +2612,14 @@ app.post('/install-parameters', async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
+  }
   try {
     const { serial } = req.body;
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
     headers: {
@@ -2566,7 +2632,7 @@ app.post('/install-parameters', async (req, res) => {
     }),
   });
 
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
   const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
 
@@ -2581,8 +2647,15 @@ app.post('/ai-parameters', async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
+  }
   try {
     const { serial } = req.body;
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
 
     const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
     headers: {
@@ -2595,7 +2668,7 @@ app.post('/ai-parameters', async (req, res) => {
     }),
   });
 
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
   const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
 
@@ -2606,9 +2679,49 @@ app.post('/ai-parameters', async (req, res) => {
   }
 });
 
+app.put('/ai-parameters', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
+  }
+
+  const requestData = req.body;
+  const { serial } = req.query;
+
+  const {
+    DSMA
+  } = requestData;
+
+  const requestBody = {
+    "DSM": {
+      "DSMA": DSMA
+    }
+  };
+
+
+  try {
+    const response = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/set?serial=${serial}`, {
+      data: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    res.status(response.status).send(response.data);
+  } catch (error) {
+    res.status(500).send('Произошла ошибка при отправке GET запроса.');
+  }
+});
+
 app.put('/install-parameters', async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
   }
 
   const requestData = req.body;
@@ -2642,6 +2755,10 @@ app.put('/install-parameters', async (req, res) => {
 app.put('/device-parameters', async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
   }
   // Получаем данные из PUT запроса
   const requestData = req.body;
@@ -2719,6 +2836,10 @@ app.put('/camera-parameters', async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
+  }
   // Получаем данные из PUT запроса
   const camerasData = req.body;
   const { serial } = req.query;
@@ -2772,6 +2893,10 @@ app.post("/devicedata", async (req, res) => {
 app.post("/updatedevice", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
   }
   const pool = new Pool({
     user: DB_User,
@@ -2969,6 +3094,10 @@ app.post("/deletedevice", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.DeleteTransport) {
+    return res.redirect("/devices");
+  }
   const id = req.body.id;
 
   const pool = new Pool({
@@ -2994,6 +3123,9 @@ app.post("/deletedevice", async (req, res) => {
 
 app.post("/deleteuser", async (req, res) => {
   if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  if (req.session.userId != "admin") {
     return res.redirect("/signin");
   }
   const id = req.body.id;
@@ -3023,6 +3155,10 @@ app.post("/deletegroup", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
+  }
   const id = req.body.id;
 
   const pool = new Pool({
@@ -3049,6 +3185,10 @@ app.post("/deletegroup", async (req, res) => {
 app.post("/add-group", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
   }
   const { name } = req.body;
 

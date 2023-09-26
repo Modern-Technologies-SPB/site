@@ -131,17 +131,17 @@
               <section class="for-new">
 
                 <section class="stages">
-                    <input name="newStage" type="radio" value="parameters" id="stage-parameters" checked><label for="stage-parameters">Системные настройки</label>
+                    <input autocomplete="off" name="newStage" type="radio" value="parameters" id="stage-parameters" checked><label for="stage-parameters">Системные настройки</label>
                     <div class="vertical-line" style="background: transparent;"></div>
-                    <input name="newStage" type="radio" value="ethernet" id="stage-ethernet"><label for="stage-ethernet">Сеть</label>
+                    <input autocomplete="off" name="newStage" type="radio" value="ethernet" id="stage-ethernet"><label for="stage-ethernet">Сеть</label>
                     <div class="vertical-line"></div>
-                    <input name="newStage" type="radio" value="wifi" id="stage-wifi"><label for="stage-wifi">Wi-Fi</label>
+                    <input autocomplete="off" name="newStage" type="radio" value="wifi" id="stage-wifi"><label for="stage-wifi">Wi-Fi</label>
                     <div class="vertical-line"></div>
-                    <input name="newStage" type="radio" value="communication" id="stage-communication"><label for="stage-communication">Коммуникации</label>
+                    <input autocomplete="off" name="newStage" type="radio" value="communication" id="stage-communication"><label for="stage-communication">Коммуникации</label>
                     <div class="vertical-line" style="background: transparent;"></div>
-                    <input name="newStage" type="radio" value="install" id="stage-install"><label for="stage-install">Установка сервера</label>
+                    <input autocomplete="off" name="newStage" type="radio" value="install" id="stage-install"><label for="stage-install">Установка сервера</label>
                     <div class="vertical-line" style="background: transparent;"></div>
-                    <input name="newStage" type="radio" value="ai" id="stage-ai"><label for="stage-ai">Тревоги</label>
+                    <input autocomplete="off" name="newStage" type="radio" value="ai" id="stage-ai"><label for="stage-ai">Тревоги</label>
                 </section>
               </section>
               <section id="add-new-container" class="add-new">
@@ -476,17 +476,17 @@
 
         <div class="parameters-inputs">
           <label for="system-ai">Статус</label>
-            <select style="width: 100%;" name="AI" id="system-ai">
-              <option value="0">0 - Физиологическая усталость</option>
-              <option value="1">1 - Нет водителя</option>
-              <option value="2">2 - Говорит по телефону</option>
-              <option value="3">3 - Курение</option>
-              <option value="4">4 - Отклекся</option>
-              <option value="5">5 - Предупреждение о покидании полосы движения</option>
-              <option value="6">6 - Предупреждение о столкновении</option>
-              <option value="9">9 - Расстояние до машины слишком близко</option>
-              <option value="10">10 - Зевание</option>
-              <option value="11">11 - Столкновение с пешеходом</option>
+            <select autocomplete="off" style="width: 100%;" name="AI" id="system-ai">
+              <option value="0">Физиологическая усталость</option>
+              <option value="1">Нет водителя</option>
+              <option value="2">Говорит по телефону</option>
+              <option value="3">Курение</option>
+              <option value="4">Отвлекся</option>
+              <option value="5">Предупреждение о покидании полосы движения</option>
+              <option value="6">Предупреждение о столкновении</option>
+              <option value="9">Расстояние до машины слишком близко</option>
+              <option value="10">Зевание</option>
+              <option value="11">Столкновение с пешеходом</option>
           </select>
           <div class="parameters-input">
             <label for="system-ai-en1">Статус</label>
@@ -565,7 +565,7 @@
         
         <div class="horizontal-line"></div>
 
-        <button onclick="updateDataInArray(0);" type="button">Сохранить</button>
+        <button onclick="sendPutRequest('ai');" type="button">Сохранить</button>
 
     </div>
 
@@ -1120,6 +1120,54 @@ const requestBody = {
   showMessage("Не удалось обновить данные", false);
   console.error('Произошла ошибка при отправке PUT запроса:', error);
   }
+} 
+if (type === 'ai') {
+
+const deleteConfirmation = document.getElementById("addInformation");
+const loader = document.getElementById("loader");
+const status = document.getElementById("status");
+const closeButton = document.getElementById("closeButton");
+const mark = document.getElementById("success-mark");
+
+loader.style.display = "block";
+closeButton.style.display = "none";
+deleteConfirmation.style.display = "flex";
+mark.style.display = "none";
+
+updateDataInArray();
+
+const DSMA = givenData;
+console.log(DSMA);
+
+const requestData = {
+  DSMA
+};
+
+try {
+const response = await fetch(`/ai-parameters?serial=${serial}`, {
+  method: 'PUT',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(requestData),
+});
+
+if (response.ok) {
+  var formContainer = $("#form-bg");
+  var form = $("#form");
+  formContainer.removeClass("active");
+  form.removeClass("form-animation");
+  $("body").css("overflow", "auto");
+  showMessage("Данные успешно обновлены", true);
+  console.log('PUT запрос выполнен успешно');
+} else {
+  showMessage("Не удалось обновить данные", false);
+  console.error('Ошибка при выполнении PUT запроса');
+}
+} catch (error) {
+showMessage("Не удалось обновить данные", false);
+console.error('Произошла ошибка при отправке PUT запроса:', error);
+}
 }
     }
   </script>
@@ -1197,7 +1245,7 @@ $(document).ready(function() {
               location.reload();
               const deleteConfirmation = document.getElementById("addInformation");
               deleteConfirmation.style.display = "none";
-          }, 2000);
+          }, 500);
         
     }
 
