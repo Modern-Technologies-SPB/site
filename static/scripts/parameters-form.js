@@ -296,6 +296,11 @@ for (let radioButton of radioButtons) {
             camerasData = data;
 
             console.log(data.DATA);
+
+            document.getElementById('system-ai-dsmfe').value = data.DATA.DSM.DSMFE;
+            document.getElementById('system-ai-rwfe').value = data.DATA.DSM.RWFE;
+
+
             givenData = data.DATA.DSM.DSMA;
 
             var desiredCameras;
@@ -312,11 +317,8 @@ for (let radioButton of radioButtons) {
 
             let newCH;
 
-            
-
               function updateFields(selectedIndex) {
                 const selectedData = givenData[selectedIndex];
-                console.log(selectedData);
 
                 document.getElementById("system-ai-en1").value = selectedData.EN;
                 document.getElementById("system-ai-as1").value = selectedData.AS;

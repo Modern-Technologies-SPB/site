@@ -2692,12 +2692,16 @@ app.put('/ai-parameters', async (req, res) => {
   const { serial } = req.query;
 
   const {
-    DSMA
+    DSMA,
+    DSMFE,
+    RWFE
   } = requestData;
 
   const requestBody = {
     "DSM": {
-      "DSMA": DSMA
+      "DSMA": DSMA,
+      "DSMFE": DSMFE,
+      "RWFE": RWFE
     }
   };
 

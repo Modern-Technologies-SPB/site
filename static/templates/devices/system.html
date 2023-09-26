@@ -559,11 +559,28 @@
         <div class="horizontal-line"></div>
 
         <div id="checkboxContainer"></div>
-          
-          
-
         
         <div class="horizontal-line"></div>
+
+        <div class="parameters-inputs">
+          <div class="parameters-input">
+            <label for="system-ai-dsmfe">AI BOX</label>
+            <select name="DSMFE" id="system-ai-dsmfe">
+              <option value="0">Выключено</option>
+              <option value="1">Включено</option>
+          </select>
+        </div>
+        <div style="float: right;" class="parameters-input">
+          <label for="system-ai-rwfe">R-Watch</label>
+          <select name="RWFE" id="system-ai-rwfe">
+            <option value="0">Выключено</option>
+            <option value="1">Включено</option>
+        </select>
+      </div>
+        </div>
+
+        <div class="horizontal-line"></div>
+
 
         <button onclick="sendPutRequest('ai');" type="button">Сохранить</button>
 
@@ -1139,8 +1156,15 @@ updateDataInArray();
 const DSMA = givenData;
 console.log(DSMA);
 
+const DSMFE = parseInt(document.getElementById('system-ai-dsmfe').value);
+const RWFE = parseInt(document.getElementById('system-ai-rwfe').value);
+
+
+
 const requestData = {
-  DSMA
+  DSMA,
+  DSMFE,
+  RWFE
 };
 
 try {
