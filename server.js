@@ -11,7 +11,6 @@ const axios = require('axios');
 const moment = require('moment');
 const bodyParser = require('body-parser');
 const _ = require('lodash');
-const puppeteer = require('puppeteer');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 
