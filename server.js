@@ -13,6 +13,8 @@ const bodyParser = require('body-parser');
 const _ = require('lodash');
 const puppeteer = require('puppeteer');
 const session = require('express-session');
+const bcrypt = require('bcrypt');
+
 
 
 const storage = multer.diskStorage({
@@ -399,8 +401,10 @@ app.post('/setup', async (req, res) => {
       res.redirect('/signin');
     }
 
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
     const insertQuery = 'INSERT INTO main (organisation, login, password) VALUES ($1, $2, $3)';
-    await pool.query(insertQuery, [name, login, password]);
+    await pool.query(insertQuery, [name, login, hashedPassword]);
 
     res.status(200).json({ message: 'Данные успешно добавлены' });
   } catch (error) {
@@ -425,22 +429,26 @@ app.post('/login', async (req, res) => {
     });
 
     const mainQuery = await pool.query(
-      'SELECT * FROM main WHERE login = $1 AND password = $2',
-      [email, password]
+      'SELECT login, password FROM main WHERE login = $1',
+      [email]
     );
 
     const mainUser = mainQuery.rows[0];
 
     if (mainUser) {
-      req.session.userId = "admin";
+      const mainPasswordMatch = await bcrypt.compare(password, mainUser.password);
 
-      console.log("Авторизация успешна (из таблицы main)");
-      return res.status(200).json({ message: 'Авторизация успешна' });
+      if (mainPasswordMatch) {
+        req.session.userId = "admin";
+
+        console.log("Авторизация успешна (админ)");
+        return res.status(200).json({ message: 'Авторизация успешна (админ)' });
+      }
     }
 
     const userQuery = await pool.query(
-      'SELECT id, name, surname FROM users WHERE email = $1 AND password = $2',
-      [email, password]
+      'SELECT id, password FROM users WHERE email = $1',
+      [email]
     );
 
     const user = userQuery.rows[0];
@@ -449,15 +457,22 @@ app.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Неправильное имя пользователя или пароль' });
     }
 
-    req.session.userId = user.id;
+    const passwordMatch = await bcrypt.compare(password, user.password);
 
-    console.log("Авторизация успешна (из таблицы users)");
-    res.status(200).json({ message: 'Авторизация успешна' });
+    if (passwordMatch) {
+      req.session.userId = user.id;
+
+      console.log("Авторизация успешна");
+      return res.status(200).json({ message: 'Авторизация успешна' });
+    } else {
+      return res.status(401).json({ message: 'Неправильное имя пользователя или пароль' });
+    }
   } catch (error) {
     console.error('Ошибка при выполнении запроса к базе данных:', error);
     res.status(500).json({ message: 'Ошибка сервера' });
   }
 });
+
 
 app.get('/logout', (req, res) => {
   req.session.destroy((err) => {
@@ -3439,6 +3454,8 @@ async function adminPanel(req, res) {
 }
 
 // Обработка POST-запроса для добавления пользователя
+const saltRounds = 10; 
+
 app.post("/add-user", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
@@ -3448,9 +3465,8 @@ app.post("/add-user", async (req, res) => {
   }
   const { name, surname, email, phone, password } = req.body;
 
-  // console.log(name, surname, email, phone, password)
-
   try {
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     const pool = new Pool({
       user: DB_User,
@@ -3463,12 +3479,12 @@ app.post("/add-user", async (req, res) => {
     const client = await pool.connect();
 
     const query = `
-      INSERT INTO users (name, surname, email, phone, password, added)
-      VALUES ($1, $2, $3, $4, $5, NOW()) 
+      INSERT INTO users (name, surname, email, phone, password, added, devices)
+      VALUES ($1, $2, $3, $4, $5, NOW(), $6) 
       RETURNING id
     `;
 
-    const result = await client.query(query, [name, surname, email, phone, password]);
+    const result = await client.query(query, [name, surname, email, phone, hashedPassword, "{}"]);
 
     // Освобождение клиента
     client.release();
@@ -3480,6 +3496,7 @@ app.post("/add-user", async (req, res) => {
     res.status(500).json({ error: "Ошибка при добавлении пользователя" });
   }
 });
+
 
 app.get('/admin/user/:id', async (req, res) => {
   if (req.session.userId === undefined) {
@@ -3503,7 +3520,6 @@ app.get('/admin/user/:id', async (req, res) => {
     Surname: "",
     Email: "",
     Phone: "",
-    Password: "",
     Devices: [],
     EditTransport: false,
     DeleteTransport: false,
@@ -3571,7 +3587,6 @@ templateData.Name = response.name;
 templateData.Surname = response.surname;
 templateData.Email = response.email;
 templateData.Phone = response.phone;
-templateData.Password = response.password;
 templateData.Devices = response.devices;
 templateData.DeleteTransport = response.deletetransport;
 templateData.EditTransport = response.edittransport;
@@ -3636,6 +3651,41 @@ app.post("/updateuser/:id", async (req, res) => {
 
   try {
 
+    if (password === "" || password === undefined) {
+
+    const query = `
+      UPDATE users
+      SET
+        name = $2,
+        surname = $3,
+        email = $4,
+        phone = $5,
+        editTransport = $6,
+        deleteTransport = $7,
+        update = $8,
+        devices = $9
+      WHERE id = $1
+      RETURNING *;
+    `;
+
+    const values = [
+      id,
+      name,
+      surname,
+      email,
+      phone,
+      EditTransport,
+      DeleteTransport,
+      Update,
+      devices,
+    ];
+
+    const result = await client.query(query, values);
+
+  } else {
+
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    
     const query = `
       UPDATE users
       SET
@@ -3658,7 +3708,7 @@ app.post("/updateuser/:id", async (req, res) => {
       surname,
       email,
       phone,
-      password,
+      hashedPassword,
       EditTransport,
       DeleteTransport,
       Update,
@@ -3667,8 +3717,8 @@ app.post("/updateuser/:id", async (req, res) => {
 
     const result = await client.query(query, values);
 
-    const updatedRow = result.rows[0];
-    // console.log("Updated row:", updatedRow);
+  }
+
 
     res.send("Data updated successfully");
   } catch (error) {
