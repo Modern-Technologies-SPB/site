@@ -2875,17 +2875,16 @@ app.put('/device-parameters', async (req, res) => {
   // Создаем JSON для GET запроса
   const requestBody = {
     "TIMEP": {
-      "DATEM": parseInt(DATEMOD, 10) || 1,
-      "TIMEM": parseInt(TIMEFORMAT, 10) || 0,
-      "TIMEZ": TIMEZ || "180C"
+      "DATEM": parseInt(DATEMOD, 10),
+      "TIMEM": parseInt(TIMEFORMAT, 10),
+      "TIMEZ": TIMEZ
     },
     "GSP": {
-      "LANT": parseInt(LANGUAGE, 10) || 12,
-      "VGA": parseInt(VIDEOFORMAT, 10) || 0,
-      "GM": parseInt(GEOMOD, 10) || 0
+      "LANT": parseInt(LANGUAGE, 10),
+      "GM": parseInt(GEOMOD, 10)
     },
     "SUBSTRNET": {
-      "SM": parseInt(SUBSTREAMMODE, 10) || 1
+      "SM": parseInt(SUBSTREAMMODE, 10)
     },
     "EOSD": [
       { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
