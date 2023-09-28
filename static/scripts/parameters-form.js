@@ -380,7 +380,7 @@ for (let radioButton of radioButtons) {
 
             console.log(data.DATA);
 
-            camerasData = data.DATA.AR.VEC;
+            camerasData = data.DATA.MAIN;
 
               function updateFields(selectedIndex) {
                 const selectedData = camerasData[selectedIndex];

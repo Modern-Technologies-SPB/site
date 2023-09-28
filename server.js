@@ -2739,7 +2739,7 @@ app.post('/cameras-parameters', async (req, res) => {
     },
     data: JSON.stringify({
       "FIELDS": [
-        "AR"
+        "MAIN"
       ]
     }),
   });
@@ -2768,13 +2768,11 @@ app.put('/cameras-parameters', async (req, res) => {
   const { serial } = req.query;
 
   const {
-    VEC
+    MAIN
   } = requestData;
 
   const requestBody = {
-    "AR": {
-      "VEC": VEC
-    }
+    "MAIN": MAIN
   };
 
 
@@ -2916,7 +2914,7 @@ app.put('/camera-parameters', async (req, res) => {
 
   // Создаем JSON для GET запроса
   const requestBody = {
-    "AR": camerasData
+    "MAIN": camerasData
   };
 
   // Отправляем GET запрос с JSON BODY
