@@ -2211,20 +2211,6 @@ async function getParameters(serial) {
 
   await new Promise(resolve => setTimeout(resolve, 300));
 
-
-  const requestResponse4 = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: JSON.stringify({
-      "FIELDS": [
-        "SUBSTRNET"
-      ]
-    }),
-  });
-
-  await new Promise(resolve => setTimeout(resolve, 300));
-
   const requestResponse5 = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
     headers: {
       'Content-Type': 'application/json',
@@ -2880,9 +2866,6 @@ app.put('/device-parameters', async (req, res) => {
     "GSP": {
       "LANT": parseInt(LANGUAGE, 10),
       "GM": parseInt(GEOMOD, 10)
-    },
-    "SUBSTRNET": {
-      "SM": parseInt(SUBSTREAMMODE, 10)
     },
     "EOSD": [
       { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
