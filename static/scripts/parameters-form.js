@@ -129,7 +129,6 @@ for (let radioButton of radioButtons) {
             document.getElementById('system-language').value = data.DATA.GSP.LANT;
             document.getElementById('system-timezone').value = data.DATA.TIMEP.TIMEZ;
             document.getElementById('system-geo').value = data.DATA.GSP.GM;
-            document.getElementById('system-stream').value = data.DATA.SUBSTRNET.SM;
             document.getElementById('NE').checked = data.DATA.EOSD[0].NE === 1;
             document.getElementById('TE').checked = data.DATA.EOSD[0].TE === 1;
             document.getElementById('VE').checked = data.DATA.EOSD[0].VE === 1;

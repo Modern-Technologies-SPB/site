@@ -208,15 +208,6 @@
                         <option value="720A">(МСК+9) Камчатка</option>
                     </select>
                   </div>
-                  <div class="parameters-input">
-                    <label for="system-stream">Формат трансляции</label>
-                    <select name="SUBSTREAMMODE" id="system-stream">
-                      <option value="0">Плавно</option>
-                      <option value="1">Менее качественно, но более плавно</option>
-                      <option value="2">Менее плавно, но более качественно</option>
-                      <option value="3">Качество</option>
-                  </select>
-                </div>
                 <div class="parameters-input">
                   <label for="system-language">Язык системы</label>
                   <select name="LANGUAGE" id="system-language">
@@ -944,7 +935,6 @@ const requestBody = {
       
       const DATEMOD = document.getElementById('system-date').value;
       const TIMEFORMAT = document.getElementById('system-time').value;
-      const SUBSTREAMMODE = document.getElementById('system-stream').value;
       const LANGUAGE = document.getElementById('system-language').value;
       const GEOMOD = document.getElementById('system-geo').value;
       const TIMEZ = document.getElementById('system-timezone').value;
@@ -961,7 +951,6 @@ const requestBody = {
       const requestData = {
         DATEMOD,
         TIMEFORMAT,
-        SUBSTREAMMODE,
         LANGUAGE,
         GEOMOD,
         TIMEZ,
