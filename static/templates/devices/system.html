@@ -1302,6 +1302,14 @@ const requestBody = {
 
   if (type === 'install') {
 
+      var serverContainer = document.getElementById('server-container');
+
+      var servers = serverContainer.getElementsByClassName('server');
+
+      var serverNumbersArray = Array.from({ length: servers.length }, (_, index) => index + 1);
+
+      const M = encodeCHValue(serverNumbersArray);
+
   const deleteConfirmation = document.getElementById("addInformation");
   const loader = document.getElementById("loader");
   const status = document.getElementById("status");
@@ -1316,11 +1324,13 @@ const requestBody = {
   saveData();
 
   const SP = serverData;
-  console.log(SP);
 
   const requestData = {
-    SP
+    SP,
+    M
   };
+
+  console.log(requestData);
 
   try {
   const response = await fetch(`/install-parameters?serial=${serial}`, {

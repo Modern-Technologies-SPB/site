@@ -2802,12 +2802,14 @@ app.put('/install-parameters', async (req, res) => {
   const { serial } = req.query;
 
   const {
-    SP
+    SP,
+    M
   } = requestData;
 
 
   const requestBody = {
     "MCMS": {
+      "M": parseInt(M, 10),
       "SP": SP
     }
   };

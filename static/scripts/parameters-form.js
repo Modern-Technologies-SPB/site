@@ -268,12 +268,16 @@ for (let radioButton of radioButtons) {
 
             console.log(data.DATA);
 
-            console.log(decodeCHValue(data.DATA.MCMS.M));
+            const decodedValues = decodeCHValue(data.DATA.MCMS.M);
+            console.log(decodedValues);
 
             clearServerContainer();
 
-            data.DATA.MCMS.SP.forEach((data) => {
-              addServer(data);
+            decodedValues.forEach((value, index) => {
+                const dataIndex = value - 1; 
+                if (data.DATA.MCMS.SP[dataIndex]) {
+                    addServer(data.DATA.MCMS.SP[dataIndex]);
+                }
             });
 
             $("select").trigger("input");
