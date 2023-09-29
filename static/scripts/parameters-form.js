@@ -268,6 +268,8 @@ for (let radioButton of radioButtons) {
 
             console.log(data.DATA);
 
+            console.log(decodeCHValue(data.DATA.MCMS.M));
+
             clearServerContainer();
 
             data.DATA.MCMS.SP.forEach((data) => {
@@ -386,12 +388,13 @@ for (let radioButton of radioButtons) {
                 const selectedData = camerasData[selectedIndex];
 
                 document.getElementById("cameras-quality").value = selectedData.QLT;
-                document.getElementById("cameras-bitrate").value = selectedData.BR;
+                document.getElementById("cameras-bitrate").value = selectedData.BRM;
                 document.getElementById("cameras-video").value = selectedData.RST;
                 document.getElementById("cameras-alert").value = selectedData.ALT;
                 document.getElementById("cameras-ven").value = selectedData.VEN;
                 document.getElementById("cameras-aen").value = selectedData.AEN;
                 document.getElementById("cameras-framerate").value = selectedData.FR;
+                document.getElementById("cameras-encode").value = selectedData.ECT;
             }
 
             document.getElementById("cameras-id").addEventListener("change", function () {
@@ -445,12 +448,13 @@ function updateCamerasInArray() {
 
 
   selectedDataRow.QLT = parseInt(document.getElementById("cameras-quality").value);
-  selectedDataRow.BR = parseInt(document.getElementById("cameras-bitrate").value);
+  selectedDataRow.BRM = parseInt(document.getElementById("cameras-bitrate").value);
   selectedDataRow.RST = parseInt(document.getElementById("cameras-video").value);
   selectedDataRow.ALT = parseInt(document.getElementById("cameras-alert").value);
   selectedDataRow.VEN = parseInt(document.getElementById("cameras-ven").value);
   selectedDataRow.AEN = parseInt(document.getElementById("cameras-aen").value);
   selectedDataRow.FR = parseInt(document.getElementById("cameras-framerate").value);
+  selectedDataRow.ECT = parseInt(document.getElementById("cameras-encode").value);
 
   camerasData[selectedIndex] = selectedDataRow;
 }

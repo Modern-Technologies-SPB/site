@@ -537,7 +537,7 @@
       </div>
       <div class="parameters-input">
         <label for="system-ai-et1">Длительность тревоги</label>
-        <input name="AI-ET1" type="text" id="system-ai-et1" placeholder="В секундах" required>
+        <input name="AI-ET1" type="text" id="system-ai-et1" placeholder="0 - 60 секунд" required>
       </div>
       <div class="parameters-input">
         <label for="system-ai-ss-en1">Снимки сразу после тревог</label>
@@ -548,7 +548,7 @@
     </div>
     <div class="parameters-input">
       <label for="system-ai-ar-d1">Запись после тревоги</label>
-      <input name="AI-ar-d1" type="text" id="system-ai-ar-d1" placeholder="В секундах" required>
+      <input name="AI-ar-d1" type="text" id="system-ai-ar-d1" placeholder="0 - 60 секунд" required>
     </div>
         </div>
 
@@ -617,36 +617,48 @@
       <div class="parameters-input">
           <label for="cameras-quality">Качество видео</label>
           <select name="QLT" id="cameras-quality">
-            <option value="1">Максимальное</option>
-            <option value="2">Скорее максимальное</option>
-            <option value="3">Скорее минимальное</option>
-            <option value="4">Минимальное</option>
+            <option value="1">1 (Наилучшее)</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
         </select>
       </div>
       <div class="parameters-input">
-        <label for="cameras-bitrate">Максимальный битрейт</label>
-        <input name="BR" type="text" id="cameras-bitrate" placeholder="Максимальный битрейт видео">
+        <label for="cameras-bitrate">Битрейт</label>
+        <select name="BRM" id="cameras-bitrate">
+            <option value="0">CBR</option>
+            <option value="1">VBR</option>
+        </select>
       </div>
       <div class="parameters-input">
           <label for="cameras-video">Разрешение видео</label>
           <select name="RST" id="cameras-video">
-            <option value="0">352 x 288</option>
-            <option value="1">352 x 576</option>
-            <option value="2">704 x 576</option>
-            <option value="3">176 x 144</option>
-            <option value="4">320 × 240</option>
-            <option value="5">640 × 480</option>
-            <option value="6">1280 x 720</option>
-            <option value="7">1920 × 1080</option>
+            <option value="0">CIF</option>
+            <option value="1">HD1</option>
+            <option value="2">D1</option>
+            <option value="6">720P</option>
+            <option value="7">1080P</option>
+            <option value="11">WCIF</option>
+            <option value="12">WHD1</option>
+            <option value="13">WD1</option>
+            <option value="14">960P</option>
         </select>
       </div>
       <div class="parameters-input">
         <label for="cameras-alert">Качество видео при предупреждении</label>
         <select name="ALT" id="cameras-alert">
-          <option value="1">Максимальное</option>
-          <option value="2">Скорее максимальное</option>
-          <option value="3">Скорее минимальное</option>
-          <option value="4">Минимальное</option>
+          <option value="1">1 (Наилучшее)</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
       </select>
     </div>
       <div class="parameters-input">
@@ -666,7 +678,15 @@
 
   <div class="parameters-input">
     <label for="cameras-framerate">Фреймрейт</label>
-    <input name="FR" type="text" id="cameras-framerate" placeholder="Фреймрейт видео">
+    <input name="FR" type="text" id="cameras-framerate" placeholder="От 1 до 25">
+  </div>
+
+  <div class="parameters-input">
+    <label for="cameras-encode">Кодировка</label>
+    <select name="ECT" id="cameras-encode">
+      <option value="0">H264</option>
+      <option value="1">H265</option>
+  </select>
   </div>
 
 
@@ -678,6 +698,104 @@
       <button onclick="sendPutRequest('cameras');" type="button">Сохранить</button>
 
   </div>
+
+  <script>
+    var bitrateField = document.getElementById('cameras-framerate');
+
+    bitrateField.addEventListener('blur', function() {
+    var currentValue = parseInt(bitrateField.value);
+
+    if (isNaN(currentValue) || currentValue < 1) {
+        bitrateField.value = 1;
+    } else if (currentValue > 25) {
+        bitrateField.value = 25;
+    }
+});
+
+var minSpeedField = document.getElementById('system-ai-fgms1');
+
+minSpeedField.addEventListener('blur', function() {
+    var currentValue = parseInt(minSpeedField.value);
+
+    if (isNaN(currentValue) || currentValue < 0) {
+      minSpeedField.value = 0;
+    } else if (currentValue > 50) {
+      minSpeedField.value = 50;
+    }
+});
+
+var maxSpeedField = document.getElementById('system-ai-sgms1');
+
+maxSpeedField.addEventListener('blur', function() {
+    var currentValue = parseInt(maxSpeedField.value);
+
+    if (isNaN(currentValue) || currentValue < 0) {
+      maxSpeedField.value = 0;
+    } else if (currentValue > 50) {
+      maxSpeedField.value = 50;
+    }
+});
+
+var recogniseDurationField = document.getElementById('system-ai-udt1');
+
+recogniseDurationField.addEventListener('blur', function() {
+    var currentValue = parseInt(recogniseDurationField.value);
+
+    if (isNaN(currentValue) || currentValue < 0) {
+      recogniseDurationField.value = 0;
+    } else if (currentValue > 60) {
+      recogniseDurationField.value = 60;
+    }
+});
+
+var durationField = document.getElementById('system-ai-vt1');
+
+durationField.addEventListener('blur', function() {
+    var currentValue = parseInt(durationField.value);
+
+    if (isNaN(currentValue) || currentValue < 0) {
+      durationField.value = 0;
+    } else if (currentValue > 600) {
+      durationField.value = 600;
+    }
+});
+
+var effectiveTimeField = document.getElementById('system-ai-sdt1');
+
+effectiveTimeField.addEventListener('blur', function() {
+    var currentValue = parseInt(effectiveTimeField.value);
+
+    if (isNaN(currentValue) || currentValue < 0) {
+      effectiveTimeField.value = 0;
+    } else if (currentValue > 10) {
+      effectiveTimeField.value = 10;
+    }
+});
+
+var alarmDurationField = document.getElementById('system-ai-et1');
+
+alarmDurationField.addEventListener('blur', function() {
+    var currentValue = parseInt(alarmDurationField.value);
+
+    if (isNaN(currentValue) || currentValue < 0) {
+      alarmDurationField.value = 0;
+    } else if (currentValue > 60) {
+      alarmDurationField.value = 60;
+    }
+});
+
+var afterAlarmDurationField = document.getElementById('system-ai-ar-d1');
+
+afterAlarmDurationField.addEventListener('blur', function() {
+    var currentValue = parseInt(afterAlarmDurationField.value);
+
+    if (isNaN(currentValue) || currentValue < 0) {
+      afterAlarmDurationField.value = 0;
+    } else if (currentValue > 60) {
+      afterAlarmDurationField.value = 60;
+    }
+});
+  </script>
 
     <script>
       document.addEventListener('DOMContentLoaded', function () {

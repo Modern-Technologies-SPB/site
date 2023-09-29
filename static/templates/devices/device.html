@@ -174,7 +174,7 @@
           
                     <div class="parameters-inputs">
                     <div class="parameters-input">
-                      <label for="parameters-serial">Серийный номер<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                      <label for="parameters-serial">Серийный номер</label>
                       <input name="serialNumber" type="text" id="parameters-serial" placeholder="Серийный номер устройства" required readonly>
                     </div>
                     <div class="parameters-input">
@@ -182,7 +182,7 @@
                         <input name="deviceNumber" type="text" id="parameters-number" placeholder="Номерной знак устройства">
                     </div>
                     <div class="parameters-input">
-                        <label for="parameters-plate">Государственный номер<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-plate">Государственный номер</label>
                         <input name="plateNumber" type="text" id="parameters-plate" placeholder="Государственный номер ТС" required>
                     </div>
                     <div class="parameters-input">
@@ -190,11 +190,11 @@
                       <input name="vinNumber" type="text" id="parameters-vin" placeholder="VIN номер устройства">
                   </div>
                     <div class="parameters-input">
-                        <label for="parameters-channels">Количество каналов<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-channels">Количество каналов</label>
                         <input name="channelsAmount" type="text" id="parameters-channels" placeholder="Кол-во каналов устройства" required>
                     </div>
                     <div class="parameters-input">
-                      <label for="parameters-plateColor">Цвет номерного знака<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                      <label for="parameters-plateColor">Цвет номерного знака</label>
                       <select name="plateColor" id="parameters-plateColor">
                           <option value="white">Белый</option>
                           <option value="blue">Синий</option>
@@ -203,15 +203,15 @@
                     </div>
                     
                     <div class="parameters-input">
-                        <label for="parameters-ip">IP-адрес<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-ip">IP-адрес</label>
                         <input name="IPAddress" type="text" id="parameters-ip" placeholder="IP-адрес сервера" required>
                     </div>
                     <div class="parameters-input">
-                      <label for="parameters-port">Порт<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                      <label for="parameters-port">Порт</label>
                       <input name="serverPort" type="text" id="parameters-port" placeholder="Порт сервера" required>
                     </div>
                     <div class="parameters-input">
-                        <label for="parameters-group">Группа<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-group">Группа</label>
                         <select name="deviceGroup" id="parameters-group">
                           <option value="0">Другое</option>
                           {{#each GroupsList}}
@@ -220,7 +220,7 @@
                       </select>
                     </div>
                     <div class="parameters-input">
-                      <label for="parameters-protocol">Протокол<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                      <label for="parameters-protocol">Протокол</label>
                       <select name="connectionProtocol" id="parameters-protocol">
                           <option value="N9M">N9M</option>
                       </select>
@@ -244,19 +244,19 @@
           
                     <div class="parameters-inputs">
                     <div class="parameters-input">
-                        <label for="parameters-sim">Номер SIM-карты<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-sim">Номер SIM-карты</label>
                         <input name="sumNumber" type="text" id="parameters-sim" placeholder="Номер SIM-карты" required>
                     </div>
                     <div class="parameters-input">
-                        <label for="parameters-sim-imei">IMEI<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-sim-imei">IMEI</label>
                         <input name="simIMEI" type="text" id="parameters-sim-imei" placeholder="IMEI SIM-карты" required>
                     </div>
                     <div class="parameters-input">
-                        <label for="parameters-sim-imsi">IMSI<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-sim-imsi">IMSI</label>
                         <input name="simIMSI" type="text" id="parameters-sim-imsi" placeholder="IMSI SIM-карты" required>
                     </div>
                     <div class="parameters-input">
-                        <label for="parameters-sim-module">Тип сетевого модуля<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-sim-module">Тип сетевого модуля</label>
                         <select name="simModule" id="parameters-sim-module">
                             <option value="GPRS">GPRS</option>
                             <option value="CDMA">CDMA</option>
@@ -286,7 +286,7 @@
           
                     <div class="parameters-inputs">
                     <div class="parameters-input">
-                        <label for="parameters-trasnsport-type">Тип автомобиля<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-trasnsport-type">Тип автомобиля</label>
                         <select name="transportType" id="parameters-trasnsport-type" onchange="truncateText(this)">
                             <option value="1">Пассажирский подвижной состав</option>
                             <option value="2">Большой автобус</option>
@@ -314,23 +314,23 @@
                         </select>
                     </div>
                     <div class="parameters-input">
-                        <label for="parameters-trasnsport-factory">Номер завода<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-trasnsport-factory">Номер завода</label>
                         <input name="transportFactory" type="text" id="parameters-trasnsport-factory" placeholder="Номер завода ТС" required>
                     </div>
                     <div class="parameters-input">
-                        <label for="parameters-transport-strength">Несущая способность<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-transport-strength">Несущая способность</label>
                         <input name="transportStrength" type="text" id="parameters-transport-strength" placeholder="Несущая способность (тонны)" required>
                     </div>
                     <div class="parameters-input">
-                        <label for="parameters-transport-engine">Номер двигателя<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-transport-engine">Номер двигателя</label>
                         <input name="transportEngine" type="text" id="parameters-transport-engine" placeholder="Номер двигателя ТС" required>
                     </div>
                     <div class="parameters-input">
-                        <label for="parameters-transport-stanina">Номер станины<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-transport-stanina">Номер станины</label>
                         <input name="transportStanina" type="text" id="parameters-transport-stanina" placeholder="Номер станины ТС" required>
                     </div>
                     <div class="parameters-input">
-                        <label for="parameters-trasnsport-fuel">Тип топливного масла<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-trasnsport-fuel">Тип топливного масла</label>
                         <select name="transportFuel" id="parameters-trasnsport-fuel">
                             <option value="gasoline">Бензин</option>
                             <option value="diesel">Дизельное топливо</option>
@@ -342,13 +342,13 @@
                     </div>
                     <div class="parameters-input">
                         <div class="parameters-transport-certificate">
-                            <label for="parameters-transport-certificate">Свид-ство о дорожной перевозке<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                            <label for="parameters-transport-certificate">Свид-ство о дорожной перевозке</label>
                             <input name="transportCertificate" type="text" id="parameters-transport-certificate" placeholder="Номер свидетельства" required>
                         </div>
                     </div>
                     <div class="parameters-input">
                         <div class="pparameters-trasnsport-category">
-                            <label for="parameters-trasnsport-category">Техническая категория<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                            <label for="parameters-trasnsport-category">Техническая категория</label>
                             <select name="transportCategory" id="parameters-trasnsport-category">
                                 <option value="1">Категория 1</option>
                                 <option value="2">Категория 2</option>
@@ -358,19 +358,19 @@
                         </div>
                     </div>
                     <div class="parameters-input">
-                        <label for="parameters-transport-expire">Срок действия<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-transport-expire">Срок действия</label>
                         <input name="transportExpire" type="date" id="parameters-transport-expire" required>
                     </div>
                     <div class="parameters-input">
-                        <label for="parameters-transport-consumption">Расход топлива на 100 км<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-transport-consumption">Расход топлива на 100 км</label>
                         <input name="transportConsumption" type="text" id="parameters-transport-consumption" placeholder="Расход топлива в литрах" required>
                     </div>
                     <div class="parameters-input">
-                        <label for="parameters-transport-province">Провинция<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-transport-province">Провинция</label>
                         <input name="transportProvince" type="text" id="parameters-transport-province" placeholder="Провинция" required>
                     </div>
                     <div class="parameters-input">
-                        <label for="parameters-transport-city">Город<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-transport-city">Город</label>
                         <input name="transportCity" type="text" id="parameters-transport-city" placeholder="Город" required>
                     </div>
           
@@ -391,27 +391,27 @@
           
                     <div class="parameters-inputs">
                     <div class="parameters-input">
-                        <label for="parameters-equipment-name">Имя устройства<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-equipment-name">Имя устройства</label>
                         <input name="equipmentName" type="text" id="parameters-equipment-name" placeholder="Имя пользовательского устройства" required>
                     </div>
                     <div class="parameters-input">
-                        <label for="parameters-equipment-password">Пароль устройства<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-equipment-password">Пароль устройства</label>
                         <input name="equipmentPassword" type="text" id="parameters-equipment-password" placeholder="Пароль устройства" required>
                     </div>
                     <div class="parameters-input">
-                        <label for="parameters-equipment-number">Номер партии<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-equipment-number">Номер партии</label>
                         <input name="equipmentNumber" type="text" id="parameters-equipment-number" placeholder="Заводской номер партии" required>
                     </div>
                     <div class="parameters-input">
-                        <label for="parameters-equipment-released">Дата выпуска<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-equipment-released">Дата выпуска</label>
                         <input name="equipmentReleased" type="date" id="parameters-equipment-released" required>
                     </div>
                     <div class="parameters-input">
-                        <label for="parameters-device-installer">Установщик<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-device-installer">Установщик</label>
                         <input name="equipmentInstaller" type="text" id="parameters-device-installer" placeholder="ФИО установщика" required>
                     </div>
                     <div class="parameters-input">
-                        <label for="parameters-equipment-installed">Дата монтажа<span style="color: rgba(255, 69, 58, 1);">*</span></label>
+                        <label for="parameters-equipment-installed">Дата монтажа</label>
                         <input name="equipmentInstalled" type="date" id="parameters-equipment-installed" required>
                     </div>
           
