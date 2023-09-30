@@ -124,6 +124,8 @@ for (let radioButton of radioButtons) {
 
             console.log(data.DATA);
 
+            draggItems(data.DATA.EOSD[1])
+
             document.getElementById('system-date').value = data.DATA.TIMEP.DATEM;
             document.getElementById('system-time').value = data.DATA.TIMEP.TIMEM;
             document.getElementById('system-language').value = data.DATA.GSP.LANT;

@@ -1405,6 +1405,30 @@ tr:nth-child(even) {
   filter: brightness(0.9);
 }
 
+.container{
+  width: 420px;
+  height: 265px;
+  background-color: rgba(245, 245, 250, 1);
+  margin-bottom: 20px;
+  position: relative;
+}
+.box{
+  width: fit-content;
+  height: 18px !important;
+  padding: 1px;
+  border: solid 1px white;
+  background-color: #8086f9;
+  font-size: 16px;
+  font-weight: lighter;
+  color: white;
+  cursor: move;
+  white-space: nowrap;
+}
+
+.box-inputs {
+  display: none;
+}
+
 .upload-input {
   margin-top: 5px;
   background: rgba(128, 134, 249, 0.05);

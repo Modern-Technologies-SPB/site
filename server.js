@@ -2852,7 +2852,19 @@ app.put('/device-parameters', async (req, res) => {
     VE,
     SE,
     GE,
-    DE
+    DE,
+    TX,
+    TY,
+    SX,
+    SY,
+    VX,
+    VY,
+    GX,
+    GY,
+    NX,
+    NY,
+    DX,
+    DY
   } = requestData;
 
 
@@ -2868,23 +2880,23 @@ app.put('/device-parameters', async (req, res) => {
       "GM": parseInt(GEOMOD, 10)
     },
     "EOSD": [
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE },
-  ]
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
+      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
+    ]
   };
 
   // Отправляем GET запрос с JSON BODY

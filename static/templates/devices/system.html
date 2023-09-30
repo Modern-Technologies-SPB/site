@@ -108,6 +108,8 @@
                 <button id="closeButton" style="display: none;" onclick="hideMessage()">Закрыть</button>
         </div>
     </section>
+
+    
   
     <div class="name">
       <span>{{Serial}}</span>
@@ -232,7 +234,7 @@
           
                   <h2 style="margin-bottom: 5px;">Отметьте то, что должно отображаться на трансляции</h2>
           
-                  <input type="checkbox" id="TE" class="checkbox-input" hidden><label for="TE" class="checkbox-label"><div class="checkmark"></div>Время</label>
+                  <input type="checkbox" id="TE" class="checkbox-input" hidden><label for="TE" class="checkbox-label"><div class="checkmark"></div>Дата и время</label>
                   <input type="checkbox" id="SE" class="checkbox-input" hidden><label for="SE" class="checkbox-label"><div class="checkmark"></div>Скорость</label>
                   <input type="checkbox" id="VE" class="checkbox-input" hidden><label for="VE" class="checkbox-label"><div class="checkmark"></div>Номер ТС</label>
                   <input type="checkbox" id="GE" class="checkbox-input" hidden><label for="GE" class="checkbox-label"><div class="checkmark"></div>Координаты</label>
@@ -240,6 +242,36 @@
                   <input type="checkbox" id="DE" class="checkbox-input" hidden><label for="DE" class="checkbox-label"><div class="checkmark"></div>ID регистратора</label>
           
                   <div class="horizontal-line"></div>
+
+                  <h2 style="margin-bottom: 15px;">Расположение элементов на трансляции</h2>
+
+                  <div class="container">
+                    <div class="box" style="width: 175px;" id="boxTime">Дата и время</div>
+                    <div class="box" id="boxSpeed">Скорость</div>
+                    <div class="box" id="boxNumber">Номер ТС</div>
+                    <div class="box" id="boxGPS">Координаты</div>
+                    <div class="box" id="boxName">Название</div>
+                    <div class="box" id="boxID">ID</div>
+                  </div>
+
+                  <div class="horizontal-line"></div>
+
+                  <div class="box-inputs">
+
+                    <input type="number" id="posXboxTime" hidden>
+                    <input type="number" id="posYboxTime" hidden>
+                    <input type="number" id="posXboxSpeed" hidden>
+                    <input type="number" id="posYboxSpeed" hidden>
+                    <input type="number" id="posXboxNumber" hidden>
+                    <input type="number" id="posYboxNumber" hidden>
+                    <input type="number" id="posXboxGPS" hidden>
+                    <input type="number" id="posYboxGPS" hidden>
+                    <input type="number" id="posXboxName" hidden>
+                    <input type="number" id="posYboxName" hidden>
+                    <input type="number" id="posXboxID" hidden>
+                    <input type="number" id="posYboxID" hidden>
+
+                  </div>
           
                   <button onclick="sendPutRequest('parameters');" type="button">Сохранить</button>
           
@@ -846,7 +878,9 @@ afterAlarmDurationField.addEventListener('blur', function() {
     </section>
 
     <script src="../../../scripts/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script src="https://rawgit.com/RobinHerbots/Inputmask/5.x/dist/jquery.inputmask.js"></script>
+    <script src="../../../scripts/draggable.js"></script>
 
     <script>
       function addServer(data) {
@@ -993,6 +1027,58 @@ afterAlarmDurationField.addEventListener('blur', function() {
 
   return `${year}-${month}-${day}`;
 }
+
+function draggItems(item) {
+  $('#posXboxID').val(item.DX);
+  $('#posYboxID').val(item.DY);
+
+  $('#posXboxGPS').val(item.GX);
+  $('#posYboxGPS').val(item.GY);
+
+  $('#posXboxName').val(item.NX);
+  $('#posYboxName').val(item.NY);
+
+  $('#posXboxSpeed').val(item.SX);
+  $('#posYboxSpeed').val(item.SY);
+
+  $('#posXboxTime').val(item.TX);
+  $('#posYboxTime').val(item.TY);
+
+  $('#posXboxNumber').val(item.VX);
+  $('#posYboxNumber').val(item.VY);
+
+
+  $("#boxTime").css({
+    left: item.TX / 3,
+    top: item.TY / 3
+  });
+
+  $("#boxSpeed").css({
+    left: item.SX / 3,
+    top: item.SY / 3 - 22
+  });
+
+  $("#boxNumber").css({
+    left: item.VX / 3,
+    top: item.VY / 3 - 44
+  });
+
+  $("#boxGPS").css({
+    left: item.GX / 3,
+    top: item.GY / 3 - 66
+  });
+
+  $("#boxName").css({
+    left: item.NX / 3,
+    top: item.NY / 3 - 88
+  });
+
+  $("#boxID").css({
+    left: item.DX / 3,
+    top: item.DY / 3 - 110
+  });
+}
+
 const serial = "{{Serial}}";
 const requestBody = {
             "serial": serial
@@ -1017,6 +1103,8 @@ const requestBody = {
             camerasData = data;
 
             console.log(data.DATA);
+
+            draggItems(data.DATA.EOSD[1])
 
             document.getElementById('system-date').value = data.DATA.TIMEP.DATEM;
             document.getElementById('system-time').value = data.DATA.TIMEP.TIMEM;
@@ -1064,6 +1152,20 @@ const requestBody = {
       const GE = document.getElementById('GE').checked ? 1 : 0;
       const DE = document.getElementById('DE').checked ? 1 : 0;
 
+      const TX = parseInt(document.getElementById('posXboxTime').value);
+      const TY = parseInt(document.getElementById('posYboxTime').value);
+      const SX = parseInt(document.getElementById('posXboxSpeed').value);
+      const SY = parseInt(document.getElementById('posYboxSpeed').value);
+      const VX = parseInt(document.getElementById('posXboxNumber').value);
+      const VY = parseInt(document.getElementById('posYboxNumber').value);
+      const GX = parseInt(document.getElementById('posXboxGPS').value);
+      const GY = parseInt(document.getElementById('posYboxGPS').value);
+      const NX = parseInt(document.getElementById('posXboxName').value);
+      const NY = parseInt(document.getElementById('posYboxName').value);
+      const DX = parseInt(document.getElementById('posXboxID').value);
+      const DY = parseInt(document.getElementById('posYboxID').value);
+
+
 
       const requestData = {
         DATEMOD,
@@ -1077,6 +1179,18 @@ const requestBody = {
         SE,
         GE,
         DE,
+        TX,
+        TY,
+        SX,
+        SY,
+        VX,
+        VY,
+        GX,
+        GY,
+        NX,
+        NY,
+        DX,
+        DY,
       };
 
       console.log(requestData);
