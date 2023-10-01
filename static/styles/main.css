@@ -219,6 +219,7 @@ header img {
   margin-top:12px;
   background-color: #fcfcff;
   background: repeat center url(../img/argus5.png);
+  background-attachment: fixed; 
   border-top: 2px solid #f5f5fa;
   min-height: calc(100vh - 62px - 53px);
   /* height: fit-content; */
