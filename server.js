@@ -336,6 +336,18 @@ function signin(req, res) {
     password: DB_Password,
     port: DB_Port,
   });
+
+  let templateData = {
+    Page: ""
+  };
+
+  const page = req.query.page || '';
+
+  if (page) {
+    templateData.Page = page;
+  }
+
+
   pool.query('SELECT COUNT(*) FROM main', (error, result) => {
     if (error) {
       console.error('Ошибка при выполнении запроса к базе данных:', error);
@@ -348,7 +360,10 @@ function signin(req, res) {
     if (rowCount === 0) {
       res.redirect('/register');
     } else {
-      res.sendFile(path.join(__dirname, 'static/templates/signin.html'));
+      const source = fs.readFileSync("static/templates/signin.html", "utf8");
+      const template = handlebars.compile(source);
+      const resultT = template(templateData);
+      res.send(resultT);
     }
   });
 }
@@ -487,7 +502,7 @@ app.get('/logout', (req, res) => {
 
 async function live(req, res) {
   if (req.session.userId === undefined) {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=live");
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
@@ -771,7 +786,7 @@ async function live(req, res) {
 
 app.post("/devices-geo", async (req, res) => {
   if (req.session.userId === undefined) {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=live");
   }
   const selectedDevices = req.body.devices;
 
@@ -853,7 +868,7 @@ async function getGroupNameById(pool, groupId) {
 
 async function reports(req, res) {
   if (req.session.userId === undefined) {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=reports");
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
@@ -1102,7 +1117,7 @@ async function reports(req, res) {
 
 app.get("/api/devices", async (req, res) => {
   if (req.session.userId === undefined) {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=live");
   }
   try {
     const pool = new Pool({
@@ -1211,11 +1226,11 @@ app.get("/api/devices", async (req, res) => {
 
 
 app.get('/reports/:id', async (req, res) => {
+  const id = req.params.id;
   if (req.session.userId === undefined) {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=reports/" + id);
   }
   const userInfo = await getUserInfo(req.session.userId);
-  const id = req.params.id;
 
   let templateData = {
     SERVER_IP: process.env.SERVER_IP,
@@ -1508,11 +1523,11 @@ app.get('/reports/:id', async (req, res) => {
 });
 
 app.get('/generate-pdf/:id', async (req, res) => {
+  const id = req.params.id;
   if (req.session.userId === undefined) {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=generate-pdf/" + id);
   }
   const userInfo = await getUserInfo(req.session.userId);
-  const id = req.params.id;
 
   let templateData = {
     SERVER_IP: process.env.SERVER_IP,
@@ -1767,7 +1782,7 @@ let data = {
 
 async function devices(req, res) {
   if (req.session.userId === undefined) {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=devices");
   }
 
   let userInfo;
@@ -1895,14 +1910,14 @@ async function devices(req, res) {
 }
 
 app.get('/devices/device/system/:serial', async (req, res) => {
+  const serial = req.params.serial;
   if (req.session.userId === undefined) {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=devices/device/system/" + serial);
   }
   const userInfo = await getUserInfo(req.session.userId);
   if (!userInfo.EditTransport) {
     return res.redirect("/devices");
   }
-  const serial = req.params.serial;
 
   let templateData = {
     SERVER_IP: process.env.SERVER_IP,
@@ -1948,14 +1963,14 @@ app.get('/devices/device/system/:serial', async (req, res) => {
 });
 
 app.get('/devices/device/:serial', async (req, res) => {
+  const serial = req.params.serial;
   if (req.session.userId === undefined) {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=devices/device/" + serial);
   }
   const userInfo = await getUserInfo(req.session.userId);
   if (!userInfo.EditTransport) {
     return res.redirect("/devices");
   }
-  const serial = req.params.serial;
 
   let templateData = {
     SERVER_IP: process.env.SERVER_IP,
@@ -2084,7 +2099,7 @@ app.get('/devices/device/:serial', async (req, res) => {
 
 async function groups(req, res) {
   if (req.session.userId === undefined) {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=devices/groups");
   }
   const userInfo = await getUserInfo(req.session.userId);
   if (!userInfo.EditTransport) {
@@ -2139,7 +2154,7 @@ async function groups(req, res) {
 
 app.post('/update-group', async (req, res) => {
   if (req.session.userId === undefined) {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=devices/groups");
   }
   const userInfo = await getUserInfo(req.session.userId);
   if (!userInfo.EditTransport) {
@@ -3307,7 +3322,7 @@ app.post("/add-group", async (req, res) => {
 
 async function update(req, res) {
   if (req.session.userId === undefined) {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=devices/update");
   }
   const userInfo = await getUserInfo(req.session.userId);
   if (!userInfo.Update) {
@@ -3346,7 +3361,7 @@ async function update(req, res) {
 
 async function settings(req, res) {
   if (req.session.userId === undefined) {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=settings");
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
@@ -3379,10 +3394,10 @@ async function settings(req, res) {
 
 async function organisation(req, res) {
   if (req.session.userId === undefined) {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=admin/organisation");
   }
   if (req.session.userId != "admin") {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=admin/organisation");
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
@@ -3446,10 +3461,10 @@ app.post('/update-organisation', async (req, res) => {
 
 async function adminPanel(req, res) {
   if (req.session.userId === undefined) {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=admin");
   }
   if (req.session.userId != "admin") {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=admin");
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
@@ -3562,14 +3577,14 @@ app.post("/add-user", async (req, res) => {
 
 
 app.get('/admin/user/:id', async (req, res) => {
+  const id = req.params.id;
   if (req.session.userId === undefined) {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=admin/user/" + id);
   }
   if (req.session.userId != "admin") {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=admin/user/" + id);
   }
   const userInfo = await getUserInfo(req.session.userId);
-  const id = req.params.id;
 
   let templateData = {
     SERVER_IP: process.env.SERVER_IP,
@@ -3794,7 +3809,7 @@ app.post("/updateuser/:id", async (req, res) => {
 
 async function videos(req, res) {
   if (req.session.userId === undefined) {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=videos");
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
@@ -3912,7 +3927,7 @@ async function videos(req, res) {
 
 async function videoExport(req, res) {
   if (req.session.userId === undefined) {
-    return res.redirect("/signin");
+    return res.redirect("/signin?page=videos/export");
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
