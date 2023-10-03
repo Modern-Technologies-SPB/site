@@ -2111,7 +2111,7 @@ input[type="datetime-local"] {
   padding-left: 7px;
   padding-top: 4px;
   padding-bottom: 2px;
-  margin-left: -40%;
+  margin-left: -25%;
   margin-bottom: 3px;
   font-weight: bold;
   font-size: 14px !important;
@@ -2119,6 +2119,8 @@ input[type="datetime-local"] {
 
 .marker {
   cursor: grab !important;
+  top: -35px !important;
+  left: -10px !important;
 }
 
 .leaflet-marker-icon {

@@ -451,7 +451,7 @@ async function sendPostRequest() {
                 });
 
                 // Добавляем слой с плитками OpenStreetMap
-                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}').addTo(map);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
                 // Создаем слой для маршрута
                 const routeLayer = L.layerGroup().addTo(map);
@@ -717,7 +717,7 @@ videoTimeInput.addEventListener("blur", sendPostRequest);
         map = L.map('map').setView([59.855198, 30.282995], 10);
 
         // Добавляем базовый слой OpenStreetMap
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}').addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
         // Создаем маркеры
         var startMarker = L.marker(startPoint, {

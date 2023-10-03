@@ -443,7 +443,7 @@
   
   var map = L.map('map').setView([59.855198, 30.282995], 12);
 
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}').addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
         map.zoomControl.remove();
 
