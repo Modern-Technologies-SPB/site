@@ -350,6 +350,8 @@ async function sendPostRequest() {
                 const response = await fetch(`/getData?serial=${selectedSerial}&selectedDate=${formatDate(selectedDate)}&selectedTime=${formatTime(videoTime)}&selectedChannel=${selectedChannel}`);
                 const data = await response.json();
 
+                console.log(data);
+
                 HasData = data.success;
 
                 if (data.success) {
@@ -525,6 +527,7 @@ async function sendPostRequest() {
                           },
                         },
                       });
+                      document.getElementById("dataLoading").style.display = 'none';
                   const speedBG = document.getElementById("speed-bg");
                   speedBG.style.display = 'flex';
                 }
@@ -683,7 +686,7 @@ videoTimeInput.addEventListener("blur", sendPostRequest);
 
     selectedChannel = channel;
 
-    const url = `https://localhost:8081/playback?url=http%3A%2F%2F{{VIRTUAL_HOST}}%2Fhttp%2Fplayback.flv%3Fserial%3D${serial}%26channel%3D${channel}%26quality%3D1%26queryTime%3D${selectedDate}%26startTime%3D${startTime}%26endTime%3D${endTime}`;
+    const url = `http://localhost:8081/playback?url=http%3A%2F%2F{{VIRTUAL_HOST}}%2Fhttp%2Fplayback.flv%3Fserial%3D${serial}%26channel%3D${channel}%26quality%3D1%26queryTime%3D${selectedDate}%26startTime%3D${startTime}%26endTime%3D${endTime}`;
     window.open(url, '_blank');
   }
 </script>

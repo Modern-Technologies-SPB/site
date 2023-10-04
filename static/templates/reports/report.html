@@ -205,7 +205,7 @@
 
 <script>
   function playVideo(channel) {
-    const url = `https://localhost:8081/playback?url=http%3A%2F%2F{{VIRTUAL_HOST}}%2Fhttp%2Fplayback.flv%3Fserial%3D{{Serial}}%26channel%3D${channel}%26quality%3D1%26queryTime%3D{{QueryTime}}%26startTime%3D{{StartTime}}%26endTime%3D{{EndTime}}`;
+    const url = `http://localhost:8081/playback?url=http%3A%2F%2F{{VIRTUAL_HOST}}%2Fhttp%2Fplayback.flv%3Fserial%3D{{Serial}}%26channel%3D${channel}%26quality%3D1%26queryTime%3D{{QueryTime}}%26startTime%3D{{StartTime}}%26endTime%3D{{EndTime}}`;
     window.open(url, '_blank');
   }
 </script>
