@@ -312,7 +312,7 @@
       let currentCameraGroup = 1;
       const camerasPerGroup = 5;
       var totalCameras = 12 - 1; 
-      const baseURL = "http://45.9.42.252:8080/http/live.flv";
+      const baseURL = "http://{{VIRTUAL_HOST}}/http/live.flv";
     
       function stopAllCameras() {
         flvPlayers.forEach(player => {

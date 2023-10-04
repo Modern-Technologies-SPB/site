@@ -122,7 +122,7 @@ app.post("/videos/restart", async (req, res) => {
 
   var options = {
     method: 'GET',
-    url: `http://${process.env.SERVER_IP}:8080/http/restart`,
+    url: `http://${process.env.VIRTUAL_HOST}/http/restart`,
     headers: {'Content-Type': 'application/json'},
     data: {video: true}
   };
@@ -157,7 +157,7 @@ async function index(req, res) {
   }
   const userInfo = await getUserInfo(req.session.userId);
   var templateData = {
-    SERVER_IP: process.env.SERVER_IP,
+    VIRTUAL_HOST: process.env.VIRTUAL_HOST,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
@@ -506,7 +506,7 @@ async function live(req, res) {
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
-    SERVER_IP: process.env.SERVER_IP,
+    VIRTUAL_HOST: process.env.VIRTUAL_HOST,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
@@ -872,7 +872,7 @@ async function reports(req, res) {
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
-    SERVER_IP: process.env.SERVER_IP,
+    VIRTUAL_HOST: process.env.VIRTUAL_HOST,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
@@ -1233,7 +1233,7 @@ app.get('/reports/:id', async (req, res) => {
   const userInfo = await getUserInfo(req.session.userId);
 
   let templateData = {
-    SERVER_IP: process.env.SERVER_IP,
+    VIRTUAL_HOST: process.env.VIRTUAL_HOST,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
@@ -1530,7 +1530,7 @@ app.get('/generate-pdf/:id', async (req, res) => {
   const userInfo = await getUserInfo(req.session.userId);
 
   let templateData = {
-    SERVER_IP: process.env.SERVER_IP,
+    VIRTUAL_HOST: process.env.VIRTUAL_HOST,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
@@ -1787,7 +1787,7 @@ async function devices(req, res) {
 
   let userInfo;
   let templateData = {
-    SERVER_IP: process.env.SERVER_IP,
+    VIRTUAL_HOST: process.env.VIRTUAL_HOST,
     Organisation: '',
     User: '',
     UserInfo: '',
@@ -1857,7 +1857,7 @@ async function devices(req, res) {
     userInfo = await getUserInfo(req.session.userId);
 
     templateData = {
-    SERVER_IP: process.env.SERVER_IP,
+    VIRTUAL_HOST: process.env.VIRTUAL_HOST,
       Organisation: userInfo.Organisation,
       User: userInfo.User,
       UserInfo: userInfo.Users,
@@ -1920,7 +1920,7 @@ app.get('/devices/device/system/:serial', async (req, res) => {
   }
 
   let templateData = {
-    SERVER_IP: process.env.SERVER_IP,
+    VIRTUAL_HOST: process.env.VIRTUAL_HOST,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
@@ -1973,7 +1973,7 @@ app.get('/devices/device/:serial', async (req, res) => {
   }
 
   let templateData = {
-    SERVER_IP: process.env.SERVER_IP,
+    VIRTUAL_HOST: process.env.VIRTUAL_HOST,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
@@ -2106,7 +2106,7 @@ async function groups(req, res) {
     return res.redirect("/signin");
   }
   let templateData = {
-    SERVER_IP: process.env.SERVER_IP,
+    VIRTUAL_HOST: process.env.VIRTUAL_HOST,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     ifDBError: false,
@@ -2185,7 +2185,7 @@ app.post('/update-group', async (req, res) => {
 
 async function getParameters(serial) {
 
-  const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+  const requestResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -2199,7 +2199,7 @@ async function getParameters(serial) {
   await new Promise(resolve => setTimeout(resolve, 300));
 
 
-  const requestResponse2 = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+  const requestResponse2 = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -2213,7 +2213,7 @@ async function getParameters(serial) {
   await new Promise(resolve => setTimeout(resolve, 300));
 
 
-  const requestResponse3 = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+  const requestResponse3 = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -2226,7 +2226,7 @@ async function getParameters(serial) {
 
   await new Promise(resolve => setTimeout(resolve, 300));
 
-  const requestResponse5 = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+  const requestResponse5 = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -2240,7 +2240,7 @@ async function getParameters(serial) {
   // console.log(requestResponse.data);
   await new Promise(resolve => setTimeout(resolve, 300));
 
-  const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
+  const getResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`);
 
   return getResponse.data;
 }
@@ -2258,7 +2258,7 @@ app.post('/main-parameters', async (req, res) => {
 
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+    const requestResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -2272,7 +2272,7 @@ app.post('/main-parameters', async (req, res) => {
 
   await new Promise(resolve => setTimeout(resolve, 1000));
 
-  const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
+  const getResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`);
 
     res.json(getResponse.data);
   } catch (error) {
@@ -2311,7 +2311,7 @@ app.put('/main-parameters', async (req, res) => {
 
 
   try {
-    const response = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/set?serial=${serial}`, {
+    const response = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`, {
       data: JSON.stringify(requestBody),
       headers: {
         'Content-Type': 'application/json'
@@ -2360,7 +2360,7 @@ app.post('/ethernet-parameters', async (req, res) => {
 
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+    const requestResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -2374,7 +2374,7 @@ app.post('/ethernet-parameters', async (req, res) => {
 
   await new Promise(resolve => setTimeout(resolve, 1000));
 
-  const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
+  const getResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`);
 
     res.json(getResponse.data);
   } catch (error) {
@@ -2426,7 +2426,7 @@ app.put('/ethernet-parameters', async (req, res) => {
   };
 
   try {
-    const response = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/set?serial=${serial}`, {
+    const response = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`, {
       data: JSON.stringify(requestBody),
       headers: {
         'Content-Type': 'application/json'
@@ -2451,7 +2451,7 @@ app.post('/wifi-parameters', async (req, res) => {
 
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+    const requestResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -2464,7 +2464,7 @@ app.post('/wifi-parameters', async (req, res) => {
 
   await new Promise(resolve => setTimeout(resolve, 1000));
 
-  const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
+  const getResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`);
 
     res.json(getResponse.data);
   } catch (error) {
@@ -2512,7 +2512,7 @@ app.put('/wifi-parameters', async (req, res) => {
   };
 
   try {
-    const response = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/set?serial=${serial}`, {
+    const response = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`, {
       data: JSON.stringify(requestBody),
       headers: {
         'Content-Type': 'application/json'
@@ -2537,7 +2537,7 @@ app.post('/communication-parameters', async (req, res) => {
 
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+    const requestResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -2550,7 +2550,7 @@ app.post('/communication-parameters', async (req, res) => {
 
   await new Promise(resolve => setTimeout(resolve, 1000));
 
-  const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
+  const getResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`);
 
     res.json(getResponse.data);
   } catch (error) {
@@ -2611,7 +2611,7 @@ app.put('/communication-parameters', async (req, res) => {
   };
 
   try {
-    const response = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/set?serial=${serial}`, {
+    const response = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`, {
       data: JSON.stringify(requestBody),
       headers: {
         'Content-Type': 'application/json'
@@ -2636,7 +2636,7 @@ app.post('/install-parameters', async (req, res) => {
 
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+    const requestResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -2649,7 +2649,7 @@ app.post('/install-parameters', async (req, res) => {
 
   await new Promise(resolve => setTimeout(resolve, 1000));
 
-  const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
+  const getResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`);
 
     res.json(getResponse.data);
   } catch (error) {
@@ -2672,7 +2672,7 @@ app.post('/ai-parameters', async (req, res) => {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
 
-    const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+    const requestResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -2685,7 +2685,7 @@ app.post('/ai-parameters', async (req, res) => {
 
   await new Promise(resolve => setTimeout(resolve, 1000));
 
-  const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
+  const getResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`);
 
     res.json(getResponse.data);
   } catch (error) {
@@ -2722,7 +2722,7 @@ app.put('/ai-parameters', async (req, res) => {
 
 
   try {
-    const response = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/set?serial=${serial}`, {
+    const response = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`, {
       data: JSON.stringify(requestBody),
       headers: {
         'Content-Type': 'application/json'
@@ -2748,7 +2748,7 @@ app.post('/cameras-parameters', async (req, res) => {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
 
-    const requestResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/request?serial=${serial}`, {
+    const requestResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
     headers: {
       'Content-Type': 'application/json',
     },
@@ -2761,7 +2761,7 @@ app.post('/cameras-parameters', async (req, res) => {
 
   await new Promise(resolve => setTimeout(resolve, 1000));
 
-  const getResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/get?serial=${serial}`);
+  const getResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`);
 
     res.json(getResponse.data);
   } catch (error) {
@@ -2792,7 +2792,7 @@ app.put('/cameras-parameters', async (req, res) => {
 
 
   try {
-    const response = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/set?serial=${serial}`, {
+    const response = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`, {
       data: JSON.stringify(requestBody),
       headers: {
         'Content-Type': 'application/json'
@@ -2831,7 +2831,7 @@ app.put('/install-parameters', async (req, res) => {
 
 
   try {
-    const response = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/set?serial=${serial}`, {
+    const response = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`, {
       data: JSON.stringify(requestBody),
       headers: {
         'Content-Type': 'application/json'
@@ -2916,7 +2916,7 @@ app.put('/device-parameters', async (req, res) => {
 
   // Отправляем GET запрос с JSON BODY
   try {
-    const response = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/set?serial=${serial}`, {
+    const response = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`, {
       data: JSON.stringify(requestBody),
       headers: {
         'Content-Type': 'application/json'
@@ -2948,7 +2948,7 @@ app.put('/camera-parameters', async (req, res) => {
 
   // Отправляем GET запрос с JSON BODY
   try {
-    const response = await axios.get(`http://${process.env.SERVER_IP}:8080/http/parameters/set?serial=${serial}`, {
+    const response = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`, {
       data: JSON.stringify(requestBody),
       headers: {
         'Content-Type': 'application/json'
@@ -3329,7 +3329,7 @@ async function update(req, res) {
     return res.redirect("/signin");
   }
   let templateData = {
-    SERVER_IP: process.env.SERVER_IP,
+    VIRTUAL_HOST: process.env.VIRTUAL_HOST,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     ifDBError: false,
@@ -3365,7 +3365,7 @@ async function settings(req, res) {
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
-    SERVER_IP: process.env.SERVER_IP,
+    VIRTUAL_HOST: process.env.VIRTUAL_HOST,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     ifDBError: false,
@@ -3401,7 +3401,7 @@ async function organisation(req, res) {
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
-    SERVER_IP: process.env.SERVER_IP,
+    VIRTUAL_HOST: process.env.VIRTUAL_HOST,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     ifDBError: false,
@@ -3468,7 +3468,7 @@ async function adminPanel(req, res) {
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
-    SERVER_IP: process.env.SERVER_IP,
+    VIRTUAL_HOST: process.env.VIRTUAL_HOST,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     ifDBError: false,
@@ -3587,7 +3587,7 @@ app.get('/admin/user/:id', async (req, res) => {
   const userInfo = await getUserInfo(req.session.userId);
 
   let templateData = {
-    SERVER_IP: process.env.SERVER_IP,
+    VIRTUAL_HOST: process.env.VIRTUAL_HOST,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
@@ -3813,7 +3813,7 @@ async function videos(req, res) {
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
-    SERVER_IP: process.env.SERVER_IP,
+    VIRTUAL_HOST: process.env.VIRTUAL_HOST,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
@@ -3931,7 +3931,7 @@ async function videoExport(req, res) {
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
-    SERVER_IP: process.env.SERVER_IP,
+    VIRTUAL_HOST: process.env.VIRTUAL_HOST,
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
@@ -4052,10 +4052,10 @@ app.get('/getData', async (req, res) => {
   const selectedChannel = req.query.selectedChannel;
 
   try {
-    const successResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/filelist/request?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`);
+    const successResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/filelist/request?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`);
     if (successResponse.data.SUCCESS) {
       await new Promise(resolve => setTimeout(resolve, 7000));
-      const dataResponse = await axios.get(`http://${process.env.SERVER_IP}:8080/http/filelist/get?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`);
+      const dataResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/filelist/get?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`);
       if (successResponse.data.SUCCESS) {
       const dataId = dataResponse.data.DATAID;
       const dateRanges = dataResponse.data.DATA;
