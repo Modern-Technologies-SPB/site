@@ -356,6 +356,7 @@ async function sendPostRequest() {
 
                 if (data.success) {
                   console.log(`Данные доступны. DATAID: ${data.dataId}`)
+                  document.getElementById("speed-bg").style.display = "none";
                   const requestData = {
                     serial: selectedSerial,
                     datetime: combinedDateTime, 

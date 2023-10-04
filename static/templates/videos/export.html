@@ -686,6 +686,7 @@ async function sendPostRequest() {
                   h1Element.textContent = 'Данных для выбранного периода нет.';
                   const speedBG = document.getElementById("speed-bg");
                   speedBG.style.display = 'flex';
+                  document.getElementById("dataLoading").style.display = 'none';
                 }
 
   
