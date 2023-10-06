@@ -100,7 +100,7 @@
 
                         <ul class="area">
                           {{#each Groups}}
-                          <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="{{name}}" class="checkbox-input" hidden checked><label for="{{name}}" class="checkbox-label">{{name}}</label>
+                          <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="{{name}}" class="checkbox-input" hidden checked><label for="{{name}}" class="checkbox-label checkbox-name"><span class="text">{{name}}</span></label>
                             <ul class="area-devices" id="devices-1">
                               {{#each devices}}
                               <li class="device">
@@ -234,6 +234,22 @@
 
     <script src="../scripts/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+
+  document.addEventListener('DOMContentLoaded', function () {
+          var containers = document.querySelectorAll('.checkbox-name');
+  
+          containers.forEach(function (container) {
+              var text = container.querySelector('.text');
+  
+              if (text.clientWidth > container.clientWidth) {
+                  text.classList.add('animated');
+              }
+          });
+      });
+      
+        </script>
 
     <script>
       function updateCameraOptions() {
@@ -467,6 +483,12 @@ async function sendPostRequest() {
 
                 // Создаем линию маршрута
                 const route = L.polyline(routePoints, { color: 'red',weight: 5 }).addTo(routeLayer);
+
+                // Находим границы координат для центрирования карты
+                const bounds = L.latLngBounds(routePoints);
+
+                // Центрируем карту по первой координате
+                map.fitBounds(bounds, { padding: [50, 50] });  
 
 
 

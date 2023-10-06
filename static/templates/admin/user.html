@@ -133,7 +133,7 @@
 
                         <ul class="area">
                           {{#each Groups}}
-                          <li class="area-name"><img src="../../img/ul.svg"><input type="checkbox" id="{{name}}" class="checkbox-input" hidden checked><label for="{{name}}" class="checkbox-label">{{name}}</label>
+                          <li class="area-name"><img src="../../img/ul.svg"><input type="checkbox" id="{{name}}" class="checkbox-input" hidden checked><label for="{{name}}" class="checkbox-label checkbox-name"><span class="text">{{name}}</span></label>
                             <ul class="area-devices" id="devices-1">
                               {{#each serials}}
                               {{#if this.checked}}
@@ -256,6 +256,22 @@
 
       });
   </script>
+
+<script>
+
+  document.addEventListener('DOMContentLoaded', function () {
+          var containers = document.querySelectorAll('.checkbox-name');
+  
+          containers.forEach(function (container) {
+              var text = container.querySelector('.text');
+  
+              if (text.clientWidth > container.clientWidth) {
+                  text.classList.add('animated');
+              }
+          });
+      });
+  
+    </script>
 
     <script>
       document.getElementById('user-edit').addEventListener('click', function() {

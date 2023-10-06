@@ -559,7 +559,7 @@ async function live(req, res) {
     }));
 
     const subquery = `
-    SELECT a.evtuuid, a.id, a.cmdno, a.time, a.serial, a.st, r.plate, g.latitude, g.longitude
+    SELECT a.evtuuid, a.id, a.cmdno, a.time, a.serial, a.st, r.plate, r.number, g.latitude, g.longitude
     FROM (
       SELECT DISTINCT ON (evtuuid) evtuuid, id, cmdno, time, serial, st
       FROM alarms
@@ -697,6 +697,7 @@ async function live(req, res) {
         id: alarm.id,
         cmdno: alarm.cmdno,
         time: formatDate(alarm.time),
+        number: alarm.number,
         serial: alarm.serial,
         st: alarm.st,
         type: type,

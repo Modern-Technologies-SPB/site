@@ -242,7 +242,6 @@
 checkboxes.forEach((checkbox) => {
     applyFilterAndSearch();
   checkbox.addEventListener('change', function() {
-    document.querySelector('#device-all').checked = false;
     applyFilterAndSearch();
     const devices = this.parentNode.querySelector('.area-devices');
     if (this.checked) {

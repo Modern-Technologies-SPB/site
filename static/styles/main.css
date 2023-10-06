@@ -519,6 +519,32 @@ header img {
   font-weight: 500;
 }
 
+.organisation .checkbox-name {
+  display: inline-block;
+  white-space: nowrap;
+  width: 150px !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.organisation .checkbox-label .text {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.organisation .checkbox-label .text.animated {
+  animation: moveText 6s linear infinite;
+}
+
+@keyframes moveText {
+  0%, 100% {
+      transform: translateX(5%);
+  }
+  50% {
+      transform: translateX(calc(150px - 105%));
+  }
+}
+
 .permission-group .checkbox-label {
   margin-top: 10px;
   float: left;

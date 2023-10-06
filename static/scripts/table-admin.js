@@ -1,7 +1,7 @@
 // Получаем высоту таблицы и определяем, сколько строк помещается на странице
 let currentPage = 1;
 let tableHeight = document.getElementById("content").offsetHeight;
-let rowHeight = 60;
+let rowHeight = 75;
 let rowsPerPage = Math.floor(tableHeight / rowHeight) - 3;
 let filteredUsers = [...users];
 let timeRangeStart = null;
@@ -110,7 +110,7 @@ function getRandomColor() {
 
 window.addEventListener("resize", function (event) {
   tableHeight = document.getElementById("content").offsetHeight;
-  rowHeight = 60;
+  rowHeight = 75;
   rowsPerPage = Math.floor(tableHeight / rowHeight) - 3;
   createTable();
   createPagination();
