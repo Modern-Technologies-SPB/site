@@ -206,7 +206,7 @@ async function index(req, res) {
 
     const last11DaysQuery = `
     WITH date_sequence AS (
-      SELECT DATE_TRUNC('day', NOW() - INTERVAL '10 days' - INTERVAL '3 hours') + (generate_series(0, 10) || ' days')::interval AS day
+      SELECT DATE_TRUNC('day', NOW() - INTERVAL '10 days') + (generate_series(0, 10) || ' days')::interval AS day
     )
     SELECT
       date_sequence.day AS day,
@@ -216,8 +216,8 @@ async function index(req, res) {
       SELECT DISTINCT ON (evtuuid) evtuuid, time
       FROM alarms
       WHERE alarmtype = 56
-      AND time >= NOW() - INTERVAL '11 days' + INTERVAL '3 hours'
-      AND time <= NOW() + INTERVAL '1 day' + INTERVAL '3 hours'
+      AND time >= NOW() - INTERVAL '11 days'
+      AND time <= NOW() + INTERVAL '1 day'
       ${!templateData.isAdmin ? 'AND serial = ANY($1)' : ''}
       ORDER BY evtuuid, time DESC 
     ) AS a ON DATE_TRUNC('day', a.time) = date_sequence.day
@@ -228,7 +228,7 @@ async function index(req, res) {
 
     const daysBeforeQuery = `
     WITH date_sequence AS (
-      SELECT DATE_TRUNC('day', NOW() - INTERVAL '21 days' - INTERVAL '3 hours') + (generate_series(0, 10) || ' days')::interval AS day
+      SELECT DATE_TRUNC('day', NOW() - INTERVAL '21 days') + (generate_series(0, 10) || ' days')::interval AS day
     )
     SELECT
       date_sequence.day AS day,
@@ -238,8 +238,8 @@ async function index(req, res) {
       SELECT DISTINCT ON (evtuuid) evtuuid, time
       FROM alarms
       WHERE alarmtype = 56
-      AND time >= NOW() - INTERVAL '21 days' + INTERVAL '3 hours'
-      AND time <= NOW() + INTERVAL '10 day' + INTERVAL '3 hours'
+      AND time >= NOW() - INTERVAL '21 days'
+      AND time <= NOW() + INTERVAL '10 day'
       ${!templateData.isAdmin ? 'AND serial = ANY($1)' : ''}
       ORDER BY evtuuid, time DESC 
     ) AS a ON DATE_TRUNC('day', a.time) = date_sequence.day
@@ -270,8 +270,8 @@ async function index(req, res) {
     DATE_TRUNC('day', time) AS day,
     CASE WHEN COUNT(*) = 0 THEN 0 ELSE 1 END AS sort_value
   FROM geo
-  WHERE time >= NOW() - INTERVAL '10 days' + INTERVAL '3 hours'
-    AND time <= NOW() + INTERVAL '1 day' + INTERVAL '3 hours'
+  WHERE time >= NOW() - INTERVAL '10 days'
+    AND time <= NOW() + INTERVAL '1 day'
     ${!templateData.isAdmin ? 'AND serial = ANY($1)' : ''}
   GROUP BY DATE_TRUNC('day', time)
   ORDER BY sort_value DESC, day DESC;
