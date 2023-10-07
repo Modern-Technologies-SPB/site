@@ -568,13 +568,13 @@ async function live(req, res) {
     LEFT JOIN registrars AS r ON a.serial = r.serial
     LEFT JOIN (
       SELECT *,
-        ROW_NUMBER() OVER (PARTITION BY serial ORDER BY ABS(EXTRACT(EPOCH FROM (time - $1)))) AS row_num
+        ROW_NUMBER() OVER (PARTITION BY serial ORDER BY ABS(EXTRACT(EPOCH FROM (time - NOW())))) AS row_num
       FROM geo
     ) AS g ON a.serial = g.serial AND g.row_num = 1
     ORDER BY a.time DESC
     LIMIT 100;
     `;
-    const alarms = await client.query(subquery, templateData.isAdmin ? [new Date()] : [new Date(), serialValues]); 
+    const alarms = await client.query(subquery); 
 
     function formatDate(date) {
       const options = {
@@ -917,13 +917,13 @@ async function reports(req, res) {
     LEFT JOIN registrars AS r ON a.serial = r.serial
     LEFT JOIN (
       SELECT *,
-        ROW_NUMBER() OVER (PARTITION BY serial ORDER BY ABS(EXTRACT(EPOCH FROM (time - $1)))) AS row_num
+        ROW_NUMBER() OVER (PARTITION BY serial ORDER BY ABS(EXTRACT(EPOCH FROM (time - NOW())))) AS row_num
       FROM geo
     ) AS g ON a.serial = g.serial AND g.row_num = 1
     ORDER BY a.time DESC
     LIMIT 100;
     `;
-    const alarms = await client.query(query, templateData.isAdmin ? [new Date()] : [new Date(), serialValues]); 
+    const alarms = await client.query(query); 
 
     function formatDate(date) {
       const options = {
