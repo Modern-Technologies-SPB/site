@@ -139,17 +139,17 @@ app.post("/videos/restart", async (req, res) => {
 });
 
 
-// const DB_User = process.env.DB_USER;
-// const DB_Password = process.env.DB_PASSWORD;
-// const DB_Host = process.env.DB_HOST;
-// const DB_Port = process.env.DB_PORT;
-// const DB_Name = process.env.DB_NAME;
+const DB_User = process.env.DB_USER;
+const DB_Password = process.env.DB_PASSWORD;
+const DB_Host = process.env.DB_HOST;
+const DB_Port = process.env.DB_PORT;
+const DB_Name = process.env.DB_NAME;
 
-const DB_User = "postgres";
-const DB_Password = process.env.POSTGRES_PASSWORD;
-const DB_Host = "postgres";
-const DB_Port = "5432";
-const DB_Name = "postgres";
+// const DB_User = "postgres";
+// const DB_Password = process.env.POSTGRES_PASSWORD;
+// const DB_Host = "postgres";
+// const DB_Port = "5432";
+// const DB_Name = "postgres";
 
 async function index(req, res) {
   if (req.session.userId === undefined) {
@@ -220,7 +220,6 @@ async function index(req, res) {
       AND time <= NOW() + INTERVAL '1 day' + INTERVAL '3 hours'
       ${!templateData.isAdmin ? 'AND serial = ANY($1)' : ''}
       ORDER BY evtuuid, time DESC 
-      LIMIT 100
     ) AS a ON DATE_TRUNC('day', a.time) = date_sequence.day
     GROUP BY date_sequence.day
     ORDER BY date_sequence.day DESC;
@@ -243,7 +242,6 @@ async function index(req, res) {
       AND time <= NOW() + INTERVAL '10 day' + INTERVAL '3 hours'
       ${!templateData.isAdmin ? 'AND serial = ANY($1)' : ''}
       ORDER BY evtuuid, time DESC 
-      LIMIT 100
     ) AS a ON DATE_TRUNC('day', a.time) = date_sequence.day
     GROUP BY date_sequence.day
     ORDER BY date_sequence.day DESC;
@@ -566,7 +564,6 @@ async function live(req, res) {
       WHERE alarmtype = 56
       ${!templateData.isAdmin ? 'AND serial = ANY($2)' : ''}
       ORDER BY evtuuid, time DESC 
-      LIMIT 100
     ) AS a
     LEFT JOIN registrars AS r ON a.serial = r.serial
     LEFT JOIN (
@@ -574,7 +571,8 @@ async function live(req, res) {
         ROW_NUMBER() OVER (PARTITION BY serial ORDER BY ABS(EXTRACT(EPOCH FROM (time - $1)))) AS row_num
       FROM geo
     ) AS g ON a.serial = g.serial AND g.row_num = 1
-    ORDER BY a.time DESC;
+    ORDER BY a.time DESC
+    LIMIT 100;
     `;
     const alarms = await client.query(subquery, templateData.isAdmin ? [new Date()] : [new Date(), serialValues]); 
 
@@ -915,7 +913,6 @@ async function reports(req, res) {
       WHERE alarmtype = 56
       ${!templateData.isAdmin ? 'AND serial = ANY($2)' : ''}
       ORDER BY evtuuid, time DESC 
-      LIMIT 100
     ) AS a
     LEFT JOIN registrars AS r ON a.serial = r.serial
     LEFT JOIN (
@@ -923,7 +920,8 @@ async function reports(req, res) {
         ROW_NUMBER() OVER (PARTITION BY serial ORDER BY ABS(EXTRACT(EPOCH FROM (time - $1)))) AS row_num
       FROM geo
     ) AS g ON a.serial = g.serial AND g.row_num = 1
-    ORDER BY a.time DESC;
+    ORDER BY a.time DESC
+    LIMIT 100;
     `;
     const alarms = await client.query(query, templateData.isAdmin ? [new Date()] : [new Date(), serialValues]); 
 
