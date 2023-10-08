@@ -206,7 +206,7 @@ async function index(req, res) {
 
     const last11DaysQuery = `
     WITH date_sequence AS (
-      SELECT DATE_TRUNC('day', NOW() - INTERVAL '10 days') + (generate_series(0, 10) || ' days')::interval AS day
+      SELECT DATE_TRUNC('day', CURRENT_DATE - INTERVAL '10 days') + (generate_series(0, 10) || ' days')::interval AS day
     )
     SELECT
       date_sequence.day AS day,
@@ -216,19 +216,19 @@ async function index(req, res) {
       SELECT DISTINCT ON (evtuuid) evtuuid, time
       FROM alarms
       WHERE alarmtype = 56
-      AND time >= NOW() - INTERVAL '11 days'
-      AND time <= NOW() + INTERVAL '1 day'
+      AND time >= CURRENT_DATE - INTERVAL '11 days'
+      AND time <= CURRENT_DATE + INTERVAL '1 day'
       ${!templateData.isAdmin ? 'AND serial = ANY($1)' : ''}
       ORDER BY evtuuid, time DESC 
     ) AS a ON DATE_TRUNC('day', a.time) = date_sequence.day
     GROUP BY date_sequence.day
-    ORDER BY date_sequence.day DESC;
+    ORDER BY date_sequence.day DESC;    
     `;
     const last11DaysAlarms = await client.query(last11DaysQuery, templateData.isAdmin ? [] : [serialValues]);
 
     const daysBeforeQuery = `
     WITH date_sequence AS (
-      SELECT DATE_TRUNC('day', NOW() - INTERVAL '21 days') + (generate_series(0, 10) || ' days')::interval AS day
+      SELECT DATE_TRUNC('day', CURRENT_DATE - INTERVAL '21 days') + (generate_series(0, 10) || ' days')::interval AS day
     )
     SELECT
       date_sequence.day AS day,
@@ -238,8 +238,8 @@ async function index(req, res) {
       SELECT DISTINCT ON (evtuuid) evtuuid, time
       FROM alarms
       WHERE alarmtype = 56
-      AND time >= NOW() - INTERVAL '21 days'
-      AND time <= NOW() + INTERVAL '10 day'
+      AND time >= CURRENT_DATE - INTERVAL '21 days'
+      AND time <= CURRENT_DATE + INTERVAL '10 day'
       ${!templateData.isAdmin ? 'AND serial = ANY($1)' : ''}
       ORDER BY evtuuid, time DESC 
     ) AS a ON DATE_TRUNC('day', a.time) = date_sequence.day
@@ -270,8 +270,8 @@ async function index(req, res) {
     DATE_TRUNC('day', time) AS day,
     CASE WHEN COUNT(*) = 0 THEN 0 ELSE 1 END AS sort_value
   FROM geo
-  WHERE time >= NOW() - INTERVAL '10 days'
-    AND time <= NOW() + INTERVAL '1 day'
+  WHERE time >= CURRENT_DATE - INTERVAL '10 days'
+    AND time <= CURRENT_DATE + INTERVAL '1 day'
     ${!templateData.isAdmin ? 'AND serial = ANY($1)' : ''}
   GROUP BY DATE_TRUNC('day', time)
   ORDER BY sort_value DESC, day DESC;
@@ -562,7 +562,7 @@ async function live(req, res) {
       SELECT DISTINCT ON (evtuuid) evtuuid, id, cmdno, time, serial, st
       FROM alarms
       WHERE alarmtype = 56
-      ${!templateData.isAdmin ? 'AND serial = ANY($2)' : ''}
+      ${!templateData.isAdmin ? 'AND serial = ANY($1)' : ''}
       ORDER BY evtuuid, time DESC 
     ) AS a
     LEFT JOIN registrars AS r ON a.serial = r.serial
@@ -574,7 +574,7 @@ async function live(req, res) {
     ORDER BY a.time DESC
     LIMIT 100;
     `;
-    const alarms = await client.query(subquery); 
+    const alarms = await client.query(subquery, templateData.isAdmin ? [] : [serialValues]); 
 
     function formatDate(date) {
       const options = {
@@ -583,12 +583,18 @@ async function live(req, res) {
         day: "2-digit",
         hour: "2-digit",
         minute: "2-digit",
+        hour12: false,
       };
-      const adjustedDate = new Date(date);
-      adjustedDate.setHours(adjustedDate.getHours() - 3); 
+
+      const dateString = date.toISOString().replace("T", " ").slice(0, 19);
     
-      const formattedDate = adjustedDate.toLocaleString("ru-RU", options);
-      return formattedDate.replace(",", "");
+      const [datePart, timePart] = dateString.split(' ');
+      const [year, month, day] = datePart.split('-');
+      const [hour, minute, second] = timePart.split(':');
+    
+const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${year.slice(-2)} ${("0" + hour).slice(-2)}:${("0" + minute).slice(-2)}`;
+
+  return formattedDate;
     }
 
     (templateData.Alarms = alarms.rows.map((alarm) => {
@@ -911,7 +917,7 @@ async function reports(req, res) {
       SELECT DISTINCT ON (evtuuid) evtuuid, id, cmdno, time, serial, st
       FROM alarms
       WHERE alarmtype = 56
-      ${!templateData.isAdmin ? 'AND serial = ANY($2)' : ''}
+      ${!templateData.isAdmin ? 'AND serial = ANY($1)' : ''}
       ORDER BY evtuuid, time DESC 
     ) AS a
     LEFT JOIN registrars AS r ON a.serial = r.serial
@@ -923,7 +929,7 @@ async function reports(req, res) {
     ORDER BY a.time DESC
     LIMIT 100;
     `;
-    const alarms = await client.query(query); 
+    const alarms = await client.query(query, templateData.isAdmin ? [] : [serialValues]); 
 
     function formatDate(date) {
       const options = {
@@ -932,13 +938,20 @@ async function reports(req, res) {
         day: "2-digit",
         hour: "2-digit",
         minute: "2-digit",
+        hour12: false,
       };
-      const adjustedDate = new Date(date);
-      adjustedDate.setHours(adjustedDate.getHours() - 3); 
+
+      const dateString = date.toISOString().replace("T", " ").slice(0, 19);
     
-      const formattedDate = adjustedDate.toLocaleString("ru-RU", options);
-      return formattedDate.replace(",", "");
+      const [datePart, timePart] = dateString.split(' ');
+      const [year, month, day] = datePart.split('-');
+      const [hour, minute, second] = timePart.split(':');
+    
+const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${year.slice(-2)} ${("0" + hour).slice(-2)}:${("0" + minute).slice(-2)}`;
+
+  return formattedDate;
     }
+    
 
     (templateData.Alarms = alarms.rows.map((alarm) => {
       let type;
@@ -1169,12 +1182,18 @@ app.get("/api/devices", async (req, res) => {
         day: "2-digit",
         hour: "2-digit",
         minute: "2-digit",
+        hour12: false,
       };
-      const adjustedDate = new Date(date);
-      adjustedDate.setHours(adjustedDate.getHours() - 3); 
+
+      const dateString = date.toISOString().replace("T", " ").slice(0, 19);
     
-      const formattedDate = adjustedDate.toLocaleString("ru-RU", options);
-      return formattedDate.replace(",", "");
+      const [datePart, timePart] = dateString.split(' ');
+      const [year, month, day] = datePart.split('-');
+      const [hour, minute, second] = timePart.split(':');
+    
+const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${year.slice(-2)} ${("0" + hour).slice(-2)}:${("0" + minute).slice(-2)}`;
+
+  return formattedDate;
     }
 
     const alarmsData = alarms.rows.map((alarm) => {
@@ -1329,12 +1348,18 @@ app.get('/reports/:id', async (req, res) => {
         day: "2-digit",
         hour: "2-digit",
         minute: "2-digit",
+        hour12: false,
       };
-      const adjustedDate = new Date(date);
-      adjustedDate.setHours(adjustedDate.getHours() - 3); 
+
+      const dateString = date.toISOString().replace("T", " ").slice(0, 19);
     
-      const formattedDate = adjustedDate.toLocaleString("ru-RU", options);
-      return formattedDate.replace(",", "");
+      const [datePart, timePart] = dateString.split(' ');
+      const [year, month, day] = datePart.split('-');
+      const [hour, minute, second] = timePart.split(':');
+    
+const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${year.slice(-2)} ${("0" + hour).slice(-2)}:${("0" + minute).slice(-2)}`;
+
+  return formattedDate;
     }
 
     function formatDateToYYYYMMDD(sqlDate) {
@@ -1609,12 +1634,18 @@ app.get('/generate-pdf/:id', async (req, res) => {
         day: "2-digit",
         hour: "2-digit",
         minute: "2-digit",
+        hour12: false,
       };
-      const adjustedDate = new Date(date);
-      adjustedDate.setHours(adjustedDate.getHours() - 3); 
+
+      const dateString = date.toISOString().replace("T", " ").slice(0, 19);
     
-      const formattedDate = adjustedDate.toLocaleString("ru-RU", options);
-      return formattedDate.replace(",", "");
+      const [datePart, timePart] = dateString.split(' ');
+      const [year, month, day] = datePart.split('-');
+      const [hour, minute, second] = timePart.split(':');
+    
+      const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${year.slice(-2)} ${("0" + hour).slice(-2)}:${("0" + minute).slice(-2)}`;
+
+      return formattedDate;
     }
 
       let type;
