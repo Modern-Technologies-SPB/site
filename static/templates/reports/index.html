@@ -81,10 +81,10 @@
 
                         <ul class="area">
                           {{#each Groups}}
-                          <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="{{name}}" class="checkbox-input" onchange="requestUpdate()" hidden checked><label for="{{name}}" class="checkbox-label checkbox-name"><span class="text">{{name}}</span></label>
+                          <li class="area-name"><img src="../img/ul.svg"><input autocomplete="off" type="checkbox" id="{{name}}" class="checkbox-input" onchange="requestUpdate()" hidden checked><label for="{{name}}" class="checkbox-label checkbox-name"><span class="text">{{name}}</span></label>
                               <ul class="area-devices" id="devices-1">
                                   {{#each serials}}
-                                  <li class="device"><img><input type="checkbox" id="{{this}}" class="checkbox-input device-filter" value="{{this}}" onchange="requestUpdate()" hidden checked><label for="{{this}}" class="checkbox-label">
+                                  <li class="device"><img><input autocomplete="off" type="checkbox" id="{{this}}" class="checkbox-input device-filter" value="{{this}}" onchange="requestUpdate()" hidden checked><label for="{{this}}" class="checkbox-label">
                                       {{#if ../numbers}}
                                           {{#if (lookup ../numbers @index)}}
                                               <div class="checkmark"></div>{{lookup ../numbers @index}}
@@ -102,8 +102,8 @@
                           </ul>
 
                         <div class="area-time-range">
-                          <div class="time-range"><label for="timeRangeStart">с</label><input id="timeRangeStart" name="timeRangeStart" onblur="requestUpdate()" type="datetime-local"></div>
-                          <div class="time-range"><label for="timeRangeEnd">до</label><input id="timeRangeEnd" name="timeRangeEnd" onblur="requestUpdate()" type="datetime-local"></div>
+                          <div class="time-range"><label for="timeRangeStart">с</label><input autocomplete="off" id="timeRangeStart" name="timeRangeStart" onblur="requestUpdate()" type="datetime-local"></div>
+                          <div class="time-range"><label for="timeRangeEnd">до</label><input autocomplete="off" id="timeRangeEnd" name="timeRangeEnd" onblur="requestUpdate()" type="datetime-local"></div>
                         </div>
                           
                     </section>
@@ -112,7 +112,7 @@
 
                     <section id="table-area" class="table">
                         <h1>Список предупреждений</h1>
-                        <input id="table-search" class="search" type="text" onblur="requestUpdate()" placeholder="Поиск">
+                        <input autocomplete="off" id="table-search" class="search" type="text" onblur="requestUpdate()" placeholder="Поиск">
 
 
                           <table id="deviceTable">
@@ -136,16 +136,14 @@
                     </section>
 
                       <div id="count">Всего результатов: <span id="count-value">{{Count}}</span></div>
-                        <!-- Сюда добавится итоговое количество результатов -->
                     <div id="pagination">
                       <svg id="left-slider" xmlns="http://www.w3.org/2000/svg" width="11" height="19" fill="none" viewBox="0 0 11 19" onclick="decrementPage()">
                         <path fill="#000" fill-opacity=".75" d="M0 9.495c0 .273.101.514.315.722l8.92 8.477a.981.981 0 0 0 .73.295c.585 0 1.035-.427 1.035-.995 0-.285-.124-.525-.304-.711L2.508 9.495l8.188-7.789c.18-.186.304-.437.304-.71C11 .425 10.55 0 9.965 0c-.292 0-.54.098-.73.284L.314 8.773A.955.955 0 0 0 0 9.495Z"/>
                       </svg>
-                      <input id="page-number" type="number" onblur="requestUpdate()" value="1">
+                      <input autocomplete="off" id="page-number" type="number" onblur="requestUpdate()" value="1">
                       <svg id="right-slider" xmlns="http://www.w3.org/2000/svg" width="11" height="19" fill="none" viewBox="0 0 11 19" onclick="incrementPage()">
                         <path fill="#000" fill-opacity=".75" d="M11 9.495a.967.967 0 0 0-.326-.722L1.766.284A1.062 1.062 0 0 0 1.024 0C.45 0 0 .427 0 .995c0 .274.112.525.292.711l8.189 7.789-8.189 7.788c-.18.186-.292.426-.292.71 0 .57.45.996 1.024.996.292 0 .54-.098.742-.295l8.908-8.477c.213-.208.326-.449.326-.722Z"/>
                       </svg>
-                        <!-- Сюда будут добавляться ссылки для переключения между страницами -->
                       </div>
 
                       <script>
