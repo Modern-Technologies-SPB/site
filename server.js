@@ -885,6 +885,7 @@ async function reports(req, res) {
     ifDBError: false,
     Registrars: [],
     Groups: [],
+    Count: 0,
   };
   try {
     const pool = new Pool({
@@ -927,7 +928,7 @@ async function reports(req, res) {
       FROM geo
     ) AS g ON a.serial = g.serial AND g.row_num = 1
     ORDER BY a.time DESC
-    LIMIT 100;
+    LIMIT 14;
     `;
     const alarms = await client.query(query, templateData.isAdmin ? [] : [serialValues]); 
 
@@ -1104,6 +1105,27 @@ const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${yea
         numbers: groupedNumbers[groupName],
       }));
 
+
+      const countQueryText = `
+      SELECT COUNT(*) AS total
+      FROM (
+        SELECT DISTINCT a.evtuuid
+        FROM alarms AS a
+        LEFT JOIN registrars AS r ON a.serial = r.serial
+        LEFT JOIN (
+          SELECT *,
+            ROW_NUMBER() OVER (PARTITION BY serial ORDER BY ABS(EXTRACT(EPOCH FROM (time - NOW())))) AS row_num
+          FROM geo
+        ) AS g ON a.serial = g.serial AND g.row_num = 1
+        WHERE a.alarmtype = 56
+        ${!templateData.isAdmin ? 'AND a.serial = ANY($1)' : ''}
+      ) AS unique_events
+  `;
+
+    const countResult = await pool.query(countQueryText, templateData.isAdmin ? [] : [serialValues]);
+    templateData.Count = countResult.rows[0].total;
+
+
     const source = fs.readFileSync(
       "static/templates/reports/index.html",
       "utf8"
@@ -1126,6 +1148,358 @@ const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${yea
     res.send(resultT);
   }
 }
+
+app.post('/getreports', async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin?page=reports");
+  }
+  try {
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+
+    let serialValues = [];
+    if (req.session.userId != 'admin') {
+      
+      const userDevicesQuery = `
+        SELECT devices
+        FROM users
+        WHERE id = $1
+      `;
+      const userDevicesResult = await pool.query(userDevicesQuery, [req.session.userId]);
+      
+      if (userDevicesResult.rows[0].devices.length > 0) {
+        serialValues = userDevicesResult.rows[0].devices;
+      } 
+    } 
+
+    const { page, timeRangeStart, timeRangeEnd, serials, searchText } = req.body;
+
+    let timeRangeStartCheck = timeRangeStart;
+    let timeRangeEndCheck = timeRangeEnd;
+    let serialsCheck = serials;
+    
+    console.log(req.body);
+
+    if (!timeRangeStartCheck || !timeRangeEndCheck || serialsCheck.length < 1) {
+      const minMaxSerialQuery = `
+        SELECT
+          MIN(time) AS min_date,
+          MAX(time) AS max_date,
+          ARRAY_AGG(DISTINCT serial) AS unique_serials
+        FROM
+          alarms;
+      `;
+
+
+      const minMaxDateResult = await pool.query(minMaxSerialQuery);
+
+      if (!timeRangeStartCheck) {
+        timeRangeStartCheck = minMaxDateResult.rows[0].min_date;
+      }
+
+      if (!timeRangeEndCheck) {
+        timeRangeEndCheck = minMaxDateResult.rows[0].max_date;
+      }
+
+      if (serialsCheck.length < 1) {
+        if (req.session.userId != 'admin') {
+          serialsCheck = serialValues;
+        } else {
+          serialsCheck = minMaxDateResult.rows[0].unique_serials;
+        }
+      }
+
+    }
+
+    const violationsMapping = {
+      0: "усталость",
+      1: "водитель пропал",
+      2: "разговор по телефону",
+      3: "курение за рулём",
+      4: "водитель отвлекся",
+      5: "выезд с полосы движения",
+      6: "!!! лобовое столкновение",
+      7: "скорость превышена",
+      8: "распознавание номерных знаков",
+      9: "!! маленькое расстояние спереди",
+      10: "водитель зевает",
+      11: "!!! столкновение с пешеходом",
+      12: "проходы переполнены",
+      13: "!! посадка/высадка вне остановки",
+      14: "!! смена полосы с нарушением ПДД",
+      15: "! включенный телефон у водителя",
+      16: "!!! ремень безопасности",
+      17: "проверка не удалась",
+      18: "слепые зоны справа",
+      19: "!!! заднее столкновение",
+      20: "!!! управление без рук",
+      21: "!! управление одной рукой",
+      22: "очки, блокирующие инфракрасное излучение",
+      23: "слепые зоны слева",
+      24: "помехи для пассажиров",
+      25: "на перекрестке ограничена скорость",
+      26: "обнаружен перекресток",
+      27: "пешеходы на переходе",
+      28: "! неучтивое отношение к пешеходам",
+      29: "обнаружен пешеходный переход",
+      30: "водитель матерится"
+    };
+
+    const idList = Object.entries(violationsMapping)
+      .filter(([id, violation]) => violation.includes(searchText.toLowerCase()))
+      .map(([id, violation]) => id);
+    
+    console.log(idList);
+    
+    const searchConditions = [
+      'a.evtuuid::TEXT ILIKE $4',
+      'a.id::TEXT ILIKE $4',
+      'r.plate::TEXT ILIKE $4',
+      'a.serial::TEXT ILIKE $4',
+      'g.latitude::TEXT ILIKE $4',
+      'g.longitude::TEXT ILIKE $4',
+    ];
+
+    const countQueryText = `
+  SELECT COUNT(*) AS total
+  FROM (
+    SELECT DISTINCT a.evtuuid
+    FROM alarms AS a
+    LEFT JOIN registrars AS r ON a.serial = r.serial
+    LEFT JOIN (
+      SELECT *,
+        ROW_NUMBER() OVER (PARTITION BY serial ORDER BY ABS(EXTRACT(EPOCH FROM (time - NOW())))) AS row_num
+      FROM geo
+    ) AS g ON a.serial = g.serial AND g.row_num = 1
+    WHERE a.alarmtype = 56
+      AND a.time >= $1::timestamp
+      AND a.time <= $2::timestamp
+      AND a.serial = ANY($3)
+      ${searchText ? `AND (${idList.length > 0 ? 'st = ANY($5) OR' : ''} (${searchConditions.join(' OR ')}))` : ''}
+  ) AS unique_events;
+`;
+
+  
+  const countValues = [
+    timeRangeStartCheck,
+    timeRangeEndCheck,
+    serialsCheck,
+  ];
+
+    if (searchText.length > 0) {
+      countValues.push(`%${searchText}%`);
+    }
+
+    if (idList.length > 0 && idList.length !== 31) {
+      countValues.push(idList);
+    }
+
+    const countResult = await pool.query(countQueryText, countValues);
+    const totalCount = countResult.rows[0].total;
+
+    const queryConditions = [
+      'a.evtuuid::TEXT ILIKE $6',
+      'a.id::TEXT ILIKE $6',
+      'r.plate::TEXT ILIKE $6',
+      'a.serial::TEXT ILIKE $6',
+      'g.latitude::TEXT ILIKE $6',
+      'g.longitude::TEXT ILIKE $6',
+    ];    
+
+    const queryText = `
+      SELECT a.evtuuid, a.id, a.cmdno, a.time, a.serial, a.st, r.plate, g.latitude, g.longitude, r.number
+      FROM (
+        SELECT DISTINCT ON (evtuuid) evtuuid, id, cmdno, time, serial, st
+        FROM alarms
+        WHERE alarmtype = 56
+          AND time >= $1::timestamp
+          AND time <= $2::timestamp
+        ORDER BY evtuuid, time DESC 
+      ) AS a
+      LEFT JOIN registrars AS r ON a.serial = r.serial
+      LEFT JOIN (
+        SELECT *,
+          ROW_NUMBER() OVER (PARTITION BY serial ORDER BY ABS(EXTRACT(EPOCH FROM (time - NOW())))) AS row_num
+        FROM geo
+      ) AS g ON a.serial = g.serial AND g.row_num = 1
+      WHERE a.time >= $1::timestamp
+        AND a.time <= $2::timestamp
+        AND a.serial = ANY($3)
+        ${searchText ? `AND (${idList.length > 0 ? 'st = ANY($7) OR' : ''} (${queryConditions.join(' OR ')}))` : ``}
+      ORDER BY a.time DESC
+      OFFSET $4 LIMIT $5;
+    `;
+
+    const values = [
+      timeRangeStartCheck,
+      timeRangeEndCheck,
+      serialsCheck,
+      (page - 1) * 14,
+      14,
+    ];
+
+    if (searchText.length > 0) {
+      values.push(`%${searchText}%`);
+    }
+
+    if (idList.length > 0 && idList.length !== 31) {
+      values.push(idList);
+    }
+  
+    const result = await pool.query(queryText, values);
+
+    function formatDate(date) {
+      const options = {
+        year: "2-digit",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      };
+
+      const dateString = date.toISOString().replace("T", " ").slice(0, 19);
+    
+      const [datePart, timePart] = dateString.split(' ');
+      const [year, month, day] = datePart.split('-');
+      const [hour, minute, second] = timePart.split(':');
+    
+const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${year.slice(-2)} ${("0" + hour).slice(-2)}:${("0" + minute).slice(-2)}`;
+
+  return formattedDate;
+    }
+    
+
+    const Alarms = result.rows.map((alarm) => {
+      let type;
+      switch (alarm.st) {
+        case "0":
+          type = "Усталость";
+          break;
+        case "1":
+          type = "Водитель пропал";
+          break;
+        case "2":
+          type = "Разговор по телефону";
+          break;
+        case "3":
+          type = "Курение за рулём";
+          break;
+        case "4":
+          type = "Водитель отвлекся";
+          break;
+        case "5":
+          type = "Выезд с полосы движения";
+          break;
+        case "6":
+          type = "!!! Лобовое столкновение";
+          break;
+        case "7":
+          type = "Скорость превышена";
+          break;
+        case "8":
+          type = "Распознавание номерных знаков";
+          break;
+        case "9":
+          type = "!! Маленькое расстояние спереди";
+          break;
+        case "10":
+          type = "Водитель зевает";
+          break;
+        case "11":
+          type = "!!! Столкновение с пешеходом";
+          break;
+        case "12":
+          type = "Проходы переполнены";
+          break;
+        case "13":
+          type = "!! Посадка/высадка вне остановки";
+          break;
+        case "14":
+          type = "!! Смена полосы с нарушением ПДД";
+          break;
+        case "15":
+          type = "! Включенный телефон у водителя";
+          break;
+        case "16":
+          type = "!!! Ремень безопасности";
+          break;
+        case "17":
+          type = "Проверка не удалась";
+          break;
+        case "18":
+          type = "Слепые зоны справа";
+          break;
+        case "19":
+          type = "!!! Заднее столкновение";
+          break;
+        case "20":
+          type = "!!! Управление без рук";
+          break;
+        case "21":
+          type = "!! Управление одной рукой";
+          break;
+        case "22":
+          type = "Очки, блокирующие инфракрасное излучение";
+          break;
+        case "23":
+          type = "Слепые зоны слева";
+          break;
+        case "24":
+          type = "Помехи для пассажиров";
+          break;
+        case "25":
+          type = "На перекрестке ограничена скорость";
+          break;
+        case "26":
+          type = "Обнаружен перекресток";
+          break;
+        case "27":
+          type = "Пешеходы на переходе";
+          break;
+        case "28":
+          type = "! Неучтивое отношение к пешеходам";
+          break;
+        case "29":
+          type = "Обнаружен пешеходный переход";
+          break;
+        case "30":
+          type = "Водитель матерится";
+          break;
+        default:
+          type = "Неизвестный тип";
+      }
+
+      return {
+        id: alarm.id,
+        cmdno: alarm.cmdno,
+        time: formatDate(alarm.time),
+        number: alarm.number,
+        serial: alarm.serial,
+        st: alarm.st,
+        type: type,
+        plate: alarm.plate,
+        latitude: (alarm.latitude).toFixed(6),
+        longitude: (alarm.longitude).toFixed(6),
+        geo: (alarm.latitude).toFixed(6) + "," + (alarm.longitude).toFixed(6),
+      };
+    })
+
+    res.json({
+      total: totalCount,
+      data: Alarms,
+    });
+  } catch (error) {
+    console.error('Error handling request:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 
 app.get("/api/devices", async (req, res) => {
   if (req.session.userId === undefined) {

@@ -20,6 +20,16 @@ body {
   min-height: 100%;
 }
 
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield; 
+}
+
 header {
   position: fixed;
   top: 0;
@@ -1687,8 +1697,22 @@ input[type="datetime-local"] {
 }
 
 .time-range input:hover,
-.time-range input:focus {
+.time-range input:focus,
+#pagination input:hover,
+#pagination input:focus {
   border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+#pagination input {
+  width: 20px;
+  height: 15px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 10px;
+  outline: none;
+  color: rgba(0, 0, 0, 0.9);
+  transition: 0.2s;
+  text-align: center;
 }
 
 .return-name {
@@ -1931,6 +1955,29 @@ input[type="datetime-local"] {
 
 .left-slider:hover {
   background-color: rgba(0, 0, 0, 0.1);
+}
+
+#pagination #left-slider {
+  padding: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 4px;
+  transition: 0.2s;
+  float: left;
+}
+
+#pagination #left-slider:hover,
+#pagination #right-slider:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+#pagination #right-slider {
+  padding: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 4px;
+  transition: 0.2s;
+  float: right;
 }
 
 .signals-list .search {

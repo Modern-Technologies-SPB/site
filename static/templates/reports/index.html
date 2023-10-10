@@ -74,17 +74,17 @@
         <section class="bg">
             <section class="content">
 
-                <section class="for-table">
+                <section style="height: 945px !important;" class="for-table">
 
                     <section class="organisation">
                         <h1>Организация</h1>
 
                         <ul class="area">
                           {{#each Groups}}
-                          <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="{{name}}" class="checkbox-input" hidden checked><label for="{{name}}" class="checkbox-label checkbox-name"><span class="text">{{name}}</span></label>
+                          <li class="area-name"><img src="../img/ul.svg"><input type="checkbox" id="{{name}}" class="checkbox-input" onchange="requestUpdate()" hidden checked><label for="{{name}}" class="checkbox-label checkbox-name"><span class="text">{{name}}</span></label>
                               <ul class="area-devices" id="devices-1">
                                   {{#each serials}}
-                                  <li class="device"><img><input type="checkbox" id="{{this}}" class="checkbox-input device-filter" value="{{this}}" hidden checked><label for="{{this}}" class="checkbox-label">
+                                  <li class="device"><img><input type="checkbox" id="{{this}}" class="checkbox-input device-filter" value="{{this}}" onchange="requestUpdate()" hidden checked><label for="{{this}}" class="checkbox-label">
                                       {{#if ../numbers}}
                                           {{#if (lookup ../numbers @index)}}
                                               <div class="checkmark"></div>{{lookup ../numbers @index}}
@@ -102,8 +102,8 @@
                           </ul>
 
                         <div class="area-time-range">
-                          <div class="time-range"><label for="timeRangeStart">с</label><input id="timeRangeStart" name="timeRangeStart" type="datetime-local"></div>
-                          <div class="time-range"><label for="timeRangeEnd">до</label><input id="timeRangeEnd" name="timeRangeEnd" type="datetime-local"></div>
+                          <div class="time-range"><label for="timeRangeStart">с</label><input id="timeRangeStart" name="timeRangeStart" onblur="requestUpdate()" type="datetime-local"></div>
+                          <div class="time-range"><label for="timeRangeEnd">до</label><input id="timeRangeEnd" name="timeRangeEnd" onblur="requestUpdate()" type="datetime-local"></div>
                         </div>
                           
                     </section>
@@ -112,7 +112,7 @@
 
                     <section id="table-area" class="table">
                         <h1>Список предупреждений</h1>
-                        <input id="table-search" class="search" type="text" placeholder="Поиск">
+                        <input id="table-search" class="search" type="text" onblur="requestUpdate()" placeholder="Поиск">
 
 
                           <table id="deviceTable">
@@ -135,12 +135,44 @@
 
                     </section>
 
-                    <div id="count">
+                      <div id="count">Всего результатов: <span id="count-value">{{Count}}</span></div>
                         <!-- Сюда добавится итоговое количество результатов -->
-                    </div>
                     <div id="pagination">
+                      <svg id="left-slider" xmlns="http://www.w3.org/2000/svg" width="11" height="19" fill="none" viewBox="0 0 11 19" onclick="decrementPage()">
+                        <path fill="#000" fill-opacity=".75" d="M0 9.495c0 .273.101.514.315.722l8.92 8.477a.981.981 0 0 0 .73.295c.585 0 1.035-.427 1.035-.995 0-.285-.124-.525-.304-.711L2.508 9.495l8.188-7.789c.18-.186.304-.437.304-.71C11 .425 10.55 0 9.965 0c-.292 0-.54.098-.73.284L.314 8.773A.955.955 0 0 0 0 9.495Z"/>
+                      </svg>
+                      <input id="page-number" type="number" onblur="requestUpdate()" value="1">
+                      <svg id="right-slider" xmlns="http://www.w3.org/2000/svg" width="11" height="19" fill="none" viewBox="0 0 11 19" onclick="incrementPage()">
+                        <path fill="#000" fill-opacity=".75" d="M11 9.495a.967.967 0 0 0-.326-.722L1.766.284A1.062 1.062 0 0 0 1.024 0C.45 0 0 .427 0 .995c0 .274.112.525.292.711l8.189 7.789-8.189 7.788c-.18.186-.292.426-.292.71 0 .57.45.996 1.024.996.292 0 .54-.098.742-.295l8.908-8.477c.213-.208.326-.449.326-.722Z"/>
+                      </svg>
                         <!-- Сюда будут добавляться ссылки для переключения между страницами -->
                       </div>
+
+                      <script>
+                        var pageNumberInput = document.getElementById('page-number');
+                        var countMax = Math.ceil({{Count}} / 14); 
+                    
+                        function decrementPage() {
+                            var currentPage = parseInt(pageNumberInput.value, 10);
+                            if (currentPage > 1) {
+                                pageNumberInput.value = currentPage - 1;
+                                requestUpdate();
+                            }
+                        }
+                    
+                        function incrementPage() {
+                            var currentPage = parseInt(pageNumberInput.value, 10);
+                            if (currentPage === countMax || currentPage > countMax) {
+                                pageNumberInput.value = countMax;
+                                requestUpdate();
+                            }
+                            if (currentPage < countMax) {
+                                pageNumberInput.value = currentPage + 1;
+                                requestUpdate();
+                            }
+                        }
+                    </script>
+
                       <!-- <br>
                       <br>
                       <span style="opacity:50%">Временное ограничение: 100 последних предупреждений</span> -->
@@ -154,7 +186,7 @@
     </section>
 
     <script>
-      const devices = [
+      let devices = [
   {{#each Alarms}}
   {
     id: "{{this.id}}",
@@ -188,6 +220,78 @@
       });
       
         </script>
+
+        <script>
+
+          function requestUpdate() {
+
+            document.getElementById("deviceTable").style.filter = "brightness(0.85)";
+
+                  const requestData = {
+                    page: parseInt(document.getElementById("page-number").value),
+                    timeRangeStart: document.getElementById("timeRangeStart").value, 
+                    timeRangeEnd: document.getElementById("timeRangeEnd").value, 
+                    serials: Array.from(
+                              document.querySelectorAll('input[type="checkbox"].device-filter:checked')
+                            ).map((checkbox) => checkbox.value),
+                    searchText: document.getElementById("table-search").value,
+                  };
+
+                  console.log(requestData);
+
+                  
+
+          fetch("/getreports", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(requestData),
+                  })
+                    .then((response) => response.json())
+                    .then((data) => {
+
+
+                      console.log(data);
+                      console.log(devices);
+
+                      devices.splice(0, devices.length);
+
+                      devices.push(...data.data.map(item => ({
+                        id: item.id,
+                        cmdno: item.cmdno,
+                        number: item.number,
+                        time: item.time,
+                        serial: item.serial,
+                        type: item.type,
+                        geo: item.geo,
+                        plate: item.plate,
+                      })));
+
+                      console.log(devices);
+                      createTable();
+
+                      document.getElementById("count-value").innerHTML = data.total;
+
+                      countMax = Math.ceil(data.total / 14);
+
+                      var currentPage = parseInt(pageNumberInput.value, 10);
+                      if (currentPage === countMax || currentPage > countMax) {
+                        pageNumberInput.value = countMax;
+                        requestUpdate();
+                      }
+
+                      document.getElementById("deviceTable").style.filter = "brightness(1)";
+                      
+
+                    })
+                    .catch((error) => {
+                      document.getElementById("dataLoading").style.display = 'none';
+                        h1Element.textContent = 'Ошибка отправки запроса.';
+                      console.error("Ошибка при отправке запроса:", error);
+                    });
+          };
+        </script>
     <script>
         // Скрытие/Показ дополнительных меню аккаунта
         const accountMain = document.getElementById('account-main');
@@ -214,41 +318,37 @@
         const checkboxes = document.querySelectorAll('.organisation .checkbox-input');
 
 checkboxes.forEach((checkbox) => {
-    applyFilterAndSearch();
   checkbox.addEventListener('change', function() {
     
-    applyFilterAndSearch();
-    const devices = this.parentNode.querySelector('.area-devices');
+    const areaDevices = this.parentNode.querySelector('.area-devices');
     if (this.checked) {
-      devices.style.display = 'block';
+      areaDevices.style.display = 'block';
 
       // Активируем дочерние чекбоксы
-      const childCheckboxes = devices.querySelectorAll('.device-filter');
+      const childCheckboxes = areaDevices.querySelectorAll('.device-filter');
       childCheckboxes.forEach((childCheckbox) => {
         childCheckbox.checked = true;
-        applyFilterAndSearch();
       });
     } else {
-      devices.style.display = 'none';
-      applyFilterAndSearch();
+      areaDevices.style.display = 'none';
 
       // Деактивируем дочерние чекбоксы
-      const childCheckboxes = devices.querySelectorAll('.device-filter');
+      const childCheckboxes = areaDevices.querySelectorAll('.device-filter');
       childCheckboxes.forEach((childCheckbox) => {
         childCheckbox.checked = false;
-        applyFilterAndSearch();
       });
     }
 
     // Деактивируем дочерние чекбоксы, если родительский чекбокс не выбран
     if (!this.checked) {
-      const childCheckboxes = devices.querySelectorAll('.device-filter');
+      const childCheckboxes = areaDevices.querySelectorAll('.device-filter');
       childCheckboxes.forEach((childCheckbox) => {
         childCheckbox.checked = false;
-        applyFilterAndSearch();
       });
-      devices.style.display = 'none';
+      areaDevices.style.display = 'none';
     }
+
+    requestUpdate();
   });
 });
 
