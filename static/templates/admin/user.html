@@ -270,6 +270,22 @@
               }
           });
       });
+      document.addEventListener('DOMContentLoaded', function () {
+            var checkboxLabels = document.querySelectorAll('.checkbox-label');
+
+            checkboxLabels.forEach(function (label) {
+                var labelText = label.textContent.trim();
+
+                if (labelText.length > 10) {
+                    var checkmarkDiv = document.createElement('div');
+                    checkmarkDiv.className = 'checkmark';
+
+                    label.textContent = '';
+                    label.appendChild(checkmarkDiv);
+                    label.appendChild(document.createTextNode(labelText.slice(0, 9) + '...'));
+                }
+            });
+        });
   
     </script>
 

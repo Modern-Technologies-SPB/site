@@ -1205,17 +1205,20 @@ const requestBody = {
         });
 
         if (response.ok) {
-          var formContainer = $("#form-bg");
-          var form = $("#form");
-          formContainer.removeClass("active");
-          form.removeClass("form-animation");
-          $("body").css("overflow", "auto");
-          showMessage("Данные успешно обновлены", true);
-          console.log('PUT запрос выполнен успешно');
-        } else {
-          showMessage("Не удалось обновить данные", false);
-          console.error('Ошибка при выполнении PUT запроса');
-        }
+  var formContainer = $("#form-bg");
+  var form = $("#form");
+  formContainer.removeClass("active");
+  form.removeClass("form-animation");
+  $("body").css("overflow", "auto");
+  showMessage("Данные успешно обновлены", true);
+  console.log('PUT запрос выполнен успешно');
+} else if (response.status === 400) {
+  showMessage("Устройство выключено.", false);
+  console.error('Устройство выключено');
+} else {
+  showMessage("Не удалось обновить данные", false);
+  console.error('Ошибка при выполнении PUT запроса');
+}
       } catch (error) {
         showMessage("Не удалось обновить данные", false);
         console.error('Произошла ошибка при отправке PUT запроса:', error);
@@ -1266,17 +1269,20 @@ const requestBody = {
         });
 
         if (response.ok) {
-          var formContainer = $("#form-bg");
-          var form = $("#form");
-          formContainer.removeClass("active");
-          form.removeClass("form-animation");
-          $("body").css("overflow", "auto");
-          showMessage("Данные успешно обновлены", true);
-          console.log('PUT запрос выполнен успешно');
-        } else {
-          showMessage("Не удалось обновить данные", false);
-          console.error('Ошибка при выполнении PUT запроса');
-        }
+  var formContainer = $("#form-bg");
+  var form = $("#form");
+  formContainer.removeClass("active");
+  form.removeClass("form-animation");
+  $("body").css("overflow", "auto");
+  showMessage("Данные успешно обновлены", true);
+  console.log('PUT запрос выполнен успешно');
+} else if (response.status === 400) {
+  showMessage("Устройство выключено.", false);
+  console.error('Устройство выключено');
+} else {
+  showMessage("Не удалось обновить данные", false);
+  console.error('Ошибка при выполнении PUT запроса');
+}
       } catch (error) {
         showMessage("Не удалось обновить данные", false);
         console.error('Произошла ошибка при отправке PUT запроса:', error);
@@ -1326,18 +1332,21 @@ const requestBody = {
       body: JSON.stringify(requestData),
     });
 
-    if (response.ok) {
-      var formContainer = $("#form-bg");
-      var form = $("#form");
-      formContainer.removeClass("active");
-      form.removeClass("form-animation");
-      $("body").css("overflow", "auto");
-      showMessage("Данные успешно обновлены", true);
-      console.log('PUT запрос выполнен успешно');
-    } else {
-      showMessage("Не удалось обновить данные", false);
-      console.error('Ошибка при выполнении PUT запроса');
-    }
+if (response.ok) {
+  var formContainer = $("#form-bg");
+  var form = $("#form");
+  formContainer.removeClass("active");
+  form.removeClass("form-animation");
+  $("body").css("overflow", "auto");
+  showMessage("Данные успешно обновлены", true);
+  console.log('PUT запрос выполнен успешно');
+} else if (response.status === 400) {
+  showMessage("Устройство выключено.", false);
+  console.error('Устройство выключено');
+} else {
+  showMessage("Не удалось обновить данные", false);
+  console.error('Ошибка при выполнении PUT запроса');
+}
   } catch (error) {
     showMessage("Не удалось обновить данные", false);
     console.error('Произошла ошибка при отправке PUT запроса:', error);
@@ -1397,17 +1406,20 @@ const requestBody = {
   });
 
   if (response.ok) {
-    var formContainer = $("#form-bg");
-    var form = $("#form");
-    formContainer.removeClass("active");
-    form.removeClass("form-animation");
-    $("body").css("overflow", "auto");
-    showMessage("Данные успешно обновлены", true);
-    console.log('PUT запрос выполнен успешно');
-  } else {
-    showMessage("Не удалось обновить данные", false);
-    console.error('Ошибка при выполнении PUT запроса');
-  }
+  var formContainer = $("#form-bg");
+  var form = $("#form");
+  formContainer.removeClass("active");
+  form.removeClass("form-animation");
+  $("body").css("overflow", "auto");
+  showMessage("Данные успешно обновлены", true);
+  console.log('PUT запрос выполнен успешно');
+} else if (response.status === 400) {
+  showMessage("Устройство выключено.", false);
+  console.error('Устройство выключено');
+} else {
+  showMessage("Не удалось обновить данные", false);
+  console.error('Ошибка при выполнении PUT запроса');
+}
   } catch (error) {
   showMessage("Не удалось обновить данные", false);
   console.error('Произошла ошибка при отправке PUT запроса:', error);
@@ -1456,17 +1468,20 @@ const requestBody = {
   });
 
   if (response.ok) {
-    var formContainer = $("#form-bg");
-    var form = $("#form");
-    formContainer.removeClass("active");
-    form.removeClass("form-animation");
-    $("body").css("overflow", "auto");
-    showMessage("Данные успешно обновлены", true);
-    console.log('PUT запрос выполнен успешно');
-  } else {
-    showMessage("Не удалось обновить данные", false);
-    console.error('Ошибка при выполнении PUT запроса');
-  }
+  var formContainer = $("#form-bg");
+  var form = $("#form");
+  formContainer.removeClass("active");
+  form.removeClass("form-animation");
+  $("body").css("overflow", "auto");
+  showMessage("Данные успешно обновлены", true);
+  console.log('PUT запрос выполнен успешно');
+} else if (response.status === 400) {
+  showMessage("Устройство выключено.", false);
+  console.error('Устройство выключено');
+} else {
+  showMessage("Не удалось обновить данные", false);
+  console.error('Ошибка при выполнении PUT запроса');
+}
   } catch (error) {
   showMessage("Не удалось обновить данные", false);
   console.error('Произошла ошибка при отправке PUT запроса:', error);
@@ -1518,6 +1533,9 @@ if (response.ok) {
   $("body").css("overflow", "auto");
   showMessage("Данные успешно обновлены", true);
   console.log('PUT запрос выполнен успешно');
+} else if (response.status === 400) {
+  showMessage("Устройство выключено.", false);
+  console.error('Устройство выключено');
 } else {
   showMessage("Не удалось обновить данные", false);
   console.error('Ошибка при выполнении PUT запроса');
@@ -1567,6 +1585,9 @@ if (response.ok) {
   $("body").css("overflow", "auto");
   showMessage("Данные успешно обновлены", true);
   console.log('PUT запрос выполнен успешно');
+} else if (response.status === 400) {
+  showMessage("Устройство выключено.", false);
+  console.error('Устройство выключено');
 } else {
   showMessage("Не удалось обновить данные", false);
   console.error('Ошибка при выполнении PUT запроса');

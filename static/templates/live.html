@@ -208,6 +208,23 @@
           });
       });
 
+      document.addEventListener('DOMContentLoaded', function () {
+            var radioLabels = document.querySelectorAll('.radio-label');
+
+            radioLabels.forEach(function (label) {
+                var labelText = label.querySelector('.text').textContent.trim();
+
+                if (labelText.length > 10) {
+                    var textSpan = document.createElement('span');
+                    textSpan.className = 'text';
+                    
+                    textSpan.textContent = labelText.slice(0, 9) + '...';
+
+                    label.querySelector('.text').replaceWith(textSpan);
+                }
+            });
+        });
+
   </script>
 
     <script>

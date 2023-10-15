@@ -270,6 +270,20 @@
               }
           });
       });
+
+
+      document.addEventListener('DOMContentLoaded', function () {
+            var radioLabels = document.querySelectorAll('.radio-label');
+
+            radioLabels.forEach(function (label) {
+              var labelText = label.textContent.trim();
+
+                if (labelText.length > 10) {
+                    label.textContent = '';
+                    label.appendChild(document.createTextNode(labelText.slice(0, 9) + '...'));
+                }
+            });
+        });
       
         </script>
 

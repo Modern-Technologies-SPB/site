@@ -7,18 +7,16 @@ const handlebars = require("handlebars");
 require("dotenv").config();
 const multer = require("multer");
 const http = require("http");
-const axios = require('axios');
-const moment = require('moment');
-const bodyParser = require('body-parser');
-const _ = require('lodash');
-const session = require('express-session');
-const bcrypt = require('bcrypt');
-
-
+const axios = require("axios");
+const moment = require("moment");
+const bodyParser = require("body-parser");
+const _ = require("lodash");
+const session = require("express-session");
+const bcrypt = require("bcrypt");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads"); 
+    cb(null, "uploads");
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-" + file.originalname);
@@ -31,7 +29,7 @@ app.use(
     secret: process.env.SEKRET,
     resave: false,
     saveUninitialized: true,
-    cookie: { maxAge: 24 * 60 * 60 * 1000 }, 
+    cookie: { maxAge: 24 * 60 * 60 * 1000 },
   })
 );
 
@@ -47,10 +45,11 @@ app.get("/live", live);
 app.get("/reports", reports);
 app.get("/devices", devices);
 // app.get("/devices/update", update);
-app.get("/devices/groups", groups)
+app.get("/devices/groups", groups);
 app.get("/videos", videos);
-app.get("/videos/export",videoExport);
+app.get("/videos/export", videoExport);
 app.get("/settings", settings);
+app.get("/documentation", documentation);
 app.get("/admin", adminPanel);
 app.get("/admin/organisation", organisation);
 
@@ -67,7 +66,7 @@ async function getUserInfo(userId) {
   try {
     let userInfo = {
       Organisation: "",
-      User: '',
+      User: "",
       Users: [],
       EditTransport: false,
       DeleteTransport: false,
@@ -95,7 +94,7 @@ async function getUserInfo(userId) {
       userInfo.DeleteTransport = user.deletetransport;
       userInfo.Update = user.update;
     } else {
-      userInfo.User = "Администратор"
+      userInfo.User = "Администратор";
       userInfo.EditTransport = true;
       userInfo.DeleteTransport = true;
       userInfo.Update = true;
@@ -114,30 +113,30 @@ async function getUserInfo(userId) {
   }
 }
 
-
 app.post("/videos/restart", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
 
   var options = {
-    method: 'GET',
+    method: "GET",
     url: `http://${process.env.VIRTUAL_HOST}/http/restart`,
-    headers: {'Content-Type': 'application/json'},
-    data: {video: true}
+    headers: { "Content-Type": "application/json" },
+    data: { video: true },
   };
-  
-  axios.request(options).then(function (response) {
-    res.status(200).json({ message: "Команда для рестарта выполнена." });
-    return;
-  }).catch(function (error) {
-    console.error(error);
-    res.status(500).json({ error: "Ошибка сервера" });
-    return;
-  });
 
+  axios
+    .request(options)
+    .then(function (response) {
+      res.status(200).json({ message: "Команда для рестарта выполнена." });
+      return;
+    })
+    .catch(function (error) {
+      console.error(error);
+      res.status(500).json({ error: "Ошибка сервера" });
+      return;
+    });
 });
-
 
 // const DB_User = process.env.DB_USER;
 // const DB_Password = process.env.DB_PASSWORD;
@@ -161,12 +160,12 @@ async function index(req, res) {
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
-    isAdmin: req.session.userId === 'admin',
+    isAdmin: req.session.userId === "admin",
     ifDBError: false,
     Count: "",
     AlarmsLast11Days: new Array(11).fill(0),
     Alarms11DaysBefore: new Array(11).fill(0),
-    Dates: [], 
+    Dates: [],
     PositionsLast11Days: new Array(11).fill(0),
   };
   try {
@@ -194,15 +193,17 @@ async function index(req, res) {
         FROM users
         WHERE id = $1
       `;
-      const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
-      
+      const userDevicesResult = await client.query(userDevicesQuery, [
+        req.session.userId,
+      ]);
+
       if (userDevicesResult.rows[0].devices.length > 0) {
         serialValues = userDevicesResult.rows[0].devices;
         templateData.Count = serialValues.length;
       } else {
         templateData.Count = 0;
       }
-    } 
+    }
 
     const last11DaysQuery = `
     WITH date_sequence AS (
@@ -218,13 +219,16 @@ async function index(req, res) {
       WHERE alarmtype = 56
       AND time >= CURRENT_DATE - INTERVAL '11 days'
       AND time <= CURRENT_DATE + INTERVAL '1 day'
-      ${!templateData.isAdmin ? 'AND serial = ANY($1)' : ''}
+      ${!templateData.isAdmin ? "AND serial = ANY($1)" : ""}
       ORDER BY evtuuid, time DESC 
     ) AS a ON DATE_TRUNC('day', a.time) = date_sequence.day
     GROUP BY date_sequence.day
     ORDER BY date_sequence.day DESC;    
     `;
-    const last11DaysAlarms = await client.query(last11DaysQuery, templateData.isAdmin ? [] : [serialValues]);
+    const last11DaysAlarms = await client.query(
+      last11DaysQuery,
+      templateData.isAdmin ? [] : [serialValues]
+    );
 
     const daysBeforeQuery = `
     WITH date_sequence AS (
@@ -240,25 +244,36 @@ async function index(req, res) {
       WHERE alarmtype = 56
       AND time >= CURRENT_DATE - INTERVAL '21 days'
       AND time <= CURRENT_DATE + INTERVAL '10 day'
-      ${!templateData.isAdmin ? 'AND serial = ANY($1)' : ''}
+      ${!templateData.isAdmin ? "AND serial = ANY($1)" : ""}
       ORDER BY evtuuid, time DESC 
     ) AS a ON DATE_TRUNC('day', a.time) = date_sequence.day
     GROUP BY date_sequence.day
     ORDER BY date_sequence.day DESC;
     `;
 
-    const daysBeforeAlarms = await client.query(daysBeforeQuery, templateData.isAdmin ? [] : [serialValues]);
+    const daysBeforeAlarms = await client.query(
+      daysBeforeQuery,
+      templateData.isAdmin ? [] : [serialValues]
+    );
 
     const currentDate = new Date();
     const dates = [];
     const dates11DaysAgo = [];
     for (let i = 10; i >= 0; i--) {
       const date = new Date(currentDate - i * 24 * 60 * 60 * 1000);
-      const formattedDate = date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+      const formattedDate = date.toLocaleDateString("ru-RU", {
+        day: "2-digit",
+        month: "2-digit",
+      });
       dates.push(formattedDate);
 
-      const date11DaysAgo = new Date(currentDate - i * 24 * 60 * 60 * 1000 - 11 * 24 * 60 * 60 * 1000);
-      const formattedDate11DaysAgo = date11DaysAgo.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+      const date11DaysAgo = new Date(
+        currentDate - i * 24 * 60 * 60 * 1000 - 11 * 24 * 60 * 60 * 1000
+      );
+      const formattedDate11DaysAgo = date11DaysAgo.toLocaleDateString("ru-RU", {
+        day: "2-digit",
+        month: "2-digit",
+      });
       dates11DaysAgo.push(formattedDate11DaysAgo);
     }
     templateData.Dates = dates;
@@ -272,37 +287,68 @@ async function index(req, res) {
   FROM geo
   WHERE time >= CURRENT_DATE - INTERVAL '10 days'
     AND time <= CURRENT_DATE + INTERVAL '1 day'
-    ${!templateData.isAdmin ? 'AND serial = ANY($1)' : ''}
+    ${!templateData.isAdmin ? "AND serial = ANY($1)" : ""}
   GROUP BY DATE_TRUNC('day', time)
   ORDER BY sort_value DESC, day DESC;
 `;
 
-const positionsLast11Days = await client.query(positionsLast11DaysQuery, templateData.isAdmin ? [] : [serialValues]);
-
+    const positionsLast11Days = await client.query(
+      positionsLast11DaysQuery,
+      templateData.isAdmin ? [] : [serialValues]
+    );
 
     templateData.Dates.reverse();
 
-const last11DaysMap = new Map(last11DaysAlarms.rows.map(row => [row.day.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }), parseInt(row.count, 10)]));
+    const last11DaysMap = new Map(
+      last11DaysAlarms.rows.map((row) => [
+        row.day.toLocaleDateString("ru-RU", {
+          day: "2-digit",
+          month: "2-digit",
+        }),
+        parseInt(row.count, 10),
+      ])
+    );
 
-for (let i = 0; i < dates.length; i++) {
-  const dateKey = dates[i];
-  templateData.AlarmsLast11Days[i] = last11DaysMap.has(dateKey) ? last11DaysMap.get(dateKey) : 0;
-}
+    for (let i = 0; i < dates.length; i++) {
+      const dateKey = dates[i];
+      templateData.AlarmsLast11Days[i] = last11DaysMap.has(dateKey)
+        ? last11DaysMap.get(dateKey)
+        : 0;
+    }
 
-const beforeDaysMap = new Map(daysBeforeAlarms.rows.map(row => [row.day.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }), parseInt(row.count, 10)]));
+    const beforeDaysMap = new Map(
+      daysBeforeAlarms.rows.map((row) => [
+        row.day.toLocaleDateString("ru-RU", {
+          day: "2-digit",
+          month: "2-digit",
+        }),
+        parseInt(row.count, 10),
+      ])
+    );
 
-for (let i = 0; i < dates.length; i++) {
-  const dateKey = dates11DaysAgo[i];
-  templateData.Alarms11DaysBefore[i] = beforeDaysMap.has(dateKey) ? beforeDaysMap.get(dateKey) : 0;
-}
+    for (let i = 0; i < dates.length; i++) {
+      const dateKey = dates11DaysAgo[i];
+      templateData.Alarms11DaysBefore[i] = beforeDaysMap.has(dateKey)
+        ? beforeDaysMap.get(dateKey)
+        : 0;
+    }
 
-const positionsMap = new Map(positionsLast11Days.rows.map(row => [row.day.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }), parseInt(row.count, 10)]));
+    const positionsMap = new Map(
+      positionsLast11Days.rows.map((row) => [
+        row.day.toLocaleDateString("ru-RU", {
+          day: "2-digit",
+          month: "2-digit",
+        }),
+        parseInt(row.count, 10),
+      ])
+    );
 
-for (let i = 0; i < dates.length; i++) {
-  const dateKey = dates[i];
-  templateData.PositionsLast11Days[i] = positionsMap.has(dateKey) ? positionsMap.get(dateKey) : 0;
-}
-
+    for (let i = 0; i < dates.length; i++) {
+      const dateKey = dates[i];
+      templateData.PositionsLast11Days[i] = positionsMap.has(dateKey)
+        ? positionsMap.get(dateKey)
+        : 0;
+    }
 
     // console.log(templateData);
 
@@ -323,6 +369,47 @@ for (let i = 0; i < dates.length; i++) {
   }
 }
 
+async function checkLastKeepAlive(serial) {
+  try {
+    const pool = new Pool({
+      user: DB_User,
+      host: DB_Host,
+      database: DB_Name,
+      password: DB_Password,
+      port: DB_Port,
+    });
+    const client = await pool.connect();
+
+    try {
+      const lastKeepAliveQuery = `SELECT lastkeepalive FROM registrars WHERE serial = $1`;
+      const lastKeepAliveResult = await client.query(lastKeepAliveQuery, [
+        serial,
+      ]);
+
+      if (lastKeepAliveResult.rows.length > 0) {
+        const lastKeepAlive = lastKeepAliveResult.rows[0].lastkeepalive;
+        const currentTime = new Date();
+        const lastKeepAliveTime = new Date(lastKeepAlive);
+        const minutesDifference =
+          (currentTime - lastKeepAliveTime) / (1000 * 60);
+
+        if (minutesDifference > 1) {
+          return false; // lastkeepalive старше минуты
+        } else {
+          return true; // lastkeepalive в пределах минуты
+        }
+      } else {
+        return false; // Устройство не найдено
+      }
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error("Ошибка при проверке lastkeepalive:", error);
+    throw new Error("Произошла ошибка при проверке lastkeepalive.");
+  }
+}
+
 function signin(req, res) {
   if (req.session.userId != undefined) {
     return res.redirect("/");
@@ -336,27 +423,26 @@ function signin(req, res) {
   });
 
   let templateData = {
-    Page: ""
+    Page: "",
   };
 
-  const page = req.query.page || '';
+  const page = req.query.page || "";
 
   if (page) {
     templateData.Page = page;
   }
 
-
-  pool.query('SELECT COUNT(*) FROM main', (error, result) => {
+  pool.query("SELECT COUNT(*) FROM main", (error, result) => {
     if (error) {
-      console.error('Ошибка при выполнении запроса к базе данных:', error);
-      res.status(500).send('Ошибка сервера');
+      console.error("Ошибка при выполнении запроса к базе данных:", error);
+      res.status(500).send("Ошибка сервера");
       return;
     }
 
     const rowCount = parseInt(result.rows[0].count, 10);
 
     if (rowCount === 0) {
-      res.redirect('/register');
+      res.redirect("/register");
     } else {
       const source = fs.readFileSync("static/templates/signin.html", "utf8");
       const template = handlebars.compile(source);
@@ -377,22 +463,22 @@ function register(req, res) {
     password: DB_Password,
     port: DB_Port,
   });
-  pool.query('SELECT COUNT(*) FROM main', (err, result) => {
+  pool.query("SELECT COUNT(*) FROM main", (err, result) => {
     if (err) {
-      console.error('Ошибка выполнения SQL-запроса:', err);
-      res.status(500).send('Внутренняя ошибка сервера');
+      console.error("Ошибка выполнения SQL-запроса:", err);
+      res.status(500).send("Внутренняя ошибка сервера");
       return;
     }
 
     if (result.rows[0].count > 0) {
-      res.redirect('/signin');
+      res.redirect("/signin");
     } else {
-      res.sendFile(path.join(__dirname, 'static/templates/register.html'));
+      res.sendFile(path.join(__dirname, "static/templates/register.html"));
     }
   });
 }
 
-app.post('/setup', async (req, res) => {
+app.post("/setup", async (req, res) => {
   if (req.session.userId != undefined) {
     return res.redirect("/");
   }
@@ -406,26 +492,27 @@ app.post('/setup', async (req, res) => {
     });
     const { name, login, password } = req.body;
 
-    const checkQuery = 'SELECT * FROM main LIMIT 1';
+    const checkQuery = "SELECT * FROM main LIMIT 1";
     const checkResult = await pool.query(checkQuery);
 
     if (checkResult.rows.length > 0) {
-      res.redirect('/signin');
+      res.redirect("/signin");
     }
 
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    const insertQuery = 'INSERT INTO main (organisation, login, password) VALUES ($1, $2, $3)';
+    const insertQuery =
+      "INSERT INTO main (organisation, login, password) VALUES ($1, $2, $3)";
     await pool.query(insertQuery, [name, login, hashedPassword]);
 
-    res.status(200).json({ message: 'Данные успешно добавлены' });
+    res.status(200).json({ message: "Данные успешно добавлены" });
   } catch (error) {
-    console.error('Ошибка при обработке запроса:', error);
-    res.status(500).json({ error: 'Произошла ошибка при обработке запроса' });
+    console.error("Ошибка при обработке запроса:", error);
+    res.status(500).json({ error: "Произошла ошибка при обработке запроса" });
   }
 });
 
-app.post('/login', async (req, res) => {
+app.post("/login", async (req, res) => {
   if (req.session.userId != undefined) {
     return res.redirect("/");
   }
@@ -441,32 +528,37 @@ app.post('/login', async (req, res) => {
     });
 
     const mainQuery = await pool.query(
-      'SELECT login, password FROM main WHERE login = $1',
+      "SELECT login, password FROM main WHERE login = $1",
       [email]
     );
 
     const mainUser = mainQuery.rows[0];
 
     if (mainUser) {
-      const mainPasswordMatch = await bcrypt.compare(password, mainUser.password);
+      const mainPasswordMatch = await bcrypt.compare(
+        password,
+        mainUser.password
+      );
 
       if (mainPasswordMatch) {
         req.session.userId = "admin";
 
         console.log("Авторизация успешна (админ)");
-        return res.status(200).json({ message: 'Авторизация успешна (админ)' });
+        return res.status(200).json({ message: "Авторизация успешна (админ)" });
       }
     }
 
     const userQuery = await pool.query(
-      'SELECT id, password FROM users WHERE email = $1',
+      "SELECT id, password FROM users WHERE email = $1",
       [email]
     );
 
     const user = userQuery.rows[0];
 
     if (!user) {
-      return res.status(401).json({ message: 'Неправильное имя пользователя или пароль' });
+      return res
+        .status(401)
+        .json({ message: "Неправильное имя пользователя или пароль" });
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
@@ -475,28 +567,28 @@ app.post('/login', async (req, res) => {
       req.session.userId = user.id;
 
       console.log("Авторизация успешна");
-      return res.status(200).json({ message: 'Авторизация успешна' });
+      return res.status(200).json({ message: "Авторизация успешна" });
     } else {
-      return res.status(401).json({ message: 'Неправильное имя пользователя или пароль' });
+      return res
+        .status(401)
+        .json({ message: "Неправильное имя пользователя или пароль" });
     }
   } catch (error) {
-    console.error('Ошибка при выполнении запроса к базе данных:', error);
-    res.status(500).json({ message: 'Ошибка сервера' });
+    console.error("Ошибка при выполнении запроса к базе данных:", error);
+    res.status(500).json({ message: "Ошибка сервера" });
   }
 });
 
-
-app.get('/logout', (req, res) => {
+app.get("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) {
-      console.error('Ошибка при выходе из системы:', err);
-      res.status(500).json({ message: 'Ошибка сервера' });
+      console.error("Ошибка при выходе из системы:", err);
+      res.status(500).json({ message: "Ошибка сервера" });
     } else {
-      res.redirect('/signin'); 
+      res.redirect("/signin");
     }
   });
 });
-
 
 async function live(req, res) {
   if (req.session.userId === undefined) {
@@ -508,7 +600,7 @@ async function live(req, res) {
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
-    isAdmin: req.session.userId === 'admin',
+    isAdmin: req.session.userId === "admin",
     ifDBError: false,
     Registrars: [],
     Alarms: [],
@@ -530,23 +622,29 @@ async function live(req, res) {
 
     let serialValues = [];
     if (!templateData.isAdmin) {
-      
       const userDevicesQuery = `
         SELECT devices
         FROM users
         WHERE id = $1
       `;
-      const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
-      
+      const userDevicesResult = await client.query(userDevicesQuery, [
+        req.session.userId,
+      ]);
+
       if (userDevicesResult.rows[0].devices.length > 0) {
         serialValues = userDevicesResult.rows[0].devices;
-      } 
-    } 
+      }
+    }
 
     const query = `
-    SELECT id, serial, channels, lastkeepalive, number FROM registrars ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''} ORDER BY id ASC
+    SELECT id, serial, channels, lastkeepalive, number FROM registrars ${
+      !templateData.isAdmin ? "WHERE serial = ANY($1)" : ""
+    } ORDER BY id ASC
     `;
-    const registrars = await client.query(query, templateData.isAdmin ? [] : [serialValues]);
+    const registrars = await client.query(
+      query,
+      templateData.isAdmin ? [] : [serialValues]
+    );
 
     templateData.Registrars = registrars.rows.map((row) => ({
       id: row.id,
@@ -562,7 +660,7 @@ async function live(req, res) {
       SELECT DISTINCT ON (evtuuid) evtuuid, id, cmdno, time, serial, st
       FROM alarms
       WHERE alarmtype = 56
-      ${!templateData.isAdmin ? 'AND serial = ANY($1)' : ''}
+      ${!templateData.isAdmin ? "AND serial = ANY($1)" : ""}
       ORDER BY evtuuid, time DESC 
     ) AS a
     LEFT JOIN registrars AS r ON a.serial = r.serial
@@ -574,7 +672,10 @@ async function live(req, res) {
     ORDER BY a.time DESC
     LIMIT 100;
     `;
-    const alarms = await client.query(subquery, templateData.isAdmin ? [] : [serialValues]); 
+    const alarms = await client.query(
+      subquery,
+      templateData.isAdmin ? [] : [serialValues]
+    );
 
     function formatDate(date) {
       const options = {
@@ -587,17 +688,21 @@ async function live(req, res) {
       };
 
       const dateString = date.toISOString().replace("T", " ").slice(0, 19);
-    
-      const [datePart, timePart] = dateString.split(' ');
-      const [year, month, day] = datePart.split('-');
-      const [hour, minute, second] = timePart.split(':');
-    
-const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${year.slice(-2)} ${("0" + hour).slice(-2)}:${("0" + minute).slice(-2)}`;
 
-  return formattedDate;
+      const [datePart, timePart] = dateString.split(" ");
+      const [year, month, day] = datePart.split("-");
+      const [hour, minute, second] = timePart.split(":");
+
+      const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(
+        -2
+      )}.${year.slice(-2)} ${("0" + hour).slice(-2)}:${("0" + minute).slice(
+        -2
+      )}`;
+
+      return formattedDate;
     }
 
-    (templateData.Alarms = alarms.rows.map((alarm) => {
+    templateData.Alarms = alarms.rows.map((alarm) => {
       let type;
       switch (alarm.st) {
         case "0":
@@ -706,11 +811,11 @@ const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${yea
         st: alarm.st,
         type: type,
         plate: alarm.plate,
-        latitude: (alarm.latitude).toFixed(6),
-        longitude: (alarm.longitude).toFixed(6),
+        latitude: alarm.latitude.toFixed(6),
+        longitude: alarm.longitude.toFixed(6),
         geo: alarm.latitude + "," + alarm.longitude,
       };
-    }))
+    });
 
     templateData.Count = templateData.Alarms.length;
 
@@ -722,14 +827,16 @@ const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${yea
       groupsMap[group.id] = group.name;
     });
 
-
     // Выполняем запрос, чтобы получить все данные из таблицы registrars
     const queryRegistrars = `
       SELECT id, serial, channels, lastkeepalive, "group", name, plate, sim, ip, port, number
-      FROM registrars ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''}
+      FROM registrars ${!templateData.isAdmin ? "WHERE serial = ANY($1)" : ""}
       ORDER BY id
     `;
-    const registrarsResult = await client.query(queryRegistrars, templateData.isAdmin ? [] : [serialValues]);
+    const registrarsResult = await client.query(
+      queryRegistrars,
+      templateData.isAdmin ? [] : [serialValues]
+    );
     const allRegistrars = registrarsResult.rows;
 
     const groupedRegistrars = {};
@@ -742,7 +849,8 @@ const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${yea
         id: registrar.id,
         serial: registrar.serial,
         channels: registrar.channels,
-        status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
+        status:
+          Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
         name: registrar.name,
         group: groupsMap[registrar.group] || "Другое",
         plate: registrar.plate,
@@ -754,23 +862,23 @@ const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${yea
     });
 
     templateData.Registrars = allRegistrars.map((registrar) => ({
-        id: registrar.id,
-        serial: registrar.serial,
-        channels: registrar.channels,
-        status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
-        name: registrar.name,
-        group: groupsMap[registrar.group] || "Другое",
-        plate: registrar.plate,
-        sim: registrar.sim,
-        ip: registrar.ip,
-        port: registrar.port,
-      }));
+      id: registrar.id,
+      serial: registrar.serial,
+      channels: registrar.channels,
+      status:
+        Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
+      name: registrar.name,
+      group: groupsMap[registrar.group] || "Другое",
+      plate: registrar.plate,
+      sim: registrar.sim,
+      ip: registrar.ip,
+      port: registrar.port,
+    }));
 
-      templateData.Groups = Object.keys(groupedRegistrars).map((groupName) => ({
-        name: groupName,
-        devices: groupedRegistrars[groupName],
-      }));
-
+    templateData.Groups = Object.keys(groupedRegistrars).map((groupName) => ({
+      name: groupName,
+      devices: groupedRegistrars[groupName],
+    }));
 
     const source = fs.readFileSync("static/templates/live.html", "utf8");
     const template = handlebars.compile(source);
@@ -804,8 +912,8 @@ app.post("/devices-geo", async (req, res) => {
   });
 
   const placeholders = selectedDevices
-  .map((_, index) => `$${index + 1}`)
-  .join(",");
+    .map((_, index) => `$${index + 1}`)
+    .join(",");
   const subquery = `
   SELECT g.serial, g.longitude, g.latitude, g.direction, g.speed, r.lastkeepalive, r.plate, r.group, r.number
   FROM geo g
@@ -822,40 +930,39 @@ app.post("/devices-geo", async (req, res) => {
   INNER JOIN registrars r ON g.serial = r.serial
 `;
 
-pool.query(subquery, selectedDevices, async (err, result) => {
-  if (err) {
-    console.error("Ошибка выполнения запроса:", err);
-    res.status(500).json({ error: "Ошибка сервера" });
-    return;
-  }
-
-  const minuteInMillis = 60000;
-
-  const devicesData = [];
-
-  for (const row of result.rows) {
-    if (row.speed > 150) {
-      row.speed /= 100;
+  pool.query(subquery, selectedDevices, async (err, result) => {
+    if (err) {
+      console.error("Ошибка выполнения запроса:", err);
+      res.status(500).json({ error: "Ошибка сервера" });
+      return;
     }
 
-    const groupName = await getGroupNameById(pool, row.group);
+    const minuteInMillis = 60000;
 
-    const deviceData = {
-      serial: row.serial,
-      longitude: row.longitude,
-      latitude: row.latitude,
-      direction: row.direction,
-      speed: row.speed,
-      status: Date.now() - Date.parse(row.lastkeepalive) <= minuteInMillis,
-      number: row.number,
-      plate: row.plate,
-      group: row.group,
-      groupName: groupName, 
-    };
+    const devicesData = [];
 
-    devicesData.push(deviceData);
-  }
-  
+    for (const row of result.rows) {
+      if (row.speed > 150) {
+        row.speed /= 100;
+      }
+
+      const groupName = await getGroupNameById(pool, row.group);
+
+      const deviceData = {
+        serial: row.serial,
+        longitude: row.longitude,
+        latitude: row.latitude,
+        direction: row.direction,
+        speed: row.speed,
+        status: Date.now() - Date.parse(row.lastkeepalive) <= minuteInMillis,
+        number: row.number,
+        plate: row.plate,
+        group: row.group,
+        groupName: groupName,
+      };
+
+      devicesData.push(deviceData);
+    }
 
     res.json({ devicesData });
   });
@@ -867,9 +974,8 @@ async function getGroupNameById(pool, groupId) {
   if (result.rows.length > 0) {
     return result.rows[0].name;
   }
-  return 'Другое';
+  return "Другое";
 }
-
 
 async function reports(req, res) {
   if (req.session.userId === undefined) {
@@ -881,7 +987,7 @@ async function reports(req, res) {
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
-    isAdmin: req.session.userId === 'admin',
+    isAdmin: req.session.userId === "admin",
     ifDBError: false,
     Registrars: [],
     Groups: [],
@@ -899,18 +1005,19 @@ async function reports(req, res) {
 
     let serialValues = [];
     if (!templateData.isAdmin) {
-      
       const userDevicesQuery = `
         SELECT devices
         FROM users
         WHERE id = $1
       `;
-      const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
-      
+      const userDevicesResult = await client.query(userDevicesQuery, [
+        req.session.userId,
+      ]);
+
       if (userDevicesResult.rows[0].devices.length > 0) {
         serialValues = userDevicesResult.rows[0].devices;
-      } 
-    } 
+      }
+    }
 
     const query = `
     SELECT a.evtuuid, a.id, a.cmdno, a.time, a.serial, a.st, r.plate, g.latitude, g.longitude, r.number
@@ -918,7 +1025,7 @@ async function reports(req, res) {
       SELECT DISTINCT ON (evtuuid) evtuuid, id, cmdno, time, serial, st
       FROM alarms
       WHERE alarmtype = 56
-      ${!templateData.isAdmin ? 'AND serial = ANY($1)' : ''}
+      ${!templateData.isAdmin ? "AND serial = ANY($1)" : ""}
       ORDER BY evtuuid, time DESC 
     ) AS a
     LEFT JOIN registrars AS r ON a.serial = r.serial
@@ -930,7 +1037,10 @@ async function reports(req, res) {
     ORDER BY a.time DESC
     LIMIT 14;
     `;
-    const alarms = await client.query(query, templateData.isAdmin ? [] : [serialValues]); 
+    const alarms = await client.query(
+      query,
+      templateData.isAdmin ? [] : [serialValues]
+    );
 
     function formatDate(date) {
       const options = {
@@ -943,18 +1053,21 @@ async function reports(req, res) {
       };
 
       const dateString = date.toISOString().replace("T", " ").slice(0, 19);
-    
-      const [datePart, timePart] = dateString.split(' ');
-      const [year, month, day] = datePart.split('-');
-      const [hour, minute, second] = timePart.split(':');
-    
-const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${year.slice(-2)} ${("0" + hour).slice(-2)}:${("0" + minute).slice(-2)}`;
 
-  return formattedDate;
+      const [datePart, timePart] = dateString.split(" ");
+      const [year, month, day] = datePart.split("-");
+      const [hour, minute, second] = timePart.split(":");
+
+      const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(
+        -2
+      )}.${year.slice(-2)} ${("0" + hour).slice(-2)}:${("0" + minute).slice(
+        -2
+      )}`;
+
+      return formattedDate;
     }
-    
 
-    (templateData.Alarms = alarms.rows.map((alarm) => {
+    templateData.Alarms = alarms.rows.map((alarm) => {
       let type;
       switch (alarm.st) {
         case "0":
@@ -1063,11 +1176,11 @@ const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${yea
         st: alarm.st,
         type: type,
         plate: alarm.plate,
-        latitude: (alarm.latitude).toFixed(6),
-        longitude: (alarm.longitude).toFixed(6),
-        geo: (alarm.latitude).toFixed(6) + "," + (alarm.longitude).toFixed(6),
+        latitude: alarm.latitude.toFixed(6),
+        longitude: alarm.longitude.toFixed(6),
+        geo: alarm.latitude.toFixed(6) + "," + alarm.longitude.toFixed(6),
       };
-    }))
+    });
 
     const groupsQuery = "SELECT id, name FROM groups";
     const groupsResult = await client.query(groupsQuery);
@@ -1081,10 +1194,13 @@ const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${yea
     // Выполняем запрос, чтобы получить все данные из таблицы registrars
     const queryRegistrars = `
       SELECT id, serial, lastkeepalive, "group", name, plate, sim, ip, port, number
-      FROM registrars ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''}
+      FROM registrars ${!templateData.isAdmin ? "WHERE serial = ANY($1)" : ""}
       ORDER BY id
     `;
-    const registrarsResult = await client.query(queryRegistrars, templateData.isAdmin ? [] : [serialValues]);
+    const registrarsResult = await client.query(
+      queryRegistrars,
+      templateData.isAdmin ? [] : [serialValues]
+    );
     const allRegistrars = registrarsResult.rows;
 
     const groupedRegistrars = {};
@@ -1100,13 +1216,12 @@ const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${yea
     });
 
     templateData.Groups = Object.keys(groupedRegistrars).map((groupName) => ({
-        name: groupName,
-        serials: groupedRegistrars[groupName],
-        numbers: groupedNumbers[groupName],
-      }));
+      name: groupName,
+      serials: groupedRegistrars[groupName],
+      numbers: groupedNumbers[groupName],
+    }));
 
-
-      const countQueryText = `
+    const countQueryText = `
       SELECT COUNT(*) AS total
       FROM (
         SELECT DISTINCT a.evtuuid
@@ -1118,13 +1233,15 @@ const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${yea
           FROM geo
         ) AS g ON a.serial = g.serial AND g.row_num = 1
         WHERE a.alarmtype = 56
-        ${!templateData.isAdmin ? 'AND a.serial = ANY($1)' : ''}
+        ${!templateData.isAdmin ? "AND a.serial = ANY($1)" : ""}
       ) AS unique_events
   `;
 
-    const countResult = await pool.query(countQueryText, templateData.isAdmin ? [] : [serialValues]);
+    const countResult = await pool.query(
+      countQueryText,
+      templateData.isAdmin ? [] : [serialValues]
+    );
     templateData.Count = countResult.rows[0].total;
-
 
     const source = fs.readFileSync(
       "static/templates/reports/index.html",
@@ -1149,7 +1266,7 @@ const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${yea
   }
 }
 
-app.post('/getreports', async (req, res) => {
+app.post("/getreports", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin?page=reports");
   }
@@ -1163,26 +1280,28 @@ app.post('/getreports', async (req, res) => {
     });
 
     let serialValues = [];
-    if (req.session.userId != 'admin') {
-      
+    if (req.session.userId != "admin") {
       const userDevicesQuery = `
         SELECT devices
         FROM users
         WHERE id = $1
       `;
-      const userDevicesResult = await pool.query(userDevicesQuery, [req.session.userId]);
-      
+      const userDevicesResult = await pool.query(userDevicesQuery, [
+        req.session.userId,
+      ]);
+
       if (userDevicesResult.rows[0].devices.length > 0) {
         serialValues = userDevicesResult.rows[0].devices;
-      } 
-    } 
+      }
+    }
 
-    const { page, timeRangeStart, timeRangeEnd, serials, searchText } = req.body;
+    const { page, timeRangeStart, timeRangeEnd, serials, searchText } =
+      req.body;
 
     let timeRangeStartCheck = timeRangeStart;
     let timeRangeEndCheck = timeRangeEnd;
     let serialsCheck = serials;
-    
+
     console.log(req.body);
 
     if (!timeRangeStartCheck || !timeRangeEndCheck || serialsCheck.length < 1) {
@@ -1195,7 +1314,6 @@ app.post('/getreports', async (req, res) => {
           alarms;
       `;
 
-
       const minMaxDateResult = await pool.query(minMaxSerialQuery);
 
       if (!timeRangeStartCheck) {
@@ -1207,13 +1325,12 @@ app.post('/getreports', async (req, res) => {
       }
 
       if (serialsCheck.length < 1) {
-        if (req.session.userId != 'admin') {
+        if (req.session.userId != "admin") {
           serialsCheck = serialValues;
         } else {
           serialsCheck = minMaxDateResult.rows[0].unique_serials;
         }
       }
-
     }
 
     const violationsMapping = {
@@ -1247,22 +1364,22 @@ app.post('/getreports', async (req, res) => {
       27: "пешеходы на переходе",
       28: "! неучтивое отношение к пешеходам",
       29: "обнаружен пешеходный переход",
-      30: "водитель матерится"
+      30: "водитель матерится",
     };
 
     const idList = Object.entries(violationsMapping)
       .filter(([id, violation]) => violation.includes(searchText.toLowerCase()))
       .map(([id, violation]) => id);
-    
+
     console.log(idList);
-    
+
     const searchConditions = [
-      'a.evtuuid::TEXT ILIKE $4',
-      'a.id::TEXT ILIKE $4',
-      'r.plate::TEXT ILIKE $4',
-      'a.serial::TEXT ILIKE $4',
-      'g.latitude::TEXT ILIKE $4',
-      'g.longitude::TEXT ILIKE $4',
+      "a.evtuuid::TEXT ILIKE $4",
+      "a.id::TEXT ILIKE $4",
+      "r.plate::TEXT ILIKE $4",
+      "a.serial::TEXT ILIKE $4",
+      "g.latitude::TEXT ILIKE $4",
+      "g.longitude::TEXT ILIKE $4",
     ];
 
     const countQueryText = `
@@ -1280,16 +1397,17 @@ app.post('/getreports', async (req, res) => {
       AND a.time >= $1::timestamp
       AND a.time <= $2::timestamp
       AND a.serial = ANY($3)
-      ${searchText ? `AND (${idList.length > 0 ? 'st = ANY($5) OR' : ''} (${searchConditions.join(' OR ')}))` : ''}
+      ${
+        searchText
+          ? `AND (${
+              idList.length > 0 ? "st = ANY($5) OR" : ""
+            } (${searchConditions.join(" OR ")}))`
+          : ""
+      }
   ) AS unique_events;
 `;
 
-  
-  const countValues = [
-    timeRangeStartCheck,
-    timeRangeEndCheck,
-    serialsCheck,
-  ];
+    const countValues = [timeRangeStartCheck, timeRangeEndCheck, serialsCheck];
 
     if (searchText.length > 0) {
       countValues.push(`%${searchText}%`);
@@ -1303,13 +1421,13 @@ app.post('/getreports', async (req, res) => {
     const totalCount = countResult.rows[0].total;
 
     const queryConditions = [
-      'a.evtuuid::TEXT ILIKE $6',
-      'a.id::TEXT ILIKE $6',
-      'r.plate::TEXT ILIKE $6',
-      'a.serial::TEXT ILIKE $6',
-      'g.latitude::TEXT ILIKE $6',
-      'g.longitude::TEXT ILIKE $6',
-    ];    
+      "a.evtuuid::TEXT ILIKE $6",
+      "a.id::TEXT ILIKE $6",
+      "r.plate::TEXT ILIKE $6",
+      "a.serial::TEXT ILIKE $6",
+      "g.latitude::TEXT ILIKE $6",
+      "g.longitude::TEXT ILIKE $6",
+    ];
 
     const queryText = `
       SELECT a.evtuuid, a.id, a.cmdno, a.time, a.serial, a.st, r.plate, g.latitude, g.longitude, r.number
@@ -1330,7 +1448,13 @@ app.post('/getreports', async (req, res) => {
       WHERE a.time >= $1::timestamp
         AND a.time <= $2::timestamp
         AND a.serial = ANY($3)
-        ${searchText ? `AND (${idList.length > 0 ? 'st = ANY($7) OR' : ''} (${queryConditions.join(' OR ')}))` : ``}
+        ${
+          searchText
+            ? `AND (${
+                idList.length > 0 ? "st = ANY($7) OR" : ""
+              } (${queryConditions.join(" OR ")}))`
+            : ``
+        }
       ORDER BY a.time DESC
       OFFSET $4 LIMIT $5;
     `;
@@ -1350,7 +1474,7 @@ app.post('/getreports', async (req, res) => {
     if (idList.length > 0 && idList.length !== 31) {
       values.push(idList);
     }
-  
+
     const result = await pool.query(queryText, values);
 
     function formatDate(date) {
@@ -1364,16 +1488,19 @@ app.post('/getreports', async (req, res) => {
       };
 
       const dateString = date.toISOString().replace("T", " ").slice(0, 19);
-    
-      const [datePart, timePart] = dateString.split(' ');
-      const [year, month, day] = datePart.split('-');
-      const [hour, minute, second] = timePart.split(':');
-    
-const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${year.slice(-2)} ${("0" + hour).slice(-2)}:${("0" + minute).slice(-2)}`;
 
-  return formattedDate;
+      const [datePart, timePart] = dateString.split(" ");
+      const [year, month, day] = datePart.split("-");
+      const [hour, minute, second] = timePart.split(":");
+
+      const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(
+        -2
+      )}.${year.slice(-2)} ${("0" + hour).slice(-2)}:${("0" + minute).slice(
+        -2
+      )}`;
+
+      return formattedDate;
     }
-    
 
     const Alarms = result.rows.map((alarm) => {
       let type;
@@ -1484,22 +1611,21 @@ const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${yea
         st: alarm.st,
         type: type,
         plate: alarm.plate,
-        latitude: (alarm.latitude).toFixed(6),
-        longitude: (alarm.longitude).toFixed(6),
-        geo: (alarm.latitude).toFixed(6) + "," + (alarm.longitude).toFixed(6),
+        latitude: alarm.latitude.toFixed(6),
+        longitude: alarm.longitude.toFixed(6),
+        geo: alarm.latitude.toFixed(6) + "," + alarm.longitude.toFixed(6),
       };
-    })
+    });
 
     res.json({
       total: totalCount,
       data: Alarms,
     });
   } catch (error) {
-    console.error('Error handling request:', error);
-    res.status(500).send('Internal Server Error');
+    console.error("Error handling request:", error);
+    res.status(500).send("Internal Server Error");
   }
 });
-
 
 app.get("/api/devices", async (req, res) => {
   if (req.session.userId === undefined) {
@@ -1523,19 +1649,21 @@ app.get("/api/devices", async (req, res) => {
         FROM users
         WHERE id = $1
       `;
-      const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
-      
+      const userDevicesResult = await client.query(userDevicesQuery, [
+        req.session.userId,
+      ]);
+
       if (userDevicesResult.rows[0].devices.length > 0) {
         serialValues = userDevicesResult.rows[0].devices;
-      } 
-    } 
+      }
+    }
 
     const query = `
       SELECT a.id, a.cmdno, a.time, a.serial, a.st, r.plate, g.latitude, g.longitude
       FROM (
         SELECT id, cmdno, time, serial, st
         FROM alarms
-        ${!templateData.isAdmin ? 'WHERE serial = ANY($4)' : ''}
+        ${!templateData.isAdmin ? "WHERE serial = ANY($4)" : ""}
         ORDER BY time DESC 
         LIMIT $1 OFFSET $2
       ) AS a
@@ -1547,7 +1675,12 @@ app.get("/api/devices", async (req, res) => {
       ) AS g ON a.serial = g.serial AND g.row_num = 1
       ORDER BY a.time DESC;
     `;
-    const alarms = await pool.query(query, templateData.isAdmin ? [limit, offset, new Date()] : [limit, offset, new Date(), serialValues]); 
+    const alarms = await pool.query(
+      query,
+      templateData.isAdmin
+        ? [limit, offset, new Date()]
+        : [limit, offset, new Date(), serialValues]
+    );
 
     function formatDate(date) {
       const options = {
@@ -1560,14 +1693,18 @@ app.get("/api/devices", async (req, res) => {
       };
 
       const dateString = date.toISOString().replace("T", " ").slice(0, 19);
-    
-      const [datePart, timePart] = dateString.split(' ');
-      const [year, month, day] = datePart.split('-');
-      const [hour, minute, second] = timePart.split(':');
-    
-const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${year.slice(-2)} ${("0" + hour).slice(-2)}:${("0" + minute).slice(-2)}`;
 
-  return formattedDate;
+      const [datePart, timePart] = dateString.split(" ");
+      const [year, month, day] = datePart.split("-");
+      const [hour, minute, second] = timePart.split(":");
+
+      const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(
+        -2
+      )}.${year.slice(-2)} ${("0" + hour).slice(-2)}:${("0" + minute).slice(
+        -2
+      )}`;
+
+      return formattedDate;
     }
 
     const alarmsData = alarms.rows.map((alarm) => {
@@ -1599,8 +1736,13 @@ const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${yea
       };
     });
 
-    const totalCountQuery = `SELECT COUNT(*) FROM alarms ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''};`;
-    const totalCount = await pool.query(totalCountQuery, templateData.isAdmin ? [] : [serialValues]);
+    const totalCountQuery = `SELECT COUNT(*) FROM alarms ${
+      !templateData.isAdmin ? "WHERE serial = ANY($1)" : ""
+    };`;
+    const totalCount = await pool.query(
+      totalCountQuery,
+      templateData.isAdmin ? [] : [serialValues]
+    );
 
     const totalPages = Math.ceil(totalCount.rows[0].count / limit);
 
@@ -1614,10 +1756,7 @@ const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${yea
   }
 });
 
-
-
-
-app.get('/reports/:id', async (req, res) => {
+app.get("/reports/:id", async (req, res) => {
   const id = req.params.id;
   if (req.session.userId === undefined) {
     return res.redirect("/signin?page=reports/" + id);
@@ -1629,7 +1768,7 @@ app.get('/reports/:id', async (req, res) => {
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
-    isAdmin: req.session.userId === 'admin',
+    isAdmin: req.session.userId === "admin",
     ifDBError: false,
     Id: id,
     Type: "",
@@ -1659,9 +1798,9 @@ app.get('/reports/:id', async (req, res) => {
       port: DB_Port,
     });
     const client = await pool.connect();
-  
-    const minuteInMillis = 90 * 1000; 
-    
+
+    const minuteInMillis = 90 * 1000;
+
     let serialValues = [];
     if (!templateData.isAdmin) {
       const userDevicesQuery = `
@@ -1669,13 +1808,15 @@ app.get('/reports/:id', async (req, res) => {
         FROM users
         WHERE id = $1
       `;
-      const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
-      
+      const userDevicesResult = await client.query(userDevicesQuery, [
+        req.session.userId,
+      ]);
+
       if (userDevicesResult.rows[0].devices.length > 0) {
         serialValues = userDevicesResult.rows[0].devices;
-      } 
-    } 
-  
+      }
+    }
+
     const query = `
     WITH PrevNextGeo AS (
       SELECT
@@ -1726,168 +1867,171 @@ app.get('/reports/:id', async (req, res) => {
       };
 
       const dateString = date.toISOString().replace("T", " ").slice(0, 19);
-    
-      const [datePart, timePart] = dateString.split(' ');
-      const [year, month, day] = datePart.split('-');
-      const [hour, minute, second] = timePart.split(':');
-    
-const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${year.slice(-2)} ${("0" + hour).slice(-2)}:${("0" + minute).slice(-2)}`;
 
-  return formattedDate;
+      const [datePart, timePart] = dateString.split(" ");
+      const [year, month, day] = datePart.split("-");
+      const [hour, minute, second] = timePart.split(":");
+
+      const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(
+        -2
+      )}.${year.slice(-2)} ${("0" + hour).slice(-2)}:${("0" + minute).slice(
+        -2
+      )}`;
+
+      return formattedDate;
     }
 
     function formatDateToYYYYMMDD(sqlDate) {
       const date = new Date(sqlDate);
       const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
       return `${year}${month}${day}`;
     }
 
     function formatTimeToHHMMSSBefore(sqlDate) {
       const date = new Date(sqlDate);
-      date.setSeconds(date.getSeconds() - 10); 
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      const seconds = String(date.getSeconds()).padStart(2, '0');
+      date.setSeconds(date.getSeconds() - 10);
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      const seconds = String(date.getSeconds()).padStart(2, "0");
       return `${hours}${minutes}${seconds}`;
     }
 
     function formatTimeToHHMMSSAfter(sqlDate) {
       const date = new Date(sqlDate);
-      date.setSeconds(date.getSeconds() + 10); 
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      const seconds = String(date.getSeconds()).padStart(2, '0');
+      date.setSeconds(date.getSeconds() + 10);
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      const seconds = String(date.getSeconds()).padStart(2, "0");
       return `${hours}${minutes}${seconds}`;
     }
 
-      let type;
-      switch (alarm.st) {
-        case "0":
-          type = "Усталость";
-          break;
-        case "1":
-          type = "Водитель пропал";
-          break;
-        case "2":
-          type = "Разговор по телефону";
-          break;
-        case "3":
-          type = "Курение за рулём";
-          break;
-        case "4":
-          type = "Водитель отвлекся";
-          break;
-        case "5":
-          type = "Выезд с полосы движения";
-          break;
-        case "6":
-          type = "!!! Лобовое столкновение";
-          break;
-        case "7":
-          type = "Скорость превышена";
-          break;
-        case "8":
-          type = "Распознавание номерных знаков";
-          break;
-        case "9":
-          type = "!! Маленькое расстояние спереди";
-          break;
-        case "10":
-          type = "Водитель зевает";
-          break;
-        case "11":
-          type = "!!! Столкновение с пешеходом";
-          break;
-        case "12":
-          type = "Проходы переполнены";
-          break;
-        case "13":
-          type = "!! Посадка/высадка вне остановки";
-          break;
-        case "14":
-          type = "!! Смена полосы с нарушением ПДД";
-          break;
-        case "15":
-          type = "! Включенный телефон у водителя";
-          break;
-        case "16":
-          type = "!!! Ремень безопасности";
-          break;
-        case "17":
-          type = "Проверка не удалась";
-          break;
-        case "18":
-          type = "Слепые зоны справа";
-          break;
-        case "19":
-          type = "!!! Заднее столкновение";
-          break;
-        case "20":
-          type = "!!! Управление без рук";
-          break;
-        case "21":
-          type = "!! Управление одной рукой";
-          break;
-        case "22":
-          type = "Очки, блокирующие инфракрасное излучение";
-          break;
-        case "23":
-          type = "Слепые зоны слева";
-          break;
-        case "24":
-          type = "Помехи для пассажиров";
-          break;
-        case "25":
-          type = "На перекрестке ограничена скорость";
-          break;
-        case "26":
-          type = "Обнаружен перекресток";
-          break;
-        case "27":
-          type = "Пешеходы на переходе";
-          break;
-        case "28":
-          type = "! Неучтивое отношение к пешеходам";
-          break;
-        case "29":
-          type = "Обнаружен пешеходный переход";
-          break;
-        case "30":
-          type = "Водитель матерится";
-          break;
-        default:
-          type = "Неизвестный тип";
-      }
+    let type;
+    switch (alarm.st) {
+      case "0":
+        type = "Усталость";
+        break;
+      case "1":
+        type = "Водитель пропал";
+        break;
+      case "2":
+        type = "Разговор по телефону";
+        break;
+      case "3":
+        type = "Курение за рулём";
+        break;
+      case "4":
+        type = "Водитель отвлекся";
+        break;
+      case "5":
+        type = "Выезд с полосы движения";
+        break;
+      case "6":
+        type = "!!! Лобовое столкновение";
+        break;
+      case "7":
+        type = "Скорость превышена";
+        break;
+      case "8":
+        type = "Распознавание номерных знаков";
+        break;
+      case "9":
+        type = "!! Маленькое расстояние спереди";
+        break;
+      case "10":
+        type = "Водитель зевает";
+        break;
+      case "11":
+        type = "!!! Столкновение с пешеходом";
+        break;
+      case "12":
+        type = "Проходы переполнены";
+        break;
+      case "13":
+        type = "!! Посадка/высадка вне остановки";
+        break;
+      case "14":
+        type = "!! Смена полосы с нарушением ПДД";
+        break;
+      case "15":
+        type = "! Включенный телефон у водителя";
+        break;
+      case "16":
+        type = "!!! Ремень безопасности";
+        break;
+      case "17":
+        type = "Проверка не удалась";
+        break;
+      case "18":
+        type = "Слепые зоны справа";
+        break;
+      case "19":
+        type = "!!! Заднее столкновение";
+        break;
+      case "20":
+        type = "!!! Управление без рук";
+        break;
+      case "21":
+        type = "!! Управление одной рукой";
+        break;
+      case "22":
+        type = "Очки, блокирующие инфракрасное излучение";
+        break;
+      case "23":
+        type = "Слепые зоны слева";
+        break;
+      case "24":
+        type = "Помехи для пассажиров";
+        break;
+      case "25":
+        type = "На перекрестке ограничена скорость";
+        break;
+      case "26":
+        type = "Обнаружен перекресток";
+        break;
+      case "27":
+        type = "Пешеходы на переходе";
+        break;
+      case "28":
+        type = "! Неучтивое отношение к пешеходам";
+        break;
+      case "29":
+        type = "Обнаружен пешеходный переход";
+        break;
+      case "30":
+        type = "Водитель матерится";
+        break;
+      default:
+        type = "Неизвестный тип";
+    }
 
-      var actualSpeed;
-      if (alarm.speed > 150) {
-        actualSpeed = alarm.speed / 100
-      } else {
-        actualSpeed = alarm.speed
-      }
+    var actualSpeed;
+    if (alarm.speed > 150) {
+      actualSpeed = alarm.speed / 100;
+    } else {
+      actualSpeed = alarm.speed;
+    }
 
-      if (serialValues.includes(alarm.serial) || templateData.isAdmin) {
-
+    if (serialValues.includes(alarm.serial) || templateData.isAdmin) {
       templateData.Type = type;
       templateData.Speed = actualSpeed;
       templateData.Date = formatDate(alarm.time);
       templateData.Serial = alarm.serial;
       templateData.Geo = alarm.latitude + "," + alarm.longitude;
-      templateData.Latitude = alarm.latitude
-      templateData.Longitude = alarm.longitude
+      templateData.Latitude = alarm.latitude;
+      templateData.Longitude = alarm.longitude;
       templateData.QueryTime = formatDateToYYYYMMDD(alarm.time);
       templateData.StartTime = formatTimeToHHMMSSBefore(alarm.time);
       templateData.EndTime = formatTimeToHHMMSSAfter(alarm.time);
 
-      templateData.PrevLatitude = alarm.prev_latitude;   
-      templateData.PrevLongitude = alarm.prev_longitude; 
-      templateData.NextLatitude = alarm.next_latitude;   
-      templateData.NextLongitude = alarm.next_longitude; 
+      templateData.PrevLatitude = alarm.prev_latitude;
+      templateData.PrevLongitude = alarm.prev_longitude;
+      templateData.NextLatitude = alarm.next_latitude;
+      templateData.NextLongitude = alarm.next_longitude;
 
-      templateData.Speeds = alarm.nearest_speeds
-      templateData.Speeds = templateData.Speeds.map(speed => {
+      templateData.Speeds = alarm.nearest_speeds;
+      templateData.Speeds = templateData.Speeds.map((speed) => {
         if (speed > 150) {
           return speed / 100;
         } else {
@@ -1895,16 +2039,19 @@ const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${yea
         }
       });
     } else {
-      console.log("Нет доступа к данному аларму")
+      console.log("Нет доступа к данному аларму");
       templateData.ifDBError = true;
     }
     // console.log(templateData);
-  
-    const source = fs.readFileSync("static/templates/reports/report.html", "utf8");
+
+    const source = fs.readFileSync(
+      "static/templates/reports/report.html",
+      "utf8"
+    );
     const template = handlebars.compile(source);
     const resultT = template(templateData);
     res.send(resultT);
-  
+
     client.release();
   } catch (error) {
     console.error(error);
@@ -1920,7 +2067,7 @@ const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${yea
   }
 });
 
-app.get('/generate-pdf/:id', async (req, res) => {
+app.get("/generate-pdf/:id", async (req, res) => {
   const id = req.params.id;
   if (req.session.userId === undefined) {
     return res.redirect("/signin?page=generate-pdf/" + id);
@@ -1932,7 +2079,7 @@ app.get('/generate-pdf/:id', async (req, res) => {
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
-    isAdmin: req.session.userId === 'admin',
+    isAdmin: req.session.userId === "admin",
     ifDBError: false,
     Id: id,
     Type: "",
@@ -1959,9 +2106,9 @@ app.get('/generate-pdf/:id', async (req, res) => {
       port: DB_Port,
     });
     const client = await pool.connect();
-  
-    const minuteInMillis = 90 * 1000; 
-  
+
+    const minuteInMillis = 90 * 1000;
+
     const query = `
     WITH PrevNextGeo AS (
       SELECT
@@ -2012,160 +2159,164 @@ app.get('/generate-pdf/:id', async (req, res) => {
       };
 
       const dateString = date.toISOString().replace("T", " ").slice(0, 19);
-    
-      const [datePart, timePart] = dateString.split(' ');
-      const [year, month, day] = datePart.split('-');
-      const [hour, minute, second] = timePart.split(':');
-    
-      const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(-2)}.${year.slice(-2)} ${("0" + hour).slice(-2)}:${("0" + minute).slice(-2)}`;
+
+      const [datePart, timePart] = dateString.split(" ");
+      const [year, month, day] = datePart.split("-");
+      const [hour, minute, second] = timePart.split(":");
+
+      const formattedDate = `${("0" + day).slice(-2)}.${("0" + month).slice(
+        -2
+      )}.${year.slice(-2)} ${("0" + hour).slice(-2)}:${("0" + minute).slice(
+        -2
+      )}`;
 
       return formattedDate;
     }
 
-      let type;
-      switch (alarm.st) {
-        case "0":
-          type = "Усталость";
-          break;
-        case "1":
-          type = "Водитель пропал";
-          break;
-        case "2":
-          type = "Разговор по телефону";
-          break;
-        case "3":
-          type = "Курение за рулём";
-          break;
-        case "4":
-          type = "Водитель отвлекся";
-          break;
-        case "5":
-          type = "Выезд с полосы движения";
-          break;
-        case "6":
-          type = "!!! Лобовое столкновение";
-          break;
-        case "7":
-          type = "Скорость превышена";
-          break;
-        case "8":
-          type = "Распознавание номерных знаков";
-          break;
-        case "9":
-          type = "!! Маленькое расстояние спереди";
-          break;
-        case "10":
-          type = "Водитель зевает";
-          break;
-        case "11":
-          type = "!!! Столкновение с пешеходом";
-          break;
-        case "12":
-          type = "Проходы переполнены";
-          break;
-        case "13":
-          type = "!! Посадка/высадка вне остановки";
-          break;
-        case "14":
-          type = "!! Смена полосы с нарушением ПДД";
-          break;
-        case "15":
-          type = "! Включенный телефон у водителя";
-          break;
-        case "16":
-          type = "!!! Ремень безопасности";
-          break;
-        case "17":
-          type = "Проверка не удалась";
-          break;
-        case "18":
-          type = "Слепые зоны справа";
-          break;
-        case "19":
-          type = "!!! Заднее столкновение";
-          break;
-        case "20":
-          type = "!!! Управление без рук";
-          break;
-        case "21":
-          type = "!! Управление одной рукой";
-          break;
-        case "22":
-          type = "Очки, блокирующие инфракрасное излучение";
-          break;
-        case "23":
-          type = "Слепые зоны слева";
-          break;
-        case "24":
-          type = "Помехи для пассажиров";
-          break;
-        case "25":
-          type = "На перекрестке ограничена скорость";
-          break;
-        case "26":
-          type = "Обнаружен перекресток";
-          break;
-        case "27":
-          type = "Пешеходы на переходе";
-          break;
-        case "28":
-          type = "! Неучтивое отношение к пешеходам";
-          break;
-        case "29":
-          type = "Обнаружен пешеходный переход";
-          break;
-        case "30":
-          type = "Водитель матерится";
-          break;
-        default:
-          type = "Неизвестный тип";
-      }
+    let type;
+    switch (alarm.st) {
+      case "0":
+        type = "Усталость";
+        break;
+      case "1":
+        type = "Водитель пропал";
+        break;
+      case "2":
+        type = "Разговор по телефону";
+        break;
+      case "3":
+        type = "Курение за рулём";
+        break;
+      case "4":
+        type = "Водитель отвлекся";
+        break;
+      case "5":
+        type = "Выезд с полосы движения";
+        break;
+      case "6":
+        type = "!!! Лобовое столкновение";
+        break;
+      case "7":
+        type = "Скорость превышена";
+        break;
+      case "8":
+        type = "Распознавание номерных знаков";
+        break;
+      case "9":
+        type = "!! Маленькое расстояние спереди";
+        break;
+      case "10":
+        type = "Водитель зевает";
+        break;
+      case "11":
+        type = "!!! Столкновение с пешеходом";
+        break;
+      case "12":
+        type = "Проходы переполнены";
+        break;
+      case "13":
+        type = "!! Посадка/высадка вне остановки";
+        break;
+      case "14":
+        type = "!! Смена полосы с нарушением ПДД";
+        break;
+      case "15":
+        type = "! Включенный телефон у водителя";
+        break;
+      case "16":
+        type = "!!! Ремень безопасности";
+        break;
+      case "17":
+        type = "Проверка не удалась";
+        break;
+      case "18":
+        type = "Слепые зоны справа";
+        break;
+      case "19":
+        type = "!!! Заднее столкновение";
+        break;
+      case "20":
+        type = "!!! Управление без рук";
+        break;
+      case "21":
+        type = "!! Управление одной рукой";
+        break;
+      case "22":
+        type = "Очки, блокирующие инфракрасное излучение";
+        break;
+      case "23":
+        type = "Слепые зоны слева";
+        break;
+      case "24":
+        type = "Помехи для пассажиров";
+        break;
+      case "25":
+        type = "На перекрестке ограничена скорость";
+        break;
+      case "26":
+        type = "Обнаружен перекресток";
+        break;
+      case "27":
+        type = "Пешеходы на переходе";
+        break;
+      case "28":
+        type = "! Неучтивое отношение к пешеходам";
+        break;
+      case "29":
+        type = "Обнаружен пешеходный переход";
+        break;
+      case "30":
+        type = "Водитель матерится";
+        break;
+      default:
+        type = "Неизвестный тип";
+    }
 
-      var actualSpeed;
-      if (alarm.speed > 150) {
-        actualSpeed = alarm.speed / 100
+    var actualSpeed;
+    if (alarm.speed > 150) {
+      actualSpeed = alarm.speed / 100;
+    } else {
+      actualSpeed = alarm.speed;
+    }
+
+    templateData.Type = type;
+    templateData.Speed = actualSpeed;
+    templateData.Date = formatDate(alarm.time);
+    templateData.Serial = alarm.serial;
+    templateData.Geo = alarm.latitude + "," + alarm.longitude;
+    templateData.Latitude = alarm.latitude;
+    templateData.Longitude = alarm.longitude;
+
+    templateData.PrevLatitude = alarm.prev_latitude;
+    templateData.PrevLongitude = alarm.prev_longitude;
+    templateData.NextLatitude = alarm.next_latitude;
+    templateData.NextLongitude = alarm.next_longitude;
+
+    templateData.Speeds = alarm.nearest_speeds;
+    templateData.Speeds = templateData.Speeds.map((speed) => {
+      if (speed > 150) {
+        return speed / 100;
       } else {
-        actualSpeed = alarm.speed
+        return speed;
       }
+    });
 
-      templateData.Type = type;
-      templateData.Speed = actualSpeed;
-      templateData.Date = formatDate(alarm.time);
-      templateData.Serial = alarm.serial;
-      templateData.Geo = alarm.latitude + "," + alarm.longitude;
-      templateData.Latitude = alarm.latitude
-      templateData.Longitude = alarm.longitude
+    let data = {
+      Id: templateData.Id,
+      Organisation: templateData.Organisation,
+      Type: templateData.Type,
+      Speed: templateData.Speed,
+      Date: templateData.Date,
+      Serial: templateData.Serial,
+      Geo: templateData.Geo,
+      PrevLongitude: templateData.PrevLongitude,
+      PrevLatitude: templateData.PrevLatitude,
+      NextLongitude: templateData.NextLongitude,
+      NextLatitude: templateData.NextLatitude,
+      Speeds: templateData.Speeds,
+    };
 
-      templateData.PrevLatitude = alarm.prev_latitude;   
-      templateData.PrevLongitude = alarm.prev_longitude; 
-      templateData.NextLatitude = alarm.next_latitude;   
-      templateData.NextLongitude = alarm.next_longitude; 
-
-      templateData.Speeds = alarm.nearest_speeds
-      templateData.Speeds = templateData.Speeds.map(speed => {
-        if (speed > 150) {
-          return speed / 100;
-        } else {
-          return speed;
-        }
-      });
-
-let data = {
-  Id: templateData.Id,
-  Organisation: templateData.Organisation,
-  Type: templateData.Type,
-  Speed: templateData.Speed,
-  Date: templateData.Date,
-  Serial: templateData.Serial,
-  Geo: templateData.Geo,
-  PrevLongitude: templateData.PrevLongitude,
-  PrevLatitude: templateData.PrevLatitude,
-  NextLongitude: templateData.NextLongitude,
-  NextLatitude: templateData.NextLatitude,
-  Speeds: templateData.Speeds,
-};
-
-      const source = fs.readFileSync("static/templates/reports/pdf.html", "utf8");
+    const source = fs.readFileSync("static/templates/reports/pdf.html", "utf8");
     const template = handlebars.compile(source);
     const resultT = template(templateData);
     res.send(resultT);
@@ -2173,15 +2324,11 @@ let data = {
     console.error(error);
     templateData.ifDBError = true;
 
-    const source = fs.readFileSync(
-      "static/templates/reports/pdf.html",
-      "utf8"
-    );
+    const source = fs.readFileSync("static/templates/reports/pdf.html", "utf8");
     const template = handlebars.compile(source);
     const resultT = template(data);
     res.send(resultT);
   }
-
 });
 
 async function devices(req, res) {
@@ -2192,10 +2339,10 @@ async function devices(req, res) {
   let userInfo;
   let templateData = {
     VIRTUAL_HOST: process.env.VIRTUAL_HOST,
-    Organisation: '',
-    User: '',
-    UserInfo: '',
-    isAdmin: req.session.userId === 'admin',
+    Organisation: "",
+    User: "",
+    UserInfo: "",
+    isAdmin: req.session.userId === "admin",
     ifDBError: false,
     Registrars: [],
     Groups: [],
@@ -2222,12 +2369,14 @@ async function devices(req, res) {
         FROM users
         WHERE id = $1
       `;
-      const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
-      
+      const userDevicesResult = await client.query(userDevicesQuery, [
+        req.session.userId,
+      ]);
+
       if (userDevicesResult.rows[0].devices.length > 0) {
         serialValues = userDevicesResult.rows[0].devices;
-      } 
-    } 
+      }
+    }
 
     const groupsQuery = "SELECT id, name FROM groups";
     const groupsResult = await client.query(groupsQuery);
@@ -2240,10 +2389,13 @@ async function devices(req, res) {
 
     const queryRegistrars = `
       SELECT id, serial, lastkeepalive, "group", name, plate, sim, ip, port, number
-      FROM registrars ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''}
+      FROM registrars ${!templateData.isAdmin ? "WHERE serial = ANY($1)" : ""}
       ORDER BY id
     `;
-    const registrarsResult = await client.query(queryRegistrars, templateData.isAdmin ? [] : [serialValues]);
+    const registrarsResult = await client.query(
+      queryRegistrars,
+      templateData.isAdmin ? [] : [serialValues]
+    );
     const allRegistrars = registrarsResult.rows;
 
     const groupedRegistrars = {};
@@ -2261,20 +2413,21 @@ async function devices(req, res) {
     userInfo = await getUserInfo(req.session.userId);
 
     templateData = {
-    VIRTUAL_HOST: process.env.VIRTUAL_HOST,
+      VIRTUAL_HOST: process.env.VIRTUAL_HOST,
       Organisation: userInfo.Organisation,
       User: userInfo.User,
       UserInfo: userInfo.Users,
       EditTransport: userInfo.EditTransport,
       DeleteTransport: userInfo.DeleteTransport,
       Update: userInfo.Update,
-      isAdmin: req.session.userId === 'admin',
+      isAdmin: req.session.userId === "admin",
       ifDBError: false,
       Registrars: allRegistrars.map((registrar) => ({
         id: registrar.id,
         number: registrar.number,
         serial: registrar.serial,
-        status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
+        status:
+          Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
         name: registrar.name,
         group: groupsMap[registrar.group] || "Другое",
         plate: registrar.plate,
@@ -2290,8 +2443,10 @@ async function devices(req, res) {
       GroupsList: groupsResult.rows,
     };
 
-
-    const source = fs.readFileSync("static/templates/devices/index.html", "utf8");
+    const source = fs.readFileSync(
+      "static/templates/devices/index.html",
+      "utf8"
+    );
     const template = handlebars.compile(source);
     const resultT = template(templateData);
     res.send(resultT);
@@ -2313,7 +2468,7 @@ async function devices(req, res) {
   }
 }
 
-app.get('/devices/device/system/:serial', async (req, res) => {
+app.get("/devices/device/system/:serial", async (req, res) => {
   const serial = req.params.serial;
   if (req.session.userId === undefined) {
     return res.redirect("/signin?page=devices/device/system/" + serial);
@@ -2328,7 +2483,7 @@ app.get('/devices/device/system/:serial', async (req, res) => {
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
-    isAdmin: req.session.userId === 'admin',
+    isAdmin: req.session.userId === "admin",
     ifDBError: false,
     Serial: serial,
     EditTransport: false,
@@ -2345,12 +2500,15 @@ app.get('/devices/device/system/:serial', async (req, res) => {
       port: DB_Port,
     });
     const client = await pool.connect();
-      
-    const source = fs.readFileSync("static/templates/devices/system.html", "utf8");
+
+    const source = fs.readFileSync(
+      "static/templates/devices/system.html",
+      "utf8"
+    );
     const template = handlebars.compile(source);
     const resultT = template(templateData);
     res.send(resultT);
-  
+
     client.release();
   } catch (error) {
     console.error(error);
@@ -2366,7 +2524,7 @@ app.get('/devices/device/system/:serial', async (req, res) => {
   }
 });
 
-app.get('/devices/device/:serial', async (req, res) => {
+app.get("/devices/device/:serial", async (req, res) => {
   const serial = req.params.serial;
   if (req.session.userId === undefined) {
     return res.redirect("/signin?page=devices/device/" + serial);
@@ -2381,7 +2539,7 @@ app.get('/devices/device/:serial', async (req, res) => {
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
-    isAdmin: req.session.userId === 'admin',
+    isAdmin: req.session.userId === "admin",
     ifDBError: false,
     Serial: serial,
     EditTransport: false,
@@ -2438,7 +2596,7 @@ app.get('/devices/device/:serial', async (req, res) => {
     const groupsQuery = "SELECT id, name FROM groups";
     const groupsResult = await client.query(groupsQuery);
 
-    templateData.GroupsList = groupsResult.rows.map(row => ({
+    templateData.GroupsList = groupsResult.rows.map((row) => ({
       id: row.id,
       name: row.name,
     }));
@@ -2480,12 +2638,15 @@ app.get('/devices/device/:serial', async (req, res) => {
       templateData.Installation = rowData.installation;
       templateData.Description = rowData.description;
     }
-      
-    const source = fs.readFileSync("static/templates/devices/device.html", "utf8");
+
+    const source = fs.readFileSync(
+      "static/templates/devices/device.html",
+      "utf8"
+    );
     const template = handlebars.compile(source);
     const resultT = template(templateData);
     res.send(resultT);
-  
+
     client.release();
   } catch (error) {
     console.error(error);
@@ -2515,7 +2676,7 @@ async function groups(req, res) {
     User: userInfo.User,
     ifDBError: false,
     UserInfo: userInfo.Users,
-    isAdmin: req.session.userId === 'admin',
+    isAdmin: req.session.userId === "admin",
     Groups: [],
     EditTransport: userInfo.EditTransport,
     DeleteTransport: userInfo.DeleteTransport,
@@ -2532,13 +2693,16 @@ async function groups(req, res) {
     });
 
     const client = await pool.connect();
-    const result = await client.query('SELECT id, name FROM groups');
+    const result = await client.query("SELECT id, name FROM groups");
     const groups = result.rows;
-    client.release(); 
+    client.release();
 
-    templateData.Groups = groups; 
+    templateData.Groups = groups;
 
-    const source = fs.readFileSync("static/templates/devices/groups.html", "utf8");
+    const source = fs.readFileSync(
+      "static/templates/devices/groups.html",
+      "utf8"
+    );
     const template = handlebars.compile(source);
     const resultT = template(templateData);
     res.send(resultT);
@@ -2556,7 +2720,7 @@ async function groups(req, res) {
   }
 }
 
-app.post('/update-group', async (req, res) => {
+app.post("/update-group", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin?page=devices/groups");
   }
@@ -2575,81 +2739,84 @@ app.post('/update-group', async (req, res) => {
       port: DB_Port,
     });
 
-    const query = 'UPDATE groups SET name = $1 WHERE id = $2';
+    const query = "UPDATE groups SET name = $1 WHERE id = $2";
     const values = [newName, groupId];
 
     await pool.query(query, values);
 
-    res.status(200).json({ message: 'Данные группы обновлены успешно' });
+    res.status(200).json({ message: "Данные группы обновлены успешно" });
   } catch (error) {
-    console.error('Ошибка при обновлении данных группы:', error);
-    res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+    console.error("Ошибка при обновлении данных группы:", error);
+    res.status(500).json({ error: "Внутренняя ошибка сервера" });
   }
 });
 
 async function getParameters(serial) {
+  const requestResponse = await axios.get(
+    `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: JSON.stringify({
+        FIELDS: ["EOSD"],
+      }),
+    }
+  );
 
-  const requestResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: JSON.stringify({
-      "FIELDS": [
-        "EOSD"
-      ]
-    }),
-  });
-  
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await new Promise((resolve) => setTimeout(resolve, 300));
 
+  const requestResponse2 = await axios.get(
+    `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: JSON.stringify({
+        FIELDS: ["GSP"],
+      }),
+    }
+  );
 
-  const requestResponse2 = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: JSON.stringify({
-      "FIELDS": [
-        "GSP"
-      ]
-    }),
-  });
+  await new Promise((resolve) => setTimeout(resolve, 300));
 
-  await new Promise(resolve => setTimeout(resolve, 300));
+  const requestResponse3 = await axios.get(
+    `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: JSON.stringify({
+        FIELDS: ["TIMEP"],
+      }),
+    }
+  );
 
+  await new Promise((resolve) => setTimeout(resolve, 300));
 
-  const requestResponse3 = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: JSON.stringify({
-      "FIELDS": [
-        "TIMEP"
-      ]
-    }),
-  });
-
-  await new Promise(resolve => setTimeout(resolve, 300));
-
-  const requestResponse5 = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: JSON.stringify({
-      "FIELDS": [
-        "AR"
-      ]
-    }),
-  });
+  const requestResponse5 = await axios.get(
+    `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: JSON.stringify({
+        FIELDS: ["AR"],
+      }),
+    }
+  );
 
   // console.log(requestResponse.data);
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await new Promise((resolve) => setTimeout(resolve, 300));
 
-  const getResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`);
+  const getResponse = await axios.get(
+    `http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`
+  );
 
   return getResponse.data;
 }
 
-app.post('/main-parameters', async (req, res) => {
+app.post("/main-parameters", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
@@ -2660,32 +2827,34 @@ app.post('/main-parameters', async (req, res) => {
   try {
     const { serial } = req.body;
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    const requestResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: JSON.stringify({
-      "FIELDS": [
-        "RIP",
-        "VS"
-      ]
-    }),
-  });
+    const requestResponse = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({
+          FIELDS: ["RIP", "VS"],
+        }),
+      }
+    );
 
-  await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  const getResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`);
+    const getResponse = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`
+    );
 
     res.json(getResponse.data);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-app.put('/main-parameters', async (req, res) => {
+app.put("/main-parameters", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
@@ -2696,38 +2865,42 @@ app.put('/main-parameters', async (req, res) => {
   const requestData = req.body;
   const { serial } = req.query;
 
-  const {
-    NUMBER,
-    PLATE,
-    VIN
-  } = requestData;
+  const { NUMBER, PLATE, VIN } = requestData;
 
   const requestBody = {
-    "RIP": {
-      "BN": NUMBER,
-      "BID": PLATE
+    RIP: {
+      BN: NUMBER,
+      BID: PLATE,
     },
-    "VS": {
-      "VIN": VIN
-    }
+    VS: {
+      VIN: VIN,
+    },
   };
 
-
-
   try {
-    const response = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`, {
-      data: JSON.stringify(requestBody),
-      headers: {
-        'Content-Type': 'application/json'
+    const isLastKeepAliveValid = await checkLastKeepAlive(serial);
+
+    if (!isLastKeepAliveValid) {
+      return res
+        .status(400)
+        .send("Ошибка: lastkeepalive старше минуты или устройство не найдено.");
+    }
+    const response = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`,
+      {
+        data: JSON.stringify(requestBody),
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
-    });
+    );
     res.status(response.status).send(response.data);
   } catch (error) {
-    res.status(500).send('Произошла ошибка при отправке GET запроса.');
+    res.status(500).send("Произошла ошибка при отправке GET запроса.");
   }
 });
 
-app.post('/device-parameters', async (req, res) => {
+app.post("/device-parameters", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
@@ -2738,20 +2911,18 @@ app.post('/device-parameters', async (req, res) => {
   try {
     const { serial } = req.body;
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const responseData = await getParameters(serial);
-
 
     res.json(responseData);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-app.post('/ethernet-parameters', async (req, res) => {
+app.post("/ethernet-parameters", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
@@ -2762,32 +2933,34 @@ app.post('/ethernet-parameters', async (req, res) => {
   try {
     const { serial } = req.body;
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    const requestResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: JSON.stringify({
-      "FIELDS": [
-        "ETHERNET",
-        "KEYS"
-      ]
-    }),
-  });
+    const requestResponse = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({
+          FIELDS: ["ETHERNET", "KEYS"],
+        }),
+      }
+    );
 
-  await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  const getResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`);
+    const getResponse = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`
+    );
 
     res.json(getResponse.data);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-app.put('/ethernet-parameters', async (req, res) => {
+app.put("/ethernet-parameters", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
@@ -2798,236 +2971,241 @@ app.put('/ethernet-parameters', async (req, res) => {
   const requestData = req.body;
   const { serial } = req.query;
 
-  const {
-    IPMODE,
-    IPADDR,
-    SUBMASK,
-    GATEWAY,
-    DNSMODE,
-    PDNS,
-    ADNS,
-    MAC
-  } = requestData;
-
+  const { IPMODE, IPADDR, SUBMASK, GATEWAY, DNSMODE, PDNS, ADNS, MAC } =
+    requestData;
 
   const requestBody = {
-    "ETHERNET": {
-      "IPMODE": IPMODE,
-      "PIP": {
-        "IPADDR": IPADDR,
-        "SUBMASK": SUBMASK,
-        "GATEWAY": GATEWAY,
+    ETHERNET: {
+      IPMODE: IPMODE,
+      PIP: {
+        IPADDR: IPADDR,
+        SUBMASK: SUBMASK,
+        GATEWAY: GATEWAY,
       },
-      "DNSMODE": DNSMODE,
-      "DNS": {
-        "PDNS": PDNS,
-        "ADNS": ADNS
-      }
-    },
-    "KEYS": {
-      "MAC": MAC
-    }
-  };
-
-  try {
-    const response = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`, {
-      data: JSON.stringify(requestBody),
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    res.status(response.status).send(response.data);
-  } catch (error) {
-    res.status(500).send('Произошла ошибка при отправке GET запроса.');
-  }
-});
-
-app.post('/wifi-parameters', async (req, res) => {
-  if (req.session.userId === undefined) {
-    return res.redirect("/signin");
-  }
-  const userInfo = await getUserInfo(req.session.userId);
-  if (!userInfo.EditTransport) {
-    return res.redirect("/devices");
-  }
-  try {
-    const { serial } = req.body;
-
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    const requestResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: JSON.stringify({
-      "FIELDS": [
-        "WIFI"
-      ]
-    }),
-  });
-
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  const getResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`);
-
-    res.json(getResponse.data);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.put('/wifi-parameters', async (req, res) => {
-  if (req.session.userId === undefined) {
-    return res.redirect("/signin");
-  }
-  const userInfo = await getUserInfo(req.session.userId);
-  if (!userInfo.EditTransport) {
-    return res.redirect("/devices");
-  }
-  const requestData = req.body;
-  const { serial } = req.query;
-
-  const {
-    WIFI,
-    ESSID,
-    ECRYPTTYPE,
-    PWD,
-    IPMODE,
-    IPADDR,
-    SUBMASK,
-    GATEWAY
-  } = requestData;
-
-
-  const requestBody = {
-    "WIFI": {
-      "ENABLE": WIFI,
-      "ESSID": ESSID,
-      "ECRYPTTYPE": ECRYPTTYPE,
-      "IPMODE": IPMODE,
-      "PWD": PWD,
-      "PIP": {
-        "IPADDR": IPADDR,
-        "SUBMASK": SUBMASK,
-        "GATEWAY": GATEWAY,
-      }
-    }
-  };
-
-  try {
-    const response = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`, {
-      data: JSON.stringify(requestBody),
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    res.status(response.status).send(response.data);
-  } catch (error) {
-    res.status(500).send('Произошла ошибка при отправке GET запроса.');
-  }
-});
-
-app.post('/communication-parameters', async (req, res) => {
-  if (req.session.userId === undefined) {
-    return res.redirect("/signin");
-  }
-  const userInfo = await getUserInfo(req.session.userId);
-  if (!userInfo.EditTransport) {
-    return res.redirect("/devices");
-  }
-  try {
-    const { serial } = req.body;
-
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    const requestResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: JSON.stringify({
-      "FIELDS": [
-        "M3G"
-      ]
-    }),
-  });
-
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  const getResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`);
-
-    res.json(getResponse.data);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.put('/communication-parameters', async (req, res) => {
-  if (req.session.userId === undefined) {
-    return res.redirect("/signin");
-  }
-  const userInfo = await getUserInfo(req.session.userId);
-  if (!userInfo.EditTransport) {
-    return res.redirect("/devices");
-  }
-
-  const requestData = req.body;
-  const { serial } = req.query;
-
-  const {
-    NM1,
-    APN1,
-    UN1,
-    PW1,
-    NM2,
-    APN2,
-    UN2,
-    PW2,
-    AT,
-    TN1,
-    TN2,
-    TN3
-  } = requestData;
-
-
-  const requestBody = {
-    "M3G": {
-      "M3M": {
-        "AT": AT,
-        "TN1":TN1,
-        "TN2":TN2,
-        "TN3":TN3
+      DNSMODE: DNSMODE,
+      DNS: {
+        PDNS: PDNS,
+        ADNS: ADNS,
       },
-      "MP": {
-        "NM": NM1,
-        "APN": APN1,
-        "UN": UN1,
-        "PW": PW1
+    },
+    KEYS: {
+      MAC: MAC,
+    },
+  };
+
+  try {
+    const isLastKeepAliveValid = await checkLastKeepAlive(serial);
+
+    if (!isLastKeepAliveValid) {
+      return res
+        .status(400)
+        .send("Ошибка: lastkeepalive старше минуты или устройство не найдено.");
+    }
+    const response = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`,
+      {
+        data: JSON.stringify(requestBody),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    res.status(response.status).send(response.data);
+  } catch (error) {
+    res.status(500).send("Произошла ошибка при отправке GET запроса.");
+  }
+});
+
+app.post("/wifi-parameters", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
+  }
+  try {
+    const { serial } = req.body;
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const requestResponse = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({
+          FIELDS: ["WIFI"],
+        }),
+      }
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const getResponse = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`
+    );
+
+    res.json(getResponse.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.put("/wifi-parameters", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
+  }
+  const requestData = req.body;
+  const { serial } = req.query;
+
+  const { WIFI, ESSID, ECRYPTTYPE, PWD, IPMODE, IPADDR, SUBMASK, GATEWAY } =
+    requestData;
+
+  const requestBody = {
+    WIFI: {
+      ENABLE: WIFI,
+      ESSID: ESSID,
+      ECRYPTTYPE: ECRYPTTYPE,
+      IPMODE: IPMODE,
+      PWD: PWD,
+      PIP: {
+        IPADDR: IPADDR,
+        SUBMASK: SUBMASK,
+        GATEWAY: GATEWAY,
       },
-      "M4G": {
-        "NM": NM2,
-        "APN": APN2,
-        "UN": UN2,
-        "PW": PW2
+    },
+  };
+
+  try {
+    const isLastKeepAliveValid = await checkLastKeepAlive(serial);
+
+    if (!isLastKeepAliveValid) {
+      return res
+        .status(400)
+        .send("Ошибка: lastkeepalive старше минуты или устройство не найдено.");
+    }
+    const response = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`,
+      {
+        data: JSON.stringify(requestBody),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    res.status(response.status).send(response.data);
+  } catch (error) {
+    res.status(500).send("Произошла ошибка при отправке GET запроса.");
+  }
+});
+
+app.post("/communication-parameters", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
+  }
+  try {
+    const { serial } = req.body;
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const requestResponse = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({
+          FIELDS: ["M3G"],
+        }),
+      }
+    );
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const getResponse = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`
+    );
+
+    res.json(getResponse.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.put("/communication-parameters", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
+  }
+
+  const requestData = req.body;
+  const { serial } = req.query;
+
+  const { NM1, APN1, UN1, PW1, NM2, APN2, UN2, PW2, AT, TN1, TN2, TN3 } =
+    requestData;
+
+  const requestBody = {
+    M3G: {
+      M3M: {
+        AT: AT,
+        TN1: TN1,
+        TN2: TN2,
+        TN3: TN3,
       },
-    }
+      MP: {
+        NM: NM1,
+        APN: APN1,
+        UN: UN1,
+        PW: PW1,
+      },
+      M4G: {
+        NM: NM2,
+        APN: APN2,
+        UN: UN2,
+        PW: PW2,
+      },
+    },
   };
 
   try {
-    const response = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`, {
-      data: JSON.stringify(requestBody),
-      headers: {
-        'Content-Type': 'application/json'
+    const isLastKeepAliveValid = await checkLastKeepAlive(serial);
+
+    if (!isLastKeepAliveValid) {
+      return res
+        .status(400)
+        .send("Ошибка: lastkeepalive старше минуты или устройство не найдено.");
+    }
+    const response = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`,
+      {
+        data: JSON.stringify(requestBody),
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
-    });
+    );
     res.status(response.status).send(response.data);
   } catch (error) {
-    res.status(500).send('Произошла ошибка при отправке GET запроса.');
+    res.status(500).send("Произошла ошибка при отправке GET запроса.");
   }
 });
 
-app.post('/install-parameters', async (req, res) => {
+app.post("/install-parameters", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
@@ -3038,31 +3216,34 @@ app.post('/install-parameters', async (req, res) => {
   try {
     const { serial } = req.body;
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    const requestResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: JSON.stringify({
-      "FIELDS": [
-        "MCMS"
-      ]
-    }),
-  });
+    const requestResponse = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({
+          FIELDS: ["MCMS"],
+        }),
+      }
+    );
 
-  await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  const getResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`);
+    const getResponse = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`
+    );
 
     res.json(getResponse.data);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-app.post('/ai-parameters', async (req, res) => {
+app.post("/ai-parameters", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
@@ -3073,32 +3254,34 @@ app.post('/ai-parameters', async (req, res) => {
   try {
     const { serial } = req.body;
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
+    const requestResponse = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({
+          FIELDS: ["DSM"],
+        }),
+      }
+    );
 
-    const requestResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: JSON.stringify({
-      "FIELDS": [
-        "DSM"
-      ]
-    }),
-  });
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  const getResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`);
+    const getResponse = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`
+    );
 
     res.json(getResponse.data);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-app.put('/ai-parameters', async (req, res) => {
+app.put("/ai-parameters", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
@@ -3110,35 +3293,40 @@ app.put('/ai-parameters', async (req, res) => {
   const requestData = req.body;
   const { serial } = req.query;
 
-  const {
-    DSMA,
-    DSMFE,
-    RWFE
-  } = requestData;
+  const { DSMA, DSMFE, RWFE } = requestData;
 
   const requestBody = {
-    "DSM": {
-      "DSMA": DSMA,
-      "DSMFE": DSMFE,
-      "RWFE": RWFE
-    }
+    DSM: {
+      DSMA: DSMA,
+      DSMFE: DSMFE,
+      RWFE: RWFE,
+    },
   };
 
-
   try {
-    const response = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`, {
-      data: JSON.stringify(requestBody),
-      headers: {
-        'Content-Type': 'application/json'
+    const isLastKeepAliveValid = await checkLastKeepAlive(serial);
+
+    if (!isLastKeepAliveValid) {
+      return res
+        .status(400)
+        .send("Ошибка: lastkeepalive старше минуты или устройство не найдено.");
+    }
+    const response = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`,
+      {
+        data: JSON.stringify(requestBody),
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
-    });
+    );
     res.status(response.status).send(response.data);
   } catch (error) {
-    res.status(500).send('Произошла ошибка при отправке GET запроса.');
+    res.status(500).send("Произошла ошибка при отправке GET запроса.");
   }
 });
 
-app.post('/cameras-parameters', async (req, res) => {
+app.post("/cameras-parameters", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
@@ -3149,32 +3337,34 @@ app.post('/cameras-parameters', async (req, res) => {
   try {
     const { serial } = req.body;
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
+    const requestResponse = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: JSON.stringify({
+          FIELDS: ["MAIN"],
+        }),
+      }
+    );
 
-    const requestResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: JSON.stringify({
-      "FIELDS": [
-        "MAIN"
-      ]
-    }),
-  });
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  const getResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`);
+    const getResponse = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`
+    );
 
     res.json(getResponse.data);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-app.put('/cameras-parameters', async (req, res) => {
+app.put("/cameras-parameters", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
@@ -3186,68 +3376,80 @@ app.put('/cameras-parameters', async (req, res) => {
   const requestData = req.body;
   const { serial } = req.query;
 
-  const {
-    MAIN
-  } = requestData;
+  const { MAIN } = requestData;
 
   const requestBody = {
-    "MAIN": MAIN
+    MAIN: MAIN,
   };
 
-
   try {
-    const response = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`, {
-      data: JSON.stringify(requestBody),
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    res.status(response.status).send(response.data);
-  } catch (error) {
-    res.status(500).send('Произошла ошибка при отправке GET запроса.');
-  }
-});
+    const isLastKeepAliveValid = await checkLastKeepAlive(serial);
 
-app.put('/install-parameters', async (req, res) => {
-  if (req.session.userId === undefined) {
-    return res.redirect("/signin");
-  }
-  const userInfo = await getUserInfo(req.session.userId);
-  if (!userInfo.EditTransport) {
-    return res.redirect("/devices");
-  }
-
-  const requestData = req.body;
-  const { serial } = req.query;
-
-  const {
-    SP,
-    M
-  } = requestData;
-
-
-  const requestBody = {
-    "MCMS": {
-      "M": parseInt(M, 10),
-      "SP": SP
+    if (!isLastKeepAliveValid) {
+      return res
+        .status(400)
+        .send("Ошибка: lastkeepalive старше минуты или устройство не найдено.");
     }
-  };
-
-
-  try {
-    const response = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`, {
-      data: JSON.stringify(requestBody),
-      headers: {
-        'Content-Type': 'application/json'
+    const response = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`,
+      {
+        data: JSON.stringify(requestBody),
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
-    });
+    );
     res.status(response.status).send(response.data);
   } catch (error) {
-    res.status(500).send('Произошла ошибка при отправке GET запроса.');
+    res.status(500).send("Произошла ошибка при отправке GET запроса.");
   }
 });
 
-app.put('/device-parameters', async (req, res) => {
+app.put("/install-parameters", async (req, res) => {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  if (!userInfo.EditTransport) {
+    return res.redirect("/devices");
+  }
+
+  const requestData = req.body;
+  const { serial } = req.query;
+
+  const { SP, M } = requestData;
+
+  const requestBody = {
+    MCMS: {
+      M: parseInt(M, 10),
+      SP: SP,
+    },
+  };
+
+  try {
+    const isLastKeepAliveValid = await checkLastKeepAlive(serial);
+
+    if (!isLastKeepAliveValid) {
+      return res
+        .status(400)
+        .send("Ошибка: lastkeepalive старше минуты или устройство не найдено.");
+    }
+    const response = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`,
+      {
+        data: JSON.stringify(requestBody),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    res.status(response.status).send(response.data);
+  } catch (error) {
+    res.status(500).send("Произошла ошибка при отправке GET запроса.");
+  }
+});
+
+app.put("/device-parameters", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
@@ -3283,57 +3485,369 @@ app.put('/device-parameters', async (req, res) => {
     NX,
     NY,
     DX,
-    DY
+    DY,
   } = requestData;
-
 
   // Создаем JSON для GET запроса
   const requestBody = {
-    "TIMEP": {
-      "DATEM": parseInt(DATEMOD, 10),
-      "TIMEM": parseInt(TIMEFORMAT, 10),
-      "TIMEZ": TIMEZ
+    TIMEP: {
+      DATEM: parseInt(DATEMOD, 10),
+      TIMEM: parseInt(TIMEFORMAT, 10),
+      TIMEZ: TIMEZ,
     },
-    "GSP": {
-      "LANT": parseInt(LANGUAGE, 10),
-      "GM": parseInt(GEOMOD, 10)
+    GSP: {
+      LANT: parseInt(LANGUAGE, 10),
+      GM: parseInt(GEOMOD, 10),
     },
-    "EOSD": [
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
-      { "GE": GE, "NE": NE, "SE": SE, "TE": TE, "VE": VE, "DE": DE, "TX": TX, "TY": TY, "SX": SX, "SY": SY, "VX": VX, "VY": VY, "GX": GX, "GY": GY, "NX": NX, "NY": NY, "DX": DX, "DY": DY },
-    ]
+    EOSD: [
+      {
+        GE: GE,
+        NE: NE,
+        SE: SE,
+        TE: TE,
+        VE: VE,
+        DE: DE,
+        TX: TX,
+        TY: TY,
+        SX: SX,
+        SY: SY,
+        VX: VX,
+        VY: VY,
+        GX: GX,
+        GY: GY,
+        NX: NX,
+        NY: NY,
+        DX: DX,
+        DY: DY,
+      },
+      {
+        GE: GE,
+        NE: NE,
+        SE: SE,
+        TE: TE,
+        VE: VE,
+        DE: DE,
+        TX: TX,
+        TY: TY,
+        SX: SX,
+        SY: SY,
+        VX: VX,
+        VY: VY,
+        GX: GX,
+        GY: GY,
+        NX: NX,
+        NY: NY,
+        DX: DX,
+        DY: DY,
+      },
+      {
+        GE: GE,
+        NE: NE,
+        SE: SE,
+        TE: TE,
+        VE: VE,
+        DE: DE,
+        TX: TX,
+        TY: TY,
+        SX: SX,
+        SY: SY,
+        VX: VX,
+        VY: VY,
+        GX: GX,
+        GY: GY,
+        NX: NX,
+        NY: NY,
+        DX: DX,
+        DY: DY,
+      },
+      {
+        GE: GE,
+        NE: NE,
+        SE: SE,
+        TE: TE,
+        VE: VE,
+        DE: DE,
+        TX: TX,
+        TY: TY,
+        SX: SX,
+        SY: SY,
+        VX: VX,
+        VY: VY,
+        GX: GX,
+        GY: GY,
+        NX: NX,
+        NY: NY,
+        DX: DX,
+        DY: DY,
+      },
+      {
+        GE: GE,
+        NE: NE,
+        SE: SE,
+        TE: TE,
+        VE: VE,
+        DE: DE,
+        TX: TX,
+        TY: TY,
+        SX: SX,
+        SY: SY,
+        VX: VX,
+        VY: VY,
+        GX: GX,
+        GY: GY,
+        NX: NX,
+        NY: NY,
+        DX: DX,
+        DY: DY,
+      },
+      {
+        GE: GE,
+        NE: NE,
+        SE: SE,
+        TE: TE,
+        VE: VE,
+        DE: DE,
+        TX: TX,
+        TY: TY,
+        SX: SX,
+        SY: SY,
+        VX: VX,
+        VY: VY,
+        GX: GX,
+        GY: GY,
+        NX: NX,
+        NY: NY,
+        DX: DX,
+        DY: DY,
+      },
+      {
+        GE: GE,
+        NE: NE,
+        SE: SE,
+        TE: TE,
+        VE: VE,
+        DE: DE,
+        TX: TX,
+        TY: TY,
+        SX: SX,
+        SY: SY,
+        VX: VX,
+        VY: VY,
+        GX: GX,
+        GY: GY,
+        NX: NX,
+        NY: NY,
+        DX: DX,
+        DY: DY,
+      },
+      {
+        GE: GE,
+        NE: NE,
+        SE: SE,
+        TE: TE,
+        VE: VE,
+        DE: DE,
+        TX: TX,
+        TY: TY,
+        SX: SX,
+        SY: SY,
+        VX: VX,
+        VY: VY,
+        GX: GX,
+        GY: GY,
+        NX: NX,
+        NY: NY,
+        DX: DX,
+        DY: DY,
+      },
+      {
+        GE: GE,
+        NE: NE,
+        SE: SE,
+        TE: TE,
+        VE: VE,
+        DE: DE,
+        TX: TX,
+        TY: TY,
+        SX: SX,
+        SY: SY,
+        VX: VX,
+        VY: VY,
+        GX: GX,
+        GY: GY,
+        NX: NX,
+        NY: NY,
+        DX: DX,
+        DY: DY,
+      },
+      {
+        GE: GE,
+        NE: NE,
+        SE: SE,
+        TE: TE,
+        VE: VE,
+        DE: DE,
+        TX: TX,
+        TY: TY,
+        SX: SX,
+        SY: SY,
+        VX: VX,
+        VY: VY,
+        GX: GX,
+        GY: GY,
+        NX: NX,
+        NY: NY,
+        DX: DX,
+        DY: DY,
+      },
+      {
+        GE: GE,
+        NE: NE,
+        SE: SE,
+        TE: TE,
+        VE: VE,
+        DE: DE,
+        TX: TX,
+        TY: TY,
+        SX: SX,
+        SY: SY,
+        VX: VX,
+        VY: VY,
+        GX: GX,
+        GY: GY,
+        NX: NX,
+        NY: NY,
+        DX: DX,
+        DY: DY,
+      },
+      {
+        GE: GE,
+        NE: NE,
+        SE: SE,
+        TE: TE,
+        VE: VE,
+        DE: DE,
+        TX: TX,
+        TY: TY,
+        SX: SX,
+        SY: SY,
+        VX: VX,
+        VY: VY,
+        GX: GX,
+        GY: GY,
+        NX: NX,
+        NY: NY,
+        DX: DX,
+        DY: DY,
+      },
+      {
+        GE: GE,
+        NE: NE,
+        SE: SE,
+        TE: TE,
+        VE: VE,
+        DE: DE,
+        TX: TX,
+        TY: TY,
+        SX: SX,
+        SY: SY,
+        VX: VX,
+        VY: VY,
+        GX: GX,
+        GY: GY,
+        NX: NX,
+        NY: NY,
+        DX: DX,
+        DY: DY,
+      },
+      {
+        GE: GE,
+        NE: NE,
+        SE: SE,
+        TE: TE,
+        VE: VE,
+        DE: DE,
+        TX: TX,
+        TY: TY,
+        SX: SX,
+        SY: SY,
+        VX: VX,
+        VY: VY,
+        GX: GX,
+        GY: GY,
+        NX: NX,
+        NY: NY,
+        DX: DX,
+        DY: DY,
+      },
+      {
+        GE: GE,
+        NE: NE,
+        SE: SE,
+        TE: TE,
+        VE: VE,
+        DE: DE,
+        TX: TX,
+        TY: TY,
+        SX: SX,
+        SY: SY,
+        VX: VX,
+        VY: VY,
+        GX: GX,
+        GY: GY,
+        NX: NX,
+        NY: NY,
+        DX: DX,
+        DY: DY,
+      },
+      {
+        GE: GE,
+        NE: NE,
+        SE: SE,
+        TE: TE,
+        VE: VE,
+        DE: DE,
+        TX: TX,
+        TY: TY,
+        SX: SX,
+        SY: SY,
+        VX: VX,
+        VY: VY,
+        GX: GX,
+        GY: GY,
+        NX: NX,
+        NY: NY,
+        DX: DX,
+        DY: DY,
+      },
+    ],
   };
 
   // Отправляем GET запрос с JSON BODY
   try {
-    const response = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`, {
-      data: JSON.stringify(requestBody),
-      headers: {
-        'Content-Type': 'application/json'
+    const isLastKeepAliveValid = await checkLastKeepAlive(serial);
+
+    if (!isLastKeepAliveValid) {
+      return res
+        .status(400)
+        .send("Ошибка: lastkeepalive старше минуты или устройство не найдено.");
+    }
+    const response = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`,
+      {
+        data: JSON.stringify(requestBody),
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
-    });
+    );
     res.status(response.status).send(response.data);
   } catch (error) {
-    res.status(500).send('Произошла ошибка при отправке GET запроса.');
+    res.status(500).send("Произошла ошибка при отправке GET запроса.");
   }
 });
 
-
-app.put('/camera-parameters', async (req, res) => {
+app.put("/camera-parameters", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
@@ -3347,23 +3861,32 @@ app.put('/camera-parameters', async (req, res) => {
 
   // Создаем JSON для GET запроса
   const requestBody = {
-    "MAIN": camerasData
+    MAIN: camerasData,
   };
 
   // Отправляем GET запрос с JSON BODY
   try {
-    const response = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`, {
-      data: JSON.stringify(requestBody),
-      headers: {
-        'Content-Type': 'application/json'
+    const isLastKeepAliveValid = await checkLastKeepAlive(serial);
+
+    if (!isLastKeepAliveValid) {
+      return res
+        .status(400)
+        .send("Ошибка: lastkeepalive старше минуты или устройство не найдено.");
+    }
+    const response = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`,
+      {
+        data: JSON.stringify(requestBody),
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
-    });
+    );
     res.status(response.status).send(response.data);
   } catch (error) {
-    res.status(500).send('Произошла ошибка при отправке GET запроса.');
+    res.status(500).send("Произошла ошибка при отправке GET запроса.");
   }
 });
-
 
 app.post("/devicedata", async (req, res) => {
   if (req.session.userId === undefined) {
@@ -3445,7 +3968,6 @@ app.post("/updatedevice", async (req, res) => {
   } = req.body;
 
   try {
-
     const query = `
       UPDATE registrars
       SET
@@ -3694,7 +4216,6 @@ app.post("/add-group", async (req, res) => {
   const { name } = req.body;
 
   try {
-
     const pool = new Pool({
       user: DB_User,
       host: DB_Host,
@@ -3738,14 +4259,17 @@ async function update(req, res) {
     User: userInfo.User,
     ifDBError: false,
     UserInfo: userInfo.Users,
-    isAdmin: req.session.userId === 'admin',
+    isAdmin: req.session.userId === "admin",
     EditTransport: userInfo.EditTransport,
     DeleteTransport: userInfo.DeleteTransport,
     Update: userInfo.Update,
   };
 
   try {
-    const source = fs.readFileSync("static/templates/devices/update.html", "utf8");
+    const source = fs.readFileSync(
+      "static/templates/devices/update.html",
+      "utf8"
+    );
     const template = handlebars.compile(source);
     const resultT = template(templateData);
     res.send(resultT);
@@ -3774,7 +4298,7 @@ async function settings(req, res) {
     User: userInfo.User,
     ifDBError: false,
     UserInfo: userInfo.Users,
-    isAdmin: req.session.userId === 'admin',
+    isAdmin: req.session.userId === "admin",
   };
 
   try {
@@ -3786,8 +4310,41 @@ async function settings(req, res) {
     console.error(error);
     templateData.ifDBError = true;
 
+    const source = fs.readFileSync("static/templates/settings.html", "utf8");
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  }
+}
+
+async function documentation(req, res) {
+  if (req.session.userId === undefined) {
+    return res.redirect("/signin?page=documentation");
+  }
+  const userInfo = await getUserInfo(req.session.userId);
+  let templateData = {
+    VIRTUAL_HOST: process.env.VIRTUAL_HOST,
+    Organisation: userInfo.Organisation,
+    User: userInfo.User,
+    ifDBError: false,
+    UserInfo: userInfo.Users,
+    isAdmin: req.session.userId === "admin",
+  };
+
+  try {
     const source = fs.readFileSync(
-      "static/templates/settings.html",
+      "static/templates/documentation.html",
+      "utf8"
+    );
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+  } catch (error) {
+    console.error(error);
+    templateData.ifDBError = true;
+
+    const source = fs.readFileSync(
+      "static/templates/documentation.html",
       "utf8"
     );
     const template = handlebars.compile(source);
@@ -3795,6 +4352,25 @@ async function settings(req, res) {
     res.send(resultT);
   }
 }
+
+app.get("/download/:filename", (req, res) => {
+  const filename = req.params.filename;
+  const filePath = path.join(__dirname, "static", "docs", filename);
+
+  // Проверяем существование файла
+  const exists = require("fs").existsSync(filePath);
+  if (!exists) {
+    return res.status(404).send("File not found");
+  }
+
+  // Отправляем файл для скачивания
+  res.download(filePath, filename, (err) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send("Internal Server Error");
+    }
+  });
+});
 
 async function organisation(req, res) {
   if (req.session.userId === undefined) {
@@ -3810,11 +4386,14 @@ async function organisation(req, res) {
     User: userInfo.User,
     ifDBError: false,
     UserInfo: userInfo.Users,
-    isAdmin: req.session.userId === 'admin',
+    isAdmin: req.session.userId === "admin",
   };
 
   try {
-    const source = fs.readFileSync("static/templates/admin/organisation.html", "utf8");
+    const source = fs.readFileSync(
+      "static/templates/admin/organisation.html",
+      "utf8"
+    );
     const template = handlebars.compile(source);
     const resultT = template(templateData);
     res.send(resultT);
@@ -3832,7 +4411,7 @@ async function organisation(req, res) {
   }
 }
 
-app.post('/update-organisation', async (req, res) => {
+app.post("/update-organisation", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
@@ -3849,17 +4428,19 @@ app.post('/update-organisation', async (req, res) => {
       password: DB_Password,
       port: DB_Port,
     });
-    
+
     const client = await pool.connect();
 
-    await client.query('UPDATE main SET organisation = $1 WHERE id = 1', [name]);
+    await client.query("UPDATE main SET organisation = $1 WHERE id = 1", [
+      name,
+    ]);
 
     client.release();
 
-    res.status(200).json({ message: 'Значение успешно обновлено' });
+    res.status(200).json({ message: "Значение успешно обновлено" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Произошла ошибка при обновлении значения' });
+    res.status(500).json({ error: "Произошла ошибка при обновлении значения" });
   }
 });
 
@@ -3878,7 +4459,7 @@ async function adminPanel(req, res) {
     ifDBError: false,
     Users: [],
     UserInfo: userInfo.Users,
-    isAdmin: req.session.userId === 'admin',
+    isAdmin: req.session.userId === "admin",
   };
 
   try {
@@ -3899,36 +4480,33 @@ async function adminPanel(req, res) {
     const allUsers = usersResult.rows;
 
     templateData.Users = allUsers.map((user) => ({
-        id: user.id,
-        name: user.name,
-        surname: user.surname,
-        email: user.email,
-        phone: user.phone,
-        added: new Date(user.added).toLocaleDateString('ru-RU', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit'
-        }),
-      }));
-  
+      id: user.id,
+      name: user.name,
+      surname: user.surname,
+      email: user.email,
+      phone: user.phone,
+      added: new Date(user.added).toLocaleDateString("ru-RU", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    }));
+
     // console.log(templateData);
-  
+
     const source = fs.readFileSync("static/templates/admin/index.html", "utf8");
     const template = handlebars.compile(source);
     const resultT = template(templateData);
     res.send(resultT);
-  
+
     client.release();
   } catch (error) {
     console.error(error);
     templateData.ifDBError = true;
 
-    const source = fs.readFileSync(
-      "static/templates/admin/index.html",
-      "utf8"
-    );
+    const source = fs.readFileSync("static/templates/admin/index.html", "utf8");
     const template = handlebars.compile(source);
     const resultT = template(templateData);
     res.send(resultT);
@@ -3936,7 +4514,7 @@ async function adminPanel(req, res) {
 }
 
 // Обработка POST-запроса для добавления пользователя
-const saltRounds = 10; 
+const saltRounds = 10;
 
 app.post("/add-user", async (req, res) => {
   if (req.session.userId === undefined) {
@@ -3966,7 +4544,14 @@ app.post("/add-user", async (req, res) => {
       RETURNING id
     `;
 
-    const result = await client.query(query, [name, surname, email, phone, hashedPassword, "{}"]);
+    const result = await client.query(query, [
+      name,
+      surname,
+      email,
+      phone,
+      hashedPassword,
+      "{}",
+    ]);
 
     // Освобождение клиента
     client.release();
@@ -3979,8 +4564,7 @@ app.post("/add-user", async (req, res) => {
   }
 });
 
-
-app.get('/admin/user/:id', async (req, res) => {
+app.get("/admin/user/:id", async (req, res) => {
   const id = req.params.id;
   if (req.session.userId === undefined) {
     return res.redirect("/signin?page=admin/user/" + id);
@@ -3995,7 +4579,7 @@ app.get('/admin/user/:id', async (req, res) => {
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
-    isAdmin: req.session.userId === 'admin',
+    isAdmin: req.session.userId === "admin",
     ifDBError: false,
     Id: id,
     Name: "",
@@ -4020,81 +4604,76 @@ app.get('/admin/user/:id', async (req, res) => {
     });
     const client = await pool.connect();
 
-const groupsQuery = "SELECT id, name FROM groups";
-const groupsResult = await client.query(groupsQuery);
-const groupsMap = {};
-groupsResult.rows.forEach((group) => {
-  groupsMap[group.id] = group.name;
-});
+    const groupsQuery = "SELECT id, name FROM groups";
+    const groupsResult = await client.query(groupsQuery);
+    const groupsMap = {};
+    groupsResult.rows.forEach((group) => {
+      groupsMap[group.id] = group.name;
+    });
 
-const minuteInMillis = 90 * 1000;
+    const minuteInMillis = 90 * 1000;
 
-const queryRegistrars = `
+    const queryRegistrars = `
   SELECT id, serial, lastkeepalive, "group", name, plate, sim, ip, port, number
   FROM registrars
   ORDER BY id
 `;
-const registrarsResult = await client.query(queryRegistrars);
-const allRegistrars = registrarsResult.rows;
+    const registrarsResult = await client.query(queryRegistrars);
+    const allRegistrars = registrarsResult.rows;
 
-const groupedRegistrars = {};
-const groupedNumbers = {};
-allRegistrars.forEach((registrar) => {
-  const groupName = groupsMap[registrar.group] || "Другое"; // Используем "Другое", если группа неизвестна
-  if (!groupedRegistrars[groupName]) {
-    groupedRegistrars[groupName] = [];
-    groupedNumbers[groupName] = [];
-  }
-  groupedRegistrars[groupName].push({
-    serial: registrar.serial,
-    checked: false, 
-  });
-  groupedNumbers[groupName].push(registrar.number);
-});
-
-
-const query = "SELECT * FROM users WHERE id = $1;";
-const userdata = await client.query(query, [id]);
-const response = userdata.rows[0];
-
-if (response.devices && response.devices.length > 0) {
-  for (const groupName in groupedRegistrars) {
-    groupedRegistrars[groupName].forEach((serialObj) => {
-      serialObj.checked = response.devices.includes(serialObj.serial);
+    const groupedRegistrars = {};
+    const groupedNumbers = {};
+    allRegistrars.forEach((registrar) => {
+      const groupName = groupsMap[registrar.group] || "Другое"; // Используем "Другое", если группа неизвестна
+      if (!groupedRegistrars[groupName]) {
+        groupedRegistrars[groupName] = [];
+        groupedNumbers[groupName] = [];
+      }
+      groupedRegistrars[groupName].push({
+        serial: registrar.serial,
+        checked: false,
+      });
+      groupedNumbers[groupName].push(registrar.number);
     });
-  }
-}
 
-templateData.Name = response.name;
-templateData.Surname = response.surname;
-templateData.Email = response.email;
-templateData.Phone = response.phone;
-templateData.Devices = response.devices;
-templateData.DeleteTransport = response.deletetransport;
-templateData.EditTransport = response.edittransport;
-templateData.Update = response.update;
+    const query = "SELECT * FROM users WHERE id = $1;";
+    const userdata = await client.query(query, [id]);
+    const response = userdata.rows[0];
 
-templateData.Groups = Object.keys(groupedRegistrars).map((groupName) => ({
-  name: groupName,
-  serials: groupedRegistrars[groupName],
-  numbers: groupedNumbers[groupName],
-}));
-      
-  
+    if (response.devices && response.devices.length > 0) {
+      for (const groupName in groupedRegistrars) {
+        groupedRegistrars[groupName].forEach((serialObj) => {
+          serialObj.checked = response.devices.includes(serialObj.serial);
+        });
+      }
+    }
+
+    templateData.Name = response.name;
+    templateData.Surname = response.surname;
+    templateData.Email = response.email;
+    templateData.Phone = response.phone;
+    templateData.Devices = response.devices;
+    templateData.DeleteTransport = response.deletetransport;
+    templateData.EditTransport = response.edittransport;
+    templateData.Update = response.update;
+
+    templateData.Groups = Object.keys(groupedRegistrars).map((groupName) => ({
+      name: groupName,
+      serials: groupedRegistrars[groupName],
+      numbers: groupedNumbers[groupName],
+    }));
+
     const source = fs.readFileSync("static/templates/admin/user.html", "utf8");
     const template = handlebars.compile(source);
     const resultT = template(templateData);
     res.send(resultT);
-  
+
     client.release();
   } catch (error) {
     console.error(error);
     templateData.ifDBError = true;
 
-    const source = fs.readFileSync(
-      "static/templates/admin/user.html",
-      "utf8"
-    );
+    const source = fs.readFileSync("static/templates/admin/user.html", "utf8");
     const template = handlebars.compile(source);
     const resultT = template(templateData);
     res.send(resultT);
@@ -4129,13 +4708,11 @@ app.post("/updateuser/:id", async (req, res) => {
     Update,
   } = req.body.formData;
 
-  var devices = req.body.devices
+  var devices = req.body.devices;
 
   try {
-
     if (password === "" || password === undefined) {
-
-    const query = `
+      const query = `
       UPDATE users
       SET
         name = $2,
@@ -4150,25 +4727,23 @@ app.post("/updateuser/:id", async (req, res) => {
       RETURNING *;
     `;
 
-    const values = [
-      id,
-      name,
-      surname,
-      email,
-      phone,
-      EditTransport,
-      DeleteTransport,
-      Update,
-      devices,
-    ];
+      const values = [
+        id,
+        name,
+        surname,
+        email,
+        phone,
+        EditTransport,
+        DeleteTransport,
+        Update,
+        devices,
+      ];
 
-    const result = await client.query(query, values);
+      const result = await client.query(query, values);
+    } else {
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-  } else {
-
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-    
-    const query = `
+      const query = `
       UPDATE users
       SET
         name = $2,
@@ -4184,23 +4759,21 @@ app.post("/updateuser/:id", async (req, res) => {
       RETURNING *;
     `;
 
-    const values = [
-      id,
-      name,
-      surname,
-      email,
-      phone,
-      hashedPassword,
-      EditTransport,
-      DeleteTransport,
-      Update,
-      devices,
-    ];
+      const values = [
+        id,
+        name,
+        surname,
+        email,
+        phone,
+        hashedPassword,
+        EditTransport,
+        DeleteTransport,
+        Update,
+        devices,
+      ];
 
-    const result = await client.query(query, values);
-
-  }
-
+      const result = await client.query(query, values);
+    }
 
     res.send("Data updated successfully");
   } catch (error) {
@@ -4221,7 +4794,7 @@ async function videos(req, res) {
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
-    isAdmin: req.session.userId === 'admin',
+    isAdmin: req.session.userId === "admin",
     ifDBError: false,
     Registrars: [],
     Groups: [],
@@ -4244,12 +4817,14 @@ async function videos(req, res) {
         FROM users
         WHERE id = $1
       `;
-      const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
-      
+      const userDevicesResult = await client.query(userDevicesQuery, [
+        req.session.userId,
+      ]);
+
       if (userDevicesResult.rows[0].devices.length > 0) {
         serialValues = userDevicesResult.rows[0].devices;
-      } 
-    } 
+      }
+    }
 
     const minuteInMillis = 60 * 1000;
 
@@ -4261,14 +4836,16 @@ async function videos(req, res) {
       groupsMap[group.id] = group.name;
     });
 
-
     // Выполняем запрос, чтобы получить все данные из таблицы registrars
     const queryRegistrars = `
       SELECT id, serial, channels, lastkeepalive, "group", name, plate, sim, ip, port, number
-      FROM registrars ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''}
+      FROM registrars ${!templateData.isAdmin ? "WHERE serial = ANY($1)" : ""}
       ORDER BY id
     `;
-    const registrarsResult = await client.query(queryRegistrars, templateData.isAdmin ? [] : [serialValues]);
+    const registrarsResult = await client.query(
+      queryRegistrars,
+      templateData.isAdmin ? [] : [serialValues]
+    );
     const allRegistrars = registrarsResult.rows;
 
     const groupedRegistrars = {};
@@ -4281,7 +4858,8 @@ async function videos(req, res) {
         id: registrar.id,
         serial: registrar.serial,
         channels: registrar.channels,
-        status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
+        status:
+          Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
         name: registrar.name,
         group: groupsMap[registrar.group] || "Другое",
         plate: registrar.plate,
@@ -4293,26 +4871,30 @@ async function videos(req, res) {
     });
 
     templateData.Registrars = allRegistrars.map((registrar) => ({
-        id: registrar.id,
-        serial: registrar.serial,
-        channels: registrar.channels,
-        status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
-        name: registrar.name,
-        group: groupsMap[registrar.group] || "Другое",
-        plate: registrar.plate,
-        sim: registrar.sim,
-        ip: registrar.ip,
-        port: registrar.port,
-      }));
+      id: registrar.id,
+      serial: registrar.serial,
+      channels: registrar.channels,
+      status:
+        Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
+      name: registrar.name,
+      group: groupsMap[registrar.group] || "Другое",
+      plate: registrar.plate,
+      sim: registrar.sim,
+      ip: registrar.ip,
+      port: registrar.port,
+    }));
 
-      templateData.Groups = Object.keys(groupedRegistrars).map((groupName) => ({
-        name: groupName,
-        devices: groupedRegistrars[groupName],
-      }));
+    templateData.Groups = Object.keys(groupedRegistrars).map((groupName) => ({
+      name: groupName,
+      devices: groupedRegistrars[groupName],
+    }));
 
     // console.log(templateData);
 
-    const source = fs.readFileSync("static/templates/videos/playback.html", "utf8");
+    const source = fs.readFileSync(
+      "static/templates/videos/playback.html",
+      "utf8"
+    );
     const template = handlebars.compile(source);
     const resultHTML = template(templateData);
     res.send(resultHTML);
@@ -4322,7 +4904,10 @@ async function videos(req, res) {
     console.error(error);
     templateData.ifDBError = true;
 
-    const source = fs.readFileSync("static/templates/videos/playback.html", "utf8");
+    const source = fs.readFileSync(
+      "static/templates/videos/playback.html",
+      "utf8"
+    );
     const template = handlebars.compile(source);
     const resultT = template(templateData);
     res.send(resultT);
@@ -4339,7 +4924,7 @@ async function videoExport(req, res) {
     Organisation: userInfo.Organisation,
     User: userInfo.User,
     UserInfo: userInfo.Users,
-    isAdmin: req.session.userId === 'admin',
+    isAdmin: req.session.userId === "admin",
     ifDBError: false,
     Registrars: [],
     Groups: [],
@@ -4362,74 +4947,83 @@ async function videoExport(req, res) {
         FROM users
         WHERE id = $1
       `;
-      const userDevicesResult = await client.query(userDevicesQuery, [req.session.userId]);
-      
+      const userDevicesResult = await client.query(userDevicesQuery, [
+        req.session.userId,
+      ]);
+
       if (userDevicesResult.rows[0].devices.length > 0) {
         serialValues = userDevicesResult.rows[0].devices;
-      } 
-    } 
+      }
+    }
 
     const minuteInMillis = 60 * 1000;
 
-     // Получаем список групп и их идентификаторов из таблицы groups
-     const groupsQuery = "SELECT id, name FROM groups";
-     const groupsResult = await client.query(groupsQuery);
-     const groupsMap = {};
-     groupsResult.rows.forEach((group) => {
-       groupsMap[group.id] = group.name;
-     });
- 
- 
-     // Выполняем запрос, чтобы получить все данные из таблицы registrars
-     const queryRegistrars = `
+    // Получаем список групп и их идентификаторов из таблицы groups
+    const groupsQuery = "SELECT id, name FROM groups";
+    const groupsResult = await client.query(groupsQuery);
+    const groupsMap = {};
+    groupsResult.rows.forEach((group) => {
+      groupsMap[group.id] = group.name;
+    });
+
+    // Выполняем запрос, чтобы получить все данные из таблицы registrars
+    const queryRegistrars = `
        SELECT id, serial, channels, lastkeepalive, "group", name, plate, sim, ip, port, number
-       FROM registrars ${!templateData.isAdmin ? 'WHERE serial = ANY($1)' : ''}
+       FROM registrars ${!templateData.isAdmin ? "WHERE serial = ANY($1)" : ""}
        ORDER BY id
      `;
-     const registrarsResult = await client.query(queryRegistrars, templateData.isAdmin ? [] : [serialValues]);
-     const allRegistrars = registrarsResult.rows;
- 
-     const groupedRegistrars = {};
-     allRegistrars.forEach((registrar) => {
-       const groupName = groupsMap[registrar.group] || "Другое"; // Используем "Другое", если группа неизвестна
-       if (!groupedRegistrars[groupName]) {
-         groupedRegistrars[groupName] = [];
-       }
-       groupedRegistrars[groupName].push({
-         id: registrar.id,
-         serial: registrar.serial,
-         channels: registrar.channels,
-         status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
-         name: registrar.name,
-         group: groupsMap[registrar.group] || "Другое",
-         plate: registrar.plate,
-         sim: registrar.sim,
-         ip: registrar.ip,
-         port: registrar.port,
-         number: registrar.number
-       });
-     });
- 
-     templateData.Registrars = allRegistrars.map((registrar) => ({
-         id: registrar.id,
-         serial: registrar.serial,
-         channels: registrar.channels,
-         status: Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
-         name: registrar.name,
-         group: groupsMap[registrar.group] || "Другое",
-         plate: registrar.plate,
-         sim: registrar.sim,
-         ip: registrar.ip,
-         port: registrar.port,
-       }));
- 
-       templateData.Groups = Object.keys(groupedRegistrars).map((groupName) => ({
-         name: groupName,
-         devices: groupedRegistrars[groupName],
-       }));
+    const registrarsResult = await client.query(
+      queryRegistrars,
+      templateData.isAdmin ? [] : [serialValues]
+    );
+    const allRegistrars = registrarsResult.rows;
+
+    const groupedRegistrars = {};
+    allRegistrars.forEach((registrar) => {
+      const groupName = groupsMap[registrar.group] || "Другое"; // Используем "Другое", если группа неизвестна
+      if (!groupedRegistrars[groupName]) {
+        groupedRegistrars[groupName] = [];
+      }
+      groupedRegistrars[groupName].push({
+        id: registrar.id,
+        serial: registrar.serial,
+        channels: registrar.channels,
+        status:
+          Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
+        name: registrar.name,
+        group: groupsMap[registrar.group] || "Другое",
+        plate: registrar.plate,
+        sim: registrar.sim,
+        ip: registrar.ip,
+        port: registrar.port,
+        number: registrar.number,
+      });
+    });
+
+    templateData.Registrars = allRegistrars.map((registrar) => ({
+      id: registrar.id,
+      serial: registrar.serial,
+      channels: registrar.channels,
+      status:
+        Date.now() - Date.parse(registrar.lastkeepalive) <= minuteInMillis,
+      name: registrar.name,
+      group: groupsMap[registrar.group] || "Другое",
+      plate: registrar.plate,
+      sim: registrar.sim,
+      ip: registrar.ip,
+      port: registrar.port,
+    }));
+
+    templateData.Groups = Object.keys(groupedRegistrars).map((groupName) => ({
+      name: groupName,
+      devices: groupedRegistrars[groupName],
+    }));
     // console.log(templateData);
 
-    const source = fs.readFileSync("static/templates/videos/export.html", "utf8");
+    const source = fs.readFileSync(
+      "static/templates/videos/export.html",
+      "utf8"
+    );
     const template = handlebars.compile(source);
     const resultHTML = template(templateData);
     res.send(resultHTML);
@@ -4439,14 +5033,17 @@ async function videoExport(req, res) {
     console.error(error);
     templateData.ifDBError = true;
 
-    const source = fs.readFileSync("static/templates/videos/export.html", "utf8");
+    const source = fs.readFileSync(
+      "static/templates/videos/export.html",
+      "utf8"
+    );
     const template = handlebars.compile(source);
     const resultT = template(templateData);
     res.send(resultT);
   }
 }
 
-app.get('/getData', async (req, res) => {
+app.get("/getData", async (req, res) => {
   if (req.session.userId === undefined) {
     return res.redirect("/signin");
   }
@@ -4456,63 +5053,90 @@ app.get('/getData', async (req, res) => {
   const selectedChannel = req.query.selectedChannel;
 
   try {
-    const successResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/filelist/request?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`);
+    const successResponse = await axios.get(
+      `http://${process.env.VIRTUAL_HOST}/http/filelist/request?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`
+    );
     if (successResponse.data.SUCCESS) {
-      await new Promise(resolve => setTimeout(resolve, 7000));
-      const dataResponse = await axios.get(`http://${process.env.VIRTUAL_HOST}/http/filelist/get?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`);
+      await new Promise((resolve) => setTimeout(resolve, 7000));
+      const dataResponse = await axios.get(
+        `http://${process.env.VIRTUAL_HOST}/http/filelist/get?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`
+      );
       if (successResponse.data.SUCCESS) {
-      const dataId = dataResponse.data.DATAID;
-      const dateRanges = dataResponse.data.DATA;
-      let dataFound = false;
-      let selectedDataId = null;
-      const selectedDateTime = moment(selectedDate + selectedTime, 'YYYYMMDDHHmmss').valueOf(); 
+        const dataId = dataResponse.data.DATAID;
+        const dateRanges = dataResponse.data.DATA;
+        let dataFound = false;
+        let selectedDataId = null;
+        const selectedDateTime = moment(
+          selectedDate + selectedTime,
+          "YYYYMMDDHHmmss"
+        ).valueOf();
 
-      if (dateRanges.length === 1) {
-        // Если в массиве DATA только одно значение
-        const [startRange, endRange] = dateRanges[0].split('-');
-        const startDateTime = moment(startRange, 'YYYYMMDDHHmmss').valueOf();
-        const endDateTime = moment(endRange, 'YYYYMMDDHHmmss').valueOf();
-        
-        if (!isNaN(selectedDateTime) && !isNaN(startDateTime) && !isNaN(endDateTime)) {
-          if (selectedDateTime >= startDateTime && selectedDateTime <= endDateTime) {
-            dataFound = true;
-            selectedDataId = dataId[0];
-          }
-        } else {
-          console.error("Неверный формат данных для сравнения.");
-        }
-      } else {
-        // Если в массиве DATA больше одного значения
-        for (let i = 0; i < dateRanges.length; i++) {
-          const [startRange, endRange] = dateRanges[i].split('-');
-          const startDateTime = moment(startRange, 'YYYYMMDDHHmmss').valueOf();
-          const endDateTime = moment(endRange, 'YYYYMMDDHHmmss').valueOf();
-          
-          if (!isNaN(selectedDateTime) && !isNaN(startDateTime) && !isNaN(endDateTime)) {
-            if (selectedDateTime >= startDateTime && selectedDateTime <= endDateTime) {
+        if (dateRanges.length === 1) {
+          // Если в массиве DATA только одно значение
+          const [startRange, endRange] = dateRanges[0].split("-");
+          const startDateTime = moment(startRange, "YYYYMMDDHHmmss").valueOf();
+          const endDateTime = moment(endRange, "YYYYMMDDHHmmss").valueOf();
+
+          if (
+            !isNaN(selectedDateTime) &&
+            !isNaN(startDateTime) &&
+            !isNaN(endDateTime)
+          ) {
+            if (
+              selectedDateTime >= startDateTime &&
+              selectedDateTime <= endDateTime
+            ) {
               dataFound = true;
-              selectedDataId = dataId[i];
-              break;
+              selectedDataId = dataId[0];
             }
           } else {
             console.error("Неверный формат данных для сравнения.");
           }
+        } else {
+          // Если в массиве DATA больше одного значения
+          for (let i = 0; i < dateRanges.length; i++) {
+            const [startRange, endRange] = dateRanges[i].split("-");
+            const startDateTime = moment(
+              startRange,
+              "YYYYMMDDHHmmss"
+            ).valueOf();
+            const endDateTime = moment(endRange, "YYYYMMDDHHmmss").valueOf();
+
+            if (
+              !isNaN(selectedDateTime) &&
+              !isNaN(startDateTime) &&
+              !isNaN(endDateTime)
+            ) {
+              if (
+                selectedDateTime >= startDateTime &&
+                selectedDateTime <= endDateTime
+              ) {
+                dataFound = true;
+                selectedDataId = dataId[i];
+                break;
+              }
+            } else {
+              console.error("Неверный формат данных для сравнения.");
+            }
+          }
+        }
+
+        if (dataFound) {
+          // Здесь можно отправить запрос скоростей и отрисовать график
+          res.json({ success: true, dataId: selectedDataId });
+        } else {
+          res.json({
+            success: false,
+            message: "Данных для выбранного периода нет",
+          });
         }
       }
-
-
-      if (dataFound) {
-        // Здесь можно отправить запрос скоростей и отрисовать график
-        res.json({ success: true, dataId: selectedDataId });
-      } else {
-        res.json({ success: false, message: 'Данных для выбранного периода нет' });
-      }
-    }} else {
-      res.json({ success: false, message: 'Ошибка при получении данных' });
+    } else {
+      res.json({ success: false, message: "Ошибка при получении данных" });
     }
   } catch (error) {
-    console.error('Ошибка при отправке запроса:', error);
-    res.json({ success: false, message: 'Ошибка при отправке запроса' });
+    console.error("Ошибка при отправке запроса:", error);
+    res.json({ success: false, message: "Ошибка при отправке запроса" });
   }
 });
 
@@ -4547,15 +5171,18 @@ app.post("/getspeedarchive", async (req, res) => {
   endTime.setHours(endTime.getHours() + 1);
 
   // Первый запрос для получения временных отметок
-  pool.query(timeRangeQuery, [serial, startTime, endTime], (error, timeResults) => {
-    if (error) {
-      console.error("Ошибка при выполнении SQL-запроса:", error);
-      res.status(500).json({ error: "Ошибка на сервере" });
-    } else {
-      const { min_time, max_time } = timeResults.rows[0];
+  pool.query(
+    timeRangeQuery,
+    [serial, startTime, endTime],
+    (error, timeResults) => {
+      if (error) {
+        console.error("Ошибка при выполнении SQL-запроса:", error);
+        res.status(500).json({ error: "Ошибка на сервере" });
+      } else {
+        const { min_time, max_time } = timeResults.rows[0];
 
-      // Запрос для получения данных скорости и геолокации
-      const sqlQuery = `
+        // Запрос для получения данных скорости и геолокации
+        const sqlQuery = `
         SELECT speed, latitude, longitude, time
         FROM geo
         WHERE serial = $1
@@ -4563,46 +5190,47 @@ app.post("/getspeedarchive", async (req, res) => {
         AND time <= $3;
       `;
 
-      pool.query(sqlQuery, [serial, startTime, endTime], (error, results) => {
-        if (error) {
-          console.error("Ошибка при выполнении SQL-запроса:", error);
-          res.status(500).json({ error: "Ошибка на сервере" });
-        } else {
-          const data = results.rows.map((row) => ({
-            speed: row.speed > 150 ? row.speed / 100 : row.speed,
-            geo: {
-              latitude: row.latitude,
-              longitude: row.longitude,
-            },
-            time: row.time.toLocaleTimeString("ru-RU", {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            }),
-          }));
+        pool.query(sqlQuery, [serial, startTime, endTime], (error, results) => {
+          if (error) {
+            console.error("Ошибка при выполнении SQL-запроса:", error);
+            res.status(500).json({ error: "Ошибка на сервере" });
+          } else {
+            const data = results.rows.map((row) => ({
+              speed: row.speed > 150 ? row.speed / 100 : row.speed,
+              geo: {
+                latitude: row.latitude,
+                longitude: row.longitude,
+              },
+              time: row.time.toLocaleTimeString("ru-RU", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              }),
+            }));
 
-          // Функция для сравнения времени в формате "час:минута"
-          function compareTime(a, b) {
-            return new Date('1970-01-01 ' + a.time) - new Date('1970-01-01 ' + b.time);
+            // Функция для сравнения времени в формате "час:минута"
+            function compareTime(a, b) {
+              return (
+                new Date("1970-01-01 " + a.time) -
+                new Date("1970-01-01 " + b.time)
+              );
+            }
+
+            // Сортируем массив данных
+            data.sort(compareTime);
+
+            // Разделяем отсортированный массив обратно на отдельные массивы
+            const transformedSpeeds = data.map((item) => item.speed);
+            const geoData = data.map((item) => item.geo);
+            const names = data.map((item) => item.time);
+
+            res.json({ speeds: transformedSpeeds, geo: geoData, names });
           }
-
-          // Сортируем массив данных
-          data.sort(compareTime);
-
-          // Разделяем отсортированный массив обратно на отдельные массивы
-          const transformedSpeeds = data.map((item) => item.speed);
-          const geoData = data.map((item) => item.geo);
-          const names = data.map((item) => item.time);
-
-          res.json({ speeds: transformedSpeeds, geo: geoData, names });
-        }
-      });
+        });
+      }
     }
-  });
+  );
 });
-
-
-
 
 const port = 8081;
 app.listen(port, () => {

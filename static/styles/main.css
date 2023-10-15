@@ -27,7 +27,7 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 input[type="number"] {
-  -moz-appearance: textfield; 
+  -moz-appearance: textfield;
 }
 
 header {
@@ -226,10 +226,10 @@ header img {
 }
 
 .main .bg {
-  margin-top:12px;
+  margin-top: 12px;
   background-color: #fcfcff;
   background: repeat center url(../img/argus5.png);
-  background-attachment: fixed; 
+  background-attachment: fixed;
   border-top: 2px solid #f5f5fa;
   min-height: calc(100vh - 62px - 53px);
   /* height: fit-content; */
@@ -342,9 +342,9 @@ header img {
 }
 
 .whole-width h1 {
-    font-weight: 500 !important;
-    font-size: 30px !important;
-    margin: 35px 0 0 44px !important;
+  font-weight: 500 !important;
+  font-size: 30px !important;
+  margin: 35px 0 0 44px !important;
 }
 
 .whole-width h3 {
@@ -356,6 +356,25 @@ header img {
 
 .whole-width button {
   margin: 30px 0 35px 44px;
+}
+
+.download-file {
+  display: flex;
+  margin: 15px 15px 15px 44px;
+  padding: 10px;
+  border-radius: 7px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  justify-content: left;
+  align-items: center;
+  gap: 10px;
+  width: 450px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.download-file:hover {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 @keyframes loader_5191 {
@@ -382,7 +401,7 @@ header img {
 }
 
 .square {
-  background: #8086F9;
+  background: #8086f9;
   width: 10px;
   height: 10px;
   position: absolute;
@@ -489,7 +508,6 @@ header img {
   animation: loader_5191 675ms ease-in-out 600ms infinite;
 }
 
-
 .content .organisation {
   width: 250px;
   display: inline-block;
@@ -547,11 +565,12 @@ header img {
 }
 
 @keyframes moveText {
-  0%, 100% {
-      transform: translateX(5%);
+  0%,
+  100% {
+    transform: translateX(5%);
   }
   50% {
-      transform: translateX(calc(150px - 105%));
+    transform: translateX(calc(150px - 105%));
   }
 }
 
@@ -599,7 +618,7 @@ header img {
   filter: brightness(0.95) !important;
 }
 
-.organisation .checkbox-input:checked + .checkbox-label .checkmark, 
+.organisation .checkbox-input:checked + .checkbox-label .checkmark,
 .add-new .checkbox-input:checked + .checkbox-label .checkmark,
 .permission-group .checkbox-input:checked + .checkbox-label .checkmark {
   background: url(../img/checkbox-check.svg);
@@ -806,7 +825,7 @@ header img {
 .add-user-form h1 {
   margin: 0;
   font-size: 30px;
-  color: rgba(0, 0, 0, 0.70);
+  color: rgba(0, 0, 0, 0.7);
   margin-bottom: 10px;
 }
 
@@ -1131,7 +1150,7 @@ tr:nth-child(even) {
   padding: 5px 16px;
   border-radius: 50%;
   font-size: 20px;
-  background: #FFFFFF69;
+  background: #ffffff69;
 }
 
 #info-icon.right {
@@ -1141,7 +1160,7 @@ tr:nth-child(even) {
 
 #info-icon a {
   text-decoration: none;
-  color:rgba(0, 0, 0, 0.6);
+  color: rgba(0, 0, 0, 0.6);
 }
 
 #info-icon:hover + #copyright {
@@ -1442,14 +1461,14 @@ tr:nth-child(even) {
   filter: brightness(0.9);
 }
 
-.container{
+.container {
   width: 420px;
   height: 265px;
   background-color: rgba(245, 245, 250, 1);
   margin-bottom: 20px;
   position: relative;
 }
-.box{
+.box {
   width: fit-content;
   height: 18px !important;
   padding: 1px;
@@ -1803,7 +1822,7 @@ input[type="datetime-local"] {
   top: 0;
   left: -20px;
   border-radius: 15px;
-  background-color: #FFFFFF99;
+  background-color: #ffffff99;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -1937,7 +1956,7 @@ input[type="datetime-local"] {
 }
 
 .signals-list.active {
-  width: 345px; 
+  width: 345px;
 }
 
 .signals-list h1 {
@@ -2112,7 +2131,7 @@ input[type="datetime-local"] {
 }
 
 .radio-input:checked + .radio-label {
-  background: rgba(0, 0, 0, 0.10);
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .stream-map {
@@ -2202,13 +2221,13 @@ input[type="datetime-local"] {
 }
 
 .stream-cameras {
-  background: #F5F5FA;
+  background: #f5f5fa;
   position: absolute;
   bottom: 0;
   right: 0;
   width: calc(100% - 345px - 2px);
   z-index: 3;
-  transition: all 0.3s ease-in-out
+  transition: all 0.3s ease-in-out;
 }
 
 .stream-cameras button {
@@ -2223,7 +2242,7 @@ input[type="datetime-local"] {
   filter: brightness(0.9);
 }
 .cameras {
-  background: #F5F5FA;
+  background: #f5f5fa;
   position: absolute;
   top: 0;
   right: 0;
@@ -2237,7 +2256,7 @@ input[type="datetime-local"] {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 20px; 
+  height: 20px;
   transition: 0.1s;
   cursor: pointer;
 }
@@ -2264,7 +2283,6 @@ input[type="datetime-local"] {
 .video-group.active {
   display: block;
 }
-
 
 .stream-video-container video {
   height: auto;
@@ -2343,7 +2361,6 @@ input[type="datetime-local"] {
   height: 25%;
   padding: 0;
   border: 1px solid white;
-  
 }
 
 .report-video-container {
@@ -2375,7 +2392,6 @@ input[type="datetime-local"] {
   width: 450px;
   border-right: 2px solid rgba(245, 245, 250, 1);
 }
-
 
 .edit-container {
   position: fixed;
@@ -2479,7 +2495,7 @@ input[type="datetime-local"] {
   position: absolute;
   bottom: 0;
   left: 25%;
-  background-color:white;
+  background-color: white;
   margin: 4px;
 }
 
@@ -2496,7 +2512,7 @@ input[type="datetime-local"] {
   font-size: 16px;
   font-weight: 600;
   margin: 0;
-  color: rgba(0, 0, 0, 0.90);
+  color: rgba(0, 0, 0, 0.9);
 }
 
 #prevMonth {
@@ -2507,7 +2523,8 @@ input[type="datetime-local"] {
   background-image: url(../img/right.svg);
 }
 
-#prevMonth, #nextMonth {
+#prevMonth,
+#nextMonth {
   background-color: transparent;
   border: none;
   height: 18px;
@@ -2520,7 +2537,7 @@ input[type="datetime-local"] {
   justify-content: space-around;
   padding: 15px 0;
   font-size: 14px;
-  color: #7E818C;
+  color: #7e818c;
 }
 
 .dates {
@@ -2542,11 +2559,11 @@ input[type="datetime-local"] {
 }
 
 .date:hover {
-  background-color: #8086F939;
+  background-color: #8086f939;
 }
 
 .date.selected {
-  background-color: #8086F9;
+  background-color: #8086f9;
   color: white;
 }
 
@@ -2593,7 +2610,7 @@ input[type="datetime-local"] {
   position: absolute;
   right: 7px;
   bottom: 7px;
-  background-color:white;
+  background-color: white;
   border-radius: 15px;
 }
 input[type="time"]::-webkit-calendar-picker-indicator {
@@ -2603,8 +2620,8 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .video-time input[type="time"] {
   padding: 6px;
   border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.10);
-  background: #FFF;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: #fff;
   font-size: 16px;
   outline: none;
   cursor: text;
@@ -2613,13 +2630,13 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 
 input[type="time"]:hover,
 input[type="time"]:focus {
-  border: 1px solid rgba(0, 0, 0, 0.30);
+  border: 1px solid rgba(0, 0, 0, 0.3);
 }
 
 #adminTable {
   border-collapse: collapse;
   overflow: hidden;
-  box-shadow: 0 0 0 2px #F5F5FA;
+  box-shadow: 0 0 0 2px #f5f5fa;
   border-radius: 20px;
   background-color: white;
   -moz-border-radius: 20px;
@@ -2628,7 +2645,7 @@ input[type="time"]:focus {
 
 #adminTable th {
   background-color: white !important;
-  color: rgba(0, 0, 0, 0.80);
+  color: rgba(0, 0, 0, 0.8);
   font-size: 24px;
   font-weight: 600;
   padding: 18px 18px 12px 28px;
@@ -2636,7 +2653,7 @@ input[type="time"]:focus {
 }
 
 #adminTable td {
-  color: rgba(0, 0, 0, 0.60);
+  color: rgba(0, 0, 0, 0.6);
   font-size: 18px;
   padding: 14px 18px 14px 28px;
   border-bottom: 0;
@@ -2644,11 +2661,11 @@ input[type="time"]:focus {
 
 .name .user-id {
   padding: 0 11px;
-  color: rgba(0, 0, 0, 0.60);
+  color: rgba(0, 0, 0, 0.6);
   font-size: 15px !important;
   font-weight: 500;
   border-radius: 20px;
-  border: 1px solid rgba(0, 0, 0, 0.10);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   background: rgba(0, 0, 0, 0.05);
   margin-left: 15px;
   height: 30px !important;
