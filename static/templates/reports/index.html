@@ -291,7 +291,7 @@
                       countMax = Math.ceil(data.total / 14);
 
                       var currentPage = parseInt(pageNumberInput.value, 10);
-                      if (currentPage === countMax || currentPage > countMax) {
+                      if (currentPage > countMax) {
                         pageNumberInput.value = countMax;
                         requestUpdate();
                       }
