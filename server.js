@@ -4319,7 +4319,18 @@ async function settings(req, res) {
 
 async function documentation(req, res) {
   if (req.session.userId === undefined) {
-    return res.redirect("/signin?page=documentation");
+    let templateData = {
+      VIRTUAL_HOST: process.env.VIRTUAL_HOST,
+    };
+
+    const source = fs.readFileSync(
+      "static/templates/documentation-NA.html",
+      "utf8"
+    );
+    const template = handlebars.compile(source);
+    const resultT = template(templateData);
+    res.send(resultT);
+    return;
   }
   const userInfo = await getUserInfo(req.session.userId);
   let templateData = {
