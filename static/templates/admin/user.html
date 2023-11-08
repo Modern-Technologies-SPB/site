@@ -208,15 +208,6 @@
                           {{/if}}
                         </div>
 
-                        <div class="permission-group">
-                          <h2>Обновление ПО</h2>
-                          {{#if Update}}
-                          <img><input name="Update" type="checkbox" id="update-do" class="checkbox-input device-filter" hidden checked><label for="update-do" class="checkbox-label"><div class="checkmark"></div>Обновлять</label>
-                          {{else}}
-                          <img><input name="Update" type="checkbox" id="update-do" class="checkbox-input device-filter" hidden><label for="update-do" class="checkbox-label"><div class="checkmark"></div>Обновлять</label>
-                          {{/if}}
-                        </div>
-
                       </section>
 
                         <div style="margin-left: 44px; margin-right: 72px; width: calc(100% - 44px - 72px);" class="horizontal-line"></div>
@@ -313,7 +304,6 @@
                 password: document.getElementById('user-password').value,
                 EditTransport: document.getElementById('device-edit').checked,
                 DeleteTransport: document.getElementById('device-delete').checked,
-                Update: document.getElementById('update-do').checked,
             };
 
             // Объединяем все данные в один объект
