@@ -120,7 +120,7 @@ app.post("/videos/restart", async (req, res) => {
 
   var options = {
     method: "GET",
-    url: `http://${process.env.VIRTUAL_HOST}/http/restart`,
+    url: `http://${process.env.VIRTUAL_HOST}:4747/http/restart`,
     headers: { "Content-Type": "application/json" },
     data: { video: true },
   };
@@ -2753,7 +2753,7 @@ app.post("/update-group", async (req, res) => {
 
 async function getParameters(serial) {
   const requestResponse = await axios.get(
-    `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+    `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/request?serial=${serial}`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -2767,7 +2767,7 @@ async function getParameters(serial) {
   await new Promise((resolve) => setTimeout(resolve, 300));
 
   const requestResponse2 = await axios.get(
-    `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+    `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/request?serial=${serial}`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -2781,7 +2781,7 @@ async function getParameters(serial) {
   await new Promise((resolve) => setTimeout(resolve, 300));
 
   const requestResponse3 = await axios.get(
-    `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+    `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/request?serial=${serial}`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -2795,7 +2795,7 @@ async function getParameters(serial) {
   await new Promise((resolve) => setTimeout(resolve, 300));
 
   const requestResponse5 = await axios.get(
-    `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+    `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/request?serial=${serial}`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -2810,7 +2810,7 @@ async function getParameters(serial) {
   await new Promise((resolve) => setTimeout(resolve, 300));
 
   const getResponse = await axios.get(
-    `http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`
+    `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/get?serial=${serial}`
   );
 
   return getResponse.data;
@@ -2830,7 +2830,7 @@ app.post("/main-parameters", async (req, res) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const requestResponse = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/request?serial=${serial}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -2844,7 +2844,7 @@ app.post("/main-parameters", async (req, res) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const getResponse = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/get?serial=${serial}`
     );
 
     res.json(getResponse.data);
@@ -2886,7 +2886,7 @@ app.put("/main-parameters", async (req, res) => {
         .send("Ошибка: lastkeepalive старше минуты или устройство не найдено.");
     }
     const response = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`,
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/set?serial=${serial}`,
       {
         data: JSON.stringify(requestBody),
         headers: {
@@ -2936,7 +2936,7 @@ app.post("/ethernet-parameters", async (req, res) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const requestResponse = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/request?serial=${serial}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -2950,7 +2950,7 @@ app.post("/ethernet-parameters", async (req, res) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const getResponse = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/get?serial=${serial}`
     );
 
     res.json(getResponse.data);
@@ -3002,7 +3002,7 @@ app.put("/ethernet-parameters", async (req, res) => {
         .send("Ошибка: lastkeepalive старше минуты или устройство не найдено.");
     }
     const response = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`,
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/set?serial=${serial}`,
       {
         data: JSON.stringify(requestBody),
         headers: {
@@ -3030,7 +3030,7 @@ app.post("/wifi-parameters", async (req, res) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const requestResponse = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/request?serial=${serial}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -3044,7 +3044,7 @@ app.post("/wifi-parameters", async (req, res) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const getResponse = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/get?serial=${serial}`
     );
 
     res.json(getResponse.data);
@@ -3092,7 +3092,7 @@ app.put("/wifi-parameters", async (req, res) => {
         .send("Ошибка: lastkeepalive старше минуты или устройство не найдено.");
     }
     const response = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`,
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/set?serial=${serial}`,
       {
         data: JSON.stringify(requestBody),
         headers: {
@@ -3120,7 +3120,7 @@ app.post("/communication-parameters", async (req, res) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const requestResponse = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/request?serial=${serial}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -3134,7 +3134,7 @@ app.post("/communication-parameters", async (req, res) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const getResponse = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/get?serial=${serial}`
     );
 
     res.json(getResponse.data);
@@ -3191,7 +3191,7 @@ app.put("/communication-parameters", async (req, res) => {
         .send("Ошибка: lastkeepalive старше минуты или устройство не найдено.");
     }
     const response = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`,
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/set?serial=${serial}`,
       {
         data: JSON.stringify(requestBody),
         headers: {
@@ -3219,7 +3219,7 @@ app.post("/install-parameters", async (req, res) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const requestResponse = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/request?serial=${serial}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -3233,7 +3233,7 @@ app.post("/install-parameters", async (req, res) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const getResponse = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/get?serial=${serial}`
     );
 
     res.json(getResponse.data);
@@ -3257,7 +3257,7 @@ app.post("/ai-parameters", async (req, res) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const requestResponse = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/request?serial=${serial}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -3271,7 +3271,7 @@ app.post("/ai-parameters", async (req, res) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const getResponse = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/get?serial=${serial}`
     );
 
     res.json(getResponse.data);
@@ -3312,7 +3312,7 @@ app.put("/ai-parameters", async (req, res) => {
         .send("Ошибка: lastkeepalive старше минуты или устройство не найдено.");
     }
     const response = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`,
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/set?serial=${serial}`,
       {
         data: JSON.stringify(requestBody),
         headers: {
@@ -3340,7 +3340,7 @@ app.post("/cameras-parameters", async (req, res) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const requestResponse = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/request?serial=${serial}`,
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/request?serial=${serial}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -3354,7 +3354,7 @@ app.post("/cameras-parameters", async (req, res) => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const getResponse = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/get?serial=${serial}`
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/get?serial=${serial}`
     );
 
     res.json(getResponse.data);
@@ -3391,7 +3391,7 @@ app.put("/cameras-parameters", async (req, res) => {
         .send("Ошибка: lastkeepalive старше минуты или устройство не найдено.");
     }
     const response = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`,
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/set?serial=${serial}`,
       {
         data: JSON.stringify(requestBody),
         headers: {
@@ -3435,7 +3435,7 @@ app.put("/install-parameters", async (req, res) => {
         .send("Ошибка: lastkeepalive старше минуты или устройство не найдено.");
     }
     const response = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`,
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/set?serial=${serial}`,
       {
         data: JSON.stringify(requestBody),
         headers: {
@@ -3833,7 +3833,7 @@ app.put("/device-parameters", async (req, res) => {
         .send("Ошибка: lastkeepalive старше минуты или устройство не найдено.");
     }
     const response = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`,
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/set?serial=${serial}`,
       {
         data: JSON.stringify(requestBody),
         headers: {
@@ -3874,7 +3874,7 @@ app.put("/camera-parameters", async (req, res) => {
         .send("Ошибка: lastkeepalive старше минуты или устройство не найдено.");
     }
     const response = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/parameters/set?serial=${serial}`,
+      `http://${process.env.VIRTUAL_HOST}:4747/http/parameters/set?serial=${serial}`,
       {
         data: JSON.stringify(requestBody),
         headers: {
@@ -5065,12 +5065,12 @@ app.get("/getData", async (req, res) => {
 
   try {
     const successResponse = await axios.get(
-      `http://${process.env.VIRTUAL_HOST}/http/filelist/request?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`
+      `http://${process.env.VIRTUAL_HOST}:4747/http/filelist/request?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`
     );
     if (successResponse.data.SUCCESS) {
       await new Promise((resolve) => setTimeout(resolve, 7000));
       const dataResponse = await axios.get(
-        `http://${process.env.VIRTUAL_HOST}/http/filelist/get?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`
+        `http://${process.env.VIRTUAL_HOST}:4747/http/filelist/get?serial=${selectedSerial}&querytime=${selectedDate}&channel=${selectedChannel}`
       );
       if (successResponse.data.SUCCESS) {
         const dataId = dataResponse.data.DATAID;
